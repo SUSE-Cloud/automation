@@ -5,12 +5,12 @@ template:
     standard: &mkcloud_automation_standard
       label: openstack-mkcloud
       mkcloudtarget: all_noreboot
-      cloudsource: develcloud8
+      cloudsource: develcloud9
       nodenumber: 2
       networkingplugin: openvswitch
     stable: &mkcloud_automation_stable
       <<: *mkcloud_automation_standard
-      cloudsource: GM7+up
+      cloudsource: GM8+up
   ardana_parameters: &ardana_automation_parameters
     standard: &ardana_automation_standard
   user:
@@ -50,7 +50,7 @@ template:
         config:
           paths:
             -  !ruby/regexp '/scripts\/(mkcloud|qa_crowbarsetup\.sh|lib\/.*)$/'
-            -  !ruby/regexp '/scripts\/jenkins\/log-parser\//'
+            -  !ruby/regexp '/scripts\/jenkins\/(log-parser|mkcloud)\//'
         blacklist_handler:
           - type: SetStatus
             parameters:

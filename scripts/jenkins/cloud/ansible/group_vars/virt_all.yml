@@ -1,0 +1,45 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+ses_cluster_id: "virt"
+ses_rgw_port: 8081
+
+ardana_common_extra_vars:
+  nova_migrate_enabled: "{{ ardana_nova_migrate_enabled }}"
+  nova_cpu_mode: custom
+  nova_cpu_model: Westmere
+  # When the mariadb is running on top of shared storage, decouple commit and
+  # flush operations, to account for its high latency and prevent performance
+  # issues
+  innodb_flush_log_at_trx_commit: "{{ ardana_dbmq_use_root_volume | ternary(1, 2) }}"
+
+ardana_process_count_overrides:
+  keystone_wsgi_admin_process_count: 2
+  keystone_wsgi_public_process_count: 6
+  neutron_api_workers: 2
+  neutron_rpc_workers: 1
+  neutron_metadata_workers: 2
+  barbican_api_max_worker_count: 2
+  nova_api_workers: 2
+  nova_metadata_workers: 2
+  nova_conductor_workers: 2
+  osapi_volume_worker_count: 2
+  swift_worker_count: 2
+  num_engine_worker_count: 2
+  glance_worker_count: 2
+
+ardana_extra_vars: "{{ when_cloud8 | ternary(ardana_common_extra_vars | combine(ardana_process_count_overrides), ardana_common_extra_vars) }}"

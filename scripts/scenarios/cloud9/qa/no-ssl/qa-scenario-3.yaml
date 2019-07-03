@@ -69,6 +69,8 @@ proposals:
         shared:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -156,20 +158,6 @@ proposals:
   deployment:
     elements:
       heat-server:
-      - cluster:services
-
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - @@compute1@@
-      - @@compute2@@
-      - @@compute3@@
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
       - cluster:services
 
 - barclamp: manila

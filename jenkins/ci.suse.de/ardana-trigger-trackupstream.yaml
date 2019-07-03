@@ -1,0 +1,41 @@
+- job:
+    name: 'ardana-trigger-trackupstream'
+
+    concurrent: false # It's not a good idea to try to do the same update twice.
+    triggers:
+      - gerrit:
+          server-name: 'gerrit.prv.suse.net'
+          trigger-on:
+            - change-merged-event
+          skip-vote:
+              notbuilt: true
+          projects:
+            - project-compare-type: 'REG_EXP'
+              project-pattern: !include-raw: gerrit-project-regexp-cloud9.txt
+              branches:
+                - branch-pattern: master
+            - project-compare-type: 'REG_EXP'
+              project-pattern: !include-raw: gerrit-project-regexp-cloud8.txt
+              branches:
+                - branch-pattern: stable/pike
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 30
+
+    node: openstack-trackupstream
+
+    parameters:
+      - string:
+          name: GERRIT_PROJECT
+          description: |
+            The name of the git repository. It gets mapped to the IBS package.
+            Example: "ardana/ardana-ansible"
+      - string:
+          name: GERRIT_BRANCH
+          default: master
+          description: |
+            The branch. It gets mapped to the IBS project.
+            Example: stable/pike
+
+    builders:
+      - trackupstream

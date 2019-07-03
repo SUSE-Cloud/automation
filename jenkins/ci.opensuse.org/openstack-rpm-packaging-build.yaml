@@ -13,3 +13,5 @@
             release: 'Queens'
         - 'openstack-rpm-packaging-sles12-{release}':
             release: 'Rocky'
+        - 'openstack-rpm-packaging-sles12-{release}':
+            release: 'Stein'

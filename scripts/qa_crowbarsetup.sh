@@ -82,7 +82,10 @@ declare -a unclustered_nodes
 export magnum_k8s_image_name=openstack-magnum-k8s-image
 
 export nodenumber=${nodenumber:-2}
-if iscloudver 7plus; then
+if [[ $want_ironic = 1 ]] ; then
+    # TODO: re-enable BaremetalBFV when Ironic barclamp supports BFV
+    export tempestoptions=${tempestoptions:--r ironic --black-regex BaremetalBFV}
+elif iscloudver 7plus; then
     export tempestoptions=${tempestoptions:---smoke}
 else
     export tempestoptions=${tempestoptions:--t -s}
@@ -226,20 +229,30 @@ function issusenode
     knife node show $machine -a node.target_platform | grep -q suse-
 }
 
-function openstack
-{
-    command openstack --insecure "$@"
-}
-export NEUTRONCLIENT_INSECURE=true
-export NOVACLIENT_INSECURE=true
-export SWIFTCLIENT_INSECURE=true
-export CINDERCLIENT_INSECURE=true
-export MAGNUMCLIENT_INSECURE=true
-# Extra environment variable because of https://launchpad.net/bugs/1535284
-export manilaclient_INSECURE=true
-export MANILACLIENT_INSECURE=true
-export MISTRALCLIENT_INSECURE=true
-export TROVECLIENT_INSECURE=true
+if [[ $want_ssl_trusted != 1 ]] ; then
+    function openstack
+    {
+        command openstack --insecure "$@"
+    }
+    function nova
+    {
+        command nova --insecure "$@"
+    }
+    function neutron
+    {
+        command neutron --insecure "$@"
+    }
+    export NEUTRONCLIENT_INSECURE=true
+    export NOVACLIENT_INSECURE=true
+    export SWIFTCLIENT_INSECURE=true
+    export CINDERCLIENT_INSECURE=true
+    export MAGNUMCLIENT_INSECURE=true
+    # Extra environment variable because of https://launchpad.net/bugs/1535284
+    export manilaclient_INSECURE=true
+    export MANILACLIENT_INSECURE=true
+    export MISTRALCLIENT_INSECURE=true
+    export TROVECLIENT_INSECURE=true
+fi
 
 function isrepoworking
 {
@@ -263,6 +276,11 @@ function addslestestupdates
         add_mount "repos/$arch/SLES$slesversion-Updates-test/" \
             "$tftpboot_repos_dir/SLES$slesversion-Updates-test/" "slestup"
     fi
+
+    if iscloudver 7minus && isrepoworking SLES$slesversion-LTSS-Updates-test ; then
+        add_mount "repos/$arch/SLES$slesversion-LTSS-Updates-test/" \
+            "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates-test/" "slesltup"
+    fi
 }
 
 function addcloudmaintupdates
@@ -274,8 +292,10 @@ function addcloudmaintupdates
 
 function addcloudtestupdates
 {
-    add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" \
-        "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" "cloudtup"
+    if isrepoworking SUSE-OpenStack-Cloud-$cloudrepover-Updates-test ; then
+        add_mount "repos/$arch/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" \
+            "$tftpboot_repos_dir/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/" "cloudtup"
+    fi
 }
 
 function addcloudpool
@@ -370,7 +390,15 @@ function get_disk_id_by_serial_and_libvirt_type
 
 function get_all_nodes
 {
-    safely crowbarctl node list --no-meta --plain | LC_ALL=C sort
+    crowbar_node_list=$(safely crowbarctl node list --no-meta --plain | LC_ALL=C sort)
+    if [ -n "$custom_crowbar_node_order" ]; then
+        # return only the nodes that are registered
+        for onenode in $custom_crowbar_node_order ; do
+            printf "%s\n" ${crowbar_node_list[@]} | grep $onenode
+        done
+    else
+        printf "%s\n" ${crowbar_node_list[@]}
+    fi
 }
 
 function get_all_suse_nodes
@@ -645,24 +673,10 @@ function onadmin_prepare_cloud_repos
     fi
 
     case "$cloudsource" in
-        GM6)
+        GM6|GM7|GM8|GM9)
             addcloudpool
             ;;
-        GM6+up)
-            addcloudpool
-            addcloudmaintupdates
-            ;;
-        GM7)
-            addcloudpool
-            ;;
-        GM7+up)
-            addcloudpool
-            addcloudmaintupdates
-            ;;
-        GM8)
-            addcloudpool
-            ;;
-        GM8+up)
+        GM6+up|GM7+up|GM8+up|GM9+up)
             addcloudpool
             addcloudmaintupdates
             ;;
@@ -670,24 +684,10 @@ function onadmin_prepare_cloud_repos
 
     if [[ "$want_test_updates" = 1 ]] ; then
         case "$cloudsource" in
-            GM6)
+            GM6|GM7|GM8|GM9)
                 addslestestupdates
                 ;;
-            GM6+up)
-                addslestestupdates
-                addcloudtestupdates
-                ;;
-            GM7)
-                addslestestupdates
-                ;;
-            GM7+up)
-                addslestestupdates
-                addcloudtestupdates
-                ;;
-            GM8)
-                addslestestupdates
-                ;;
-            GM8+up)
+            GM6+up|GM7+up|GM8+up|GM9+up)
                 addslestestupdates
                 addcloudtestupdates
                 ;;
@@ -700,7 +700,7 @@ function onadmin_prepare_cloud_repos
             develcloud8)
                 addslestestupdates
                 ;;
-            *cloud9|M?|Beta*|RC*|GMC*)
+            *cloud9|M?*|Beta*|RC*|GMC*)
                 addslestestupdates
                 ;;
             *)
@@ -830,6 +830,8 @@ function create_repos_yml
     if iscloudver 7minus ; then
         grep -q SLES$slesversion-LTSS-Updates /etc/fstab && \
             additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
+        grep -q SLES$slesversion-LTSS-Updates-test /etc/fstab && \
+            additional_repos+=" SLES$slesversion-LTSS-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates-test"
     fi
     grep -q SLE$slesversion-HA-Updates-test /etc/fstab && \
         additional_repos+=" SLE$slesversion-HA-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLE$slesversion-HA-Updates-test"
@@ -879,14 +881,12 @@ function onadmin_set_source_variables
             CLOUDISOURL=${want_cloud6_iso_url:="$susedownload/ibs/Devel:/Cloud:/6/images/iso"}
             [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/6:/Staging/images/iso"
             CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}-Media1.iso"}
-            CLOUDTESTISONAME="CLOUD-6-TESTING-$arch*Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         develcloud7)
             CLOUDISOURL=${want_cloud7_iso_url:="$susedownload/ibs/Devel:/Cloud:/7/images/iso"}
             [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/7:/Staging/images/iso"
             CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"}
-            CLOUDTESTISONAME="CLOUD-7-TESTING-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
         develcloud8)
@@ -901,15 +901,11 @@ function onadmin_set_source_variables
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
-        rockycloud9)
-            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Rocky/images/iso"
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Rocky/images/iso"
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel-rocky"
-        ;;
-        susecloud9)
-            CLOUDISOURL="$susedownload/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/images/iso/"
-            CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*Media1.iso"
+        GM9|GM9+up)
+            cs=$cloudsource
+            [[ $cs =~ GM9 ]] && cs=GM
+            CLOUDISOURL="${want_cloud9_iso_url:=$reposerver/install/SLE-12-SP4-Cloud9-$cs/}"
+            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         GM6|GM6+up)
@@ -929,15 +925,14 @@ function onadmin_set_source_variables
         GM8|GM8+up)
             cs=$cloudsource
             [[ $cs =~ GM8 ]] && cs=GM
-            # TODO: Switch to clouddata when released
             CLOUDISOURL="${want_cloud8_iso_url:=$reposerver/install/SLE-12-SP3-Cloud8-$cs/}"
-            CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-8-${arch}*1.iso"}
-            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-8-official"
+            CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}*1.iso"}
+            CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-official"
         ;;
-        GMC*|M?|RC?)
+        GMC*|M?*|RC?)
             cs=$cloudsource
             CLOUDISOURL="${want_cloud9_iso_path:=$susedownload/install/SLE-12-SP4-Cloud9-$cs/}"
-            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}*1.iso"}
+            CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-official"
         ;;
         *)
@@ -976,7 +971,7 @@ function onadmin_prepareinstallcrowbar
     [[ $forcephysicaladmin ]] || lsmod | grep -q ^virtio_blk || complain 25 "this script should be run in the crowbar admin VM"
     [[ $want_ssl_keys ]] && ! [[ -e /root/cloud-keys/ ]] && rsync -a "$want_ssl_keys/" /root/cloud-keys/
     [[ $want_rootpw = linux ]] || echo -e "$want_rootpw\n$want_rootpw" | passwd
-    echo configure static IP and absolute + resolvable hostname ${crowbar_name}.$cloudfqdn gw:$net.1
+    echo configure static IP and absolute + resolvable hostname ${crowbar_name}.$cloudfqdn gw:$net${ip_sep}1
     # We want to use static networking which needs a static resolv.conf .
     # The SUSE sysconfig/ifup scripts drop DNS-servers received from DHCP
     # when switching from DHCP to static.
@@ -986,15 +981,25 @@ function onadmin_prepareinstallcrowbar
 NAME='eth0'
 STARTMODE='auto'
 BOOTPROTO='static'
+EOF
+    if (( ${want_ipv6} > 0 )); then
+        cat >> /etc/sysconfig/network/ifcfg-eth0 <<EOF
+IPV6INIT=yes
+IPV6ADDR='$adminip/$adminnetmask'
+IPV6_DEFAULTGW='${net_admin}${ip_sep}1'
+EOF
+    else
+        cat >> /etc/sysconfig/network/ifcfg-eth0 <<EOF
 IPADDR='$adminip'
 NETMASK='255.255.255.0'
-BROADCAST='$net.255'
+BROADCAST='$net${ip_sep}255'
 EOF
+    fi
     ifdown br0
     rm -f /etc/sysconfig/network/ifcfg-br0
-    routes_file=/etc/sysconfig/network/routes
+    routes_file=/etc/sysconfig/network/ifroute-eth0
     if ! [ -e $routes_file ] || ! grep -q "^default" $routes_file; then
-        echo "default $net.1 - -" > $routes_file
+        echo "default $net${ip_sep}1" > $routes_file
     fi
     echo "${crowbar_name}.$cloudfqdn" > /etc/HOSTNAME
     hostname `cat /etc/HOSTNAME`
@@ -1070,21 +1075,49 @@ EOF
     local netfile="/etc/crowbar/network.json"
 
     local netfilepatch=`basename $netfile`.patch
+
+    if (( $want_ipv6 > 0 )); then
+        cp $netfile ${netfile}.orig-v4
+        cp $scripts_lib_dir/ipv6/network.json $netfile
+    fi
+
     if [ -e ~/$netfilepatch ]; then
         ensure_packages_installed patch
         patch -p1 $netfile < ~/$netfilepatch
+    fi
+    if [ -e ~/crowbar.patch ]; then
+        ensure_packages_installed patch
+        (
+            cd /opt/dell
+            patch -p1 < ~/crowbar.patch
+        )
     fi
 
     # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
     sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
 
-    sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
-        -e "s/192.168.124/$net/g" \
-        -e "s/192.168.130/$net_sdn/g" \
-        -e "s/192.168.125/$net_storage/g" \
-        -e "s/192.168.127/$net_ceph/g" \
-        -e "s/192.168.123/$net_fixed/g" \
-        -e "s/192.168.122/$net_public/g" \
+    if (( $want_ipv6 > 0 )); then
+        sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "fd00:0:0:3::1",/' \
+            -e "s/fd00:0:0:3:/$net${ip_sep}/g" \
+            -e "s/fd00:0:0:7:/$net_sdn${ip_sep}/g" \
+            -e "s/fd00:0:0:4:/$net_storage${ip_sep}/g" \
+            -e "s/fd00:0:0:5:/$net_ceph${ip_sep}/g" \
+            -e "s/fd00:0:0:2:/$net_fixed${ip_sep}/g" \
+            -e "s/fd00:0:0:1:/$net_public${ip_sep}/g" \
+            -e "s/fd00:0:0:3:5054:ff:fe77:7770/$adminip/g" \
+            -e "s/fd00:0:0:3:5054:ff:fe77:7771/$admin_end_range/g" \
+            $netfile
+    else
+        sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
+            -e "s/192.168.124./$net${ip_sep}/g" \
+            -e "s/192.168.130./$net_sdn${ip_sep}/g" \
+            -e "s/192.168.125./$net_storage${ip_sep}/g" \
+            -e "s/192.168.127./$net_ceph${ip_sep}/g" \
+            -e "s/192.168.123./$net_fixed${ip_sep}/g" \
+            -e "s/192.168.122./$net_public${ip_sep}/g" \
+            $netfile
+    fi
+    sed -i.netbak.vlan \
         -e "s/ 200/ $vlan_storage/g" \
         -e "s/ 600/ $vlan_ceph/g" \
         -e "s/ 300/ $vlan_public/g" \
@@ -1119,6 +1152,12 @@ EOF
     fi
 
     if [[ $want_ironic = 1 ]] ; then
+        if (( $want_ipv6 > 0 )); then
+            # IPv6 don't use broadcast addresses.
+            local ironic_bc=""
+        else
+            local ironic_bc="${net_ironic}${ip_sep}255"
+        fi
         local conmap_complete=`
             python - <<EOPYTHON
 import json
@@ -1146,19 +1185,19 @@ ironic_network={
     'add_bridge': False,
     'add_ovs_bridge': False,
     'bridge_name': 'br-ironic',
-    'subnet': '$net_ironic.0',
+    'subnet': '${net_ironic}${ip_sep}0',
     'netmask': '$ironicnetmask',
-    'broadcast': '$net_ironic.255',
-    'router': '$net_ironic.1',
+    'broadcast': '$ironic_bc',
+    'router': '${net_ironic}${ip_sep}1',
     'router_pref': 50,
     'ranges': {
       'admin': {
-        'start': '$net_ironic.10',
-        'end': '$net_ironic.11'
+        'start': '${net_ironic}${ip_sep}10',
+        'end': '${net_ironic}${ip_sep}11'
       },
       'dhcp': {
-        'start': '$net_ironic.21',
-        'end': '$net_ironic.254'
+        'start': '${net_ironic}${ip_sep}21',
+        'end': '${net_ironic}${ip_sep}254'
       }
     },
     'mtu': 1500
@@ -1178,7 +1217,11 @@ EOPYTHON
     fi
     if [[ $cloud =~ qa ]] ; then
         # QA clouds have too few IP addrs, so smaller subnets are used
-        wget -O$netfile http://gate.cloud2adm.qa.suse.de/network.json/${cloud}_dual
+        if [[ $want_ironic && $cloud = "qa2" ]] ; then
+            wget -O$netfile http://gate.cloud2adm.qa.suse.de/network.json/${cloud}_dual_ironic
+        else
+            wget -O$netfile http://gate.cloud2adm.qa.suse.de/network.json/${cloud}_dual
+        fi
         sed -i 's/bc-template-network/template-network/' $netfile
     fi
     if [[ $cloud = p1 ]] ; then
@@ -1712,7 +1755,9 @@ function onadmin_post_allocate
         done
 
         if [[ $want_sbd = 1 ]] ; then
-            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/ install python-sh
+            local backport_slesdist=$slesdist
+            iscloudver 8plus || backport_slesdist=SLE_12
+            $zypper -p http://download.opensuse.org/repositories/devel:/languages:/python:/backports/$backport_slesdist/ install python-sh
             chmod +x $SCRIPTS_DIR/iscsictl.py
             $SCRIPTS_DIR/iscsictl.py --service target --host $(hostname) --no-key
 
@@ -1842,7 +1887,7 @@ function onadmin_crowbar_register
             set -x
             rm -f /tmp/crowbar_register_done;
             zypper -n in wget screen
-            wget http://$adminip:8091/$image/crowbar_register &&
+            wget http://$(wrap_ip $adminip):8091/$image/crowbar_register &&
             chmod a+x crowbar_register &&
             $hostnamecmd
             zypper -n ref &&
@@ -1955,10 +2000,80 @@ function proposal_set_value
     proposal_modify_value "$1" "$2" "$3" "$4" "="
 }
 
+# get the currently set value in the proposal
+function proposal_get_value
+{
+    local proposal="$1"
+    local proposaltype="$2"
+    local variable="$3"
+
+    local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
+
+    safely rubyjsonparse "puts j${variable}" < $pfile
+}
+
 # wrapper for proposal_modify_value
 function proposal_increment_int
 {
     proposal_modify_value "$1" "$2" "$3" "$4" "+="
+}
+
+# wrapper for proposal_modify_value
+function proposal_append_value
+{
+    proposal_modify_value "$1" "$2" "$3" "$4" "<<"
+}
+
+function setup_trusted_cert
+{
+    local certfile=$1
+    local keyfile=$2
+
+    if [[ $hacloud = 1 ]] ; then
+        cluster_node_assignment
+        local clusternodes_var=$(echo clusternodes${clusternameservices})
+        local controller_nodes=${!clusternodes_var}
+        local cn=$(get_cluster_vip_hostname $clusternameservices)
+    else
+        local controller_nodes=($(get_all_discovered_nodes | head -n 1))
+        local cn=$controller_nodes
+    fi
+
+    if [ ! -f $cn.pem ] ; then
+        # Generate Root CA
+        openssl req -x509 -newkey rsa:2048 -keyout rootca.key -out rootca.pem \
+            -days 365 -nodes \
+            -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
+        # Generate CSR
+        subj_alt="DNS:${cn},DNS:public-${cn},DNS:public.${cn}"
+        # openssl 1.1.1 supports setting the subjectAltName directly in the command line,
+        # but SLES 12 SP4 only has 1.0.2 so we need to read in the config like this
+        openssl req -new -newkey rsa:2048 -keyout $cn.key -out $cn.csr \
+            -days 365 -nodes \
+            -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=${cn}" \
+            -config <(sed -e "/^\[ req \]/areq_extensions = v3_req" \
+                        -e "/^\[ v3_req \]/asubjectAltName=${subj_alt}" \
+                        /etc/ssl/openssl.cnf )
+        # Generate Cert
+        openssl x509 -req -in $cn.csr -CA rootca.pem -CAkey rootca.key \
+            -CAcreateserial -days 365 -out $cn.pem \
+            -extensions v3_ca \
+            -extfile <(sed -e "/^\[ v3_ca \]/asubjectAltName=${subj_alt}" \
+                        /etc/ssl/openssl.cnf )
+
+    fi
+
+    local node
+    for node in $controller_nodes; do
+        ssh $node mkdir -p $(dirname $certfile)
+        ssh $node mkdir -p $(dirname $keyfile)
+        scp $cn.pem $node:$certfile
+        scp $cn.key $node:$keyfile
+    done
+    for node in $(get_all_discovered_nodes); do
+        cat rootca.pem | ssh $node 'cat >> /etc/pki/trust/anchors/rootca.pem'
+        ssh $node update-ca-certificates
+    done
 }
 
 function enable_ssl_generic
@@ -1989,13 +2104,19 @@ function enable_ssl_generic
             fi
             return
         ;;
-        swift|rabbitmq)
+        swift)
             $p "$a['ssl']['enabled']" true
+        ;;
+        rabbitmq)
+            $p "$a['ssl']['enabled']" true
+            $p "$a['ssl']['generate_certs']" true
+            $p "$a['ssl']['insecure']" true
+            return
         ;;
         nova)
             $p "$a['ssl']['enabled']" true
             $p "$a['novnc']['ssl']['enabled']" true
-            if iscloudver 7plus ; then
+            if iscloudver 7 ; then
                 $p "$a['ec2-api']['ssl']['enabled']" true
                 $p "$a['ec2-api']['ssl']['generate_certs']" true
                 $p "$a['ec2-api']['ssl']['insecure']" true
@@ -2003,7 +2124,9 @@ function enable_ssl_generic
         ;;
         horizon|nova_dashboard)
             $p "$a['apache']['ssl']" true
-            $p "$a['apache']['generate_certs']" true
+            local certfile=$(proposal_get_value $service default "$a['apache']['ssl_crt_file']")
+            local keyfile=$(proposal_get_value $service default "$a['apache']['ssl_key_file']")
+            setup_trusted_cert $certfile $keyfile
             return
         ;;
         heat)
@@ -2024,12 +2147,20 @@ function enable_ssl_generic
             $p "$a['radosgw']['ssl']['insecure']" true
             return
         ;;
+        keystone)
+            $p "$a['ssl']['ca_certs']" "'/etc/ssl/ca-bundle.pem'"
+            $p "$a['api']['protocol']" "'https'"
+            if iscloudver 7minus ; then
+                $p "$a['signing']['ca_certs']" "'/etc/ssl/ca-bundle.pem'"
+            fi
+        ;;
         *)
             $p "$a['api']['protocol']" "'https'"
         ;;
     esac
-    $p "$a['ssl']['generate_certs']" true
-    $p "$a['ssl']['insecure']" true
+    local certfile=$(proposal_get_value $service default "$a['ssl']['certfile']")
+    local keyfile=$(proposal_get_value $service default "$a['ssl']['keyfile']")
+    setup_trusted_cert $certfile $keyfile
 }
 
 function enable_debug_generic
@@ -2109,7 +2240,7 @@ function hacloud_configure_cluster_defaults
 
 function hacloud_configure_data_cluster
 {
-    if [[ "$want_database_sql_engine" != "mysql" ]] ; then
+    if iscloudver 6minus || [[ "$want_database_sql_engine" == "postgresql" ]] ; then
         proposal_set_value pacemaker $clusternamedata "['attributes']['pacemaker']['drbd']['enabled']" true
     fi
     hacloud_configure_cluster_defaults $clusternamedata "data"
@@ -2161,6 +2292,17 @@ function provisioner_add_repo
     fi
 }
 
+function prepare_proposal_for_modification
+{
+    local proposal=$1
+    local proposaltype=${2:-default}
+
+    # prepare the proposal file to be edited, it will be read once at the end
+    # So, ONLY edit the $pfile  -  DO NOT call "crowbar $x proposal .*" command
+    local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
+    crowbar $proposal proposal show $proposaltype > $pfile
+}
+
 # configure one crowbar barclamp proposal using global vars as source
 #   does not include proposal create or commit
 # input1: name of the barclamp to change
@@ -2172,10 +2314,8 @@ function custom_configuration
     local proposaltypemapped=$proposaltype
     proposaltype=${proposaltype%%+*}
 
-    # prepare the proposal file to be edited, it will be read once at the end
-    # So, ONLY edit the $pfile  -  DO NOT call "crowbar $x proposal .*" command
+    prepare_proposal_for_modification $proposal $proposaltype
     local pfile=`get_proposal_filename "${proposal}" "${proposaltype}"`
-    crowbar $proposal proposal show $proposaltype > $pfile
 
     if [[ $debug_openstack = 1 && $proposal != swift ]] ; then
         sed -i -e "s/debug\": false/debug\": true/" -e "s/verbose\": false/verbose\": true/" $pfile
@@ -2195,7 +2335,7 @@ function custom_configuration
     esac
 
     case "$proposal" in
-        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|sahara|murano|aodh)
+        keystone|glance|neutron|cinder|swift|nova|horizon|nova_dashboard|sahara|aodh)
             if [[ $want_all_debug = 1 ]] || eval [[ \$want_${proposal}_debug = 1 ]] ; then
                 enable_debug_generic $proposal
             fi
@@ -2231,39 +2371,42 @@ function custom_configuration
             fi
         ;;
         database)
-            if [[ $hacloud = 1 ]] ; then
-                if [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                    if [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
-                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['mode']" "'drbd'"
-                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['drbd']['size']" "$drbd_database_size"
-                    else
-                        proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
-                        proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
-                    fi
-                fi
-                # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
-                # Users deploying SOC7 with MariaDB must use this one and not database-server
-                if iscloudver 7 && [[ "$want_database_sql_engine" == "mysql" ]] && \
-                    [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
-                    proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
-                else
-                    proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
-                    if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                        # explicitely set sql_engine to override the default
-                        proposal_set_value database default "['attributes']['database']['sql_engine']" "'postgresql'"
-                    fi
-                fi
-            # non-HA case might need some value for database-server role
-            elif [[ "$want_database_sql_engine" != "mysql" ]] ; then
-                proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['$controllernode']"
-            fi
-            if iscloudver 7plus && [[ $want_database_sql_engine ]] ; then
+            if [[ $want_database_sql_engine ]] ; then
                 proposal_set_value database default "['attributes']['database']['sql_engine']" "'$want_database_sql_engine'"
             fi
-            # for both HA and non-HA, make sure to leave mysql-server role empty for postgresql
-            if iscloudver 7 && [[ "$want_database_sql_engine" != "mysql" ]] && \
-                [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]; then
-                proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
+            # For SOC7 we introduced transitional role called mysql-server that's gonna be used during the upgrade
+            # Users deploying SOC7 with MariaDB must use this one and not database-server
+            # However to not break GM deployments, we should check if the role is actually present.
+            if iscloudver 8plus; then
+                if [[ $hacloud = 1 ]] ; then
+                    proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                fi
+            elif (iscloudver 7 &&  [ -e "/opt/dell/chef/data_bags/crowbar/migrate/database/109_separate_db_roles.rb" ]); then
+                # In this branch, if want_database_sql_engine is not set, mysql is the default
+                if [[ $hacloud = 1 ]] ; then
+                    if [[ "$want_database_sql_engine" != "postgresql" ]] ; then
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "['cluster:$clusternamedata']"
+                    else
+                        # default backend is DRBD for postgresql - and attributes are at different place when 109 migration is present
+                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['mode']" "'drbd'"
+                        proposal_set_value database default "['attributes']['database']['postgresql']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                        proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['cluster:$clusternamedata']"
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
+                    fi
+                else
+                    # non-HA case might need some value for database-server role, otherwise database_service model picks mysql as default
+                    if [[ "$want_database_sql_engine" == "postgresql" ]] ; then
+                        proposal_set_value database default "['deployment']['database']['elements']['database-server']" "['$controllernode']"
+                        proposal_set_value database default "['deployment']['database']['elements']['mysql-server']" "[]"
+                    fi
+                fi
+            # DRBD is default for postgresql based deployments
+            elif [[ $hacloud = 1 ]] ; then
+                # ForSOC7 without 109_separate_db_roles.rb, default is postgresql
+                if [[ "$want_database_sql_engine" != "mysql" ]] ; then
+                    proposal_set_value database default "['attributes']['database']['ha']['storage']['mode']" "'drbd'"
+                    proposal_set_value database default "['attributes']['database']['ha']['storage']['drbd']['size']" "$drbd_database_size"
+                fi
             fi
         ;;
         rabbitmq)
@@ -2272,7 +2415,10 @@ function custom_configuration
                 # need to setup shared storage; in SOC 7, it is available in an
                 # update but disabled by default.
                 if iscloudver 6minus || ( iscloudver 7plus && [[ $want_clustered_rabbitmq = 0 ]] ); then
-                    if [[ "$want_database_sql_engine" == "mysql" ]] ; then
+                    if iscloudver 6minus || [[ "$want_database_sql_engine" == "postgresql" ]] ; then
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
+                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
+                    else
                         local nfs_server=$adminfqdn
                         if ping -c1 -w1 nfsserver > /dev/null ; then
                             nfs_server="nfsserver"
@@ -2280,9 +2426,6 @@ function custom_configuration
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$nfs_server:/srv/nfs/rabbitmq'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['options']" "'rw,async,nofail'"
-                    else
-                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
-                        proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
                     fi
                     if iscloudver 7plus && grep -q cluster /opt/dell/chef/data_bags/crowbar/template-rabbitmq.json; then
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['cluster']" false
@@ -2293,8 +2436,15 @@ function custom_configuration
                 fi
                 proposal_set_value rabbitmq default "['deployment']['rabbitmq']['elements']['rabbitmq-server']" "['cluster:$clusternamerabbit']"
             fi
-            if ! [[ $want_trove_proposal = 0 ]]; then
+
+            if ! iscloudver 9plus && ! [[ $want_trove_proposal = 0 ]]; then
                 proposal_set_value rabbitmq default "['attributes']['rabbitmq']['trove']['enabled']" true
+            fi
+
+            if iscloudver 7plus && ! [[ $want_ceilometer_proposal = 0 ]]; then
+                if crowbar rabbitmq proposal show default | grep -q enable_notifications; then
+                    proposal_set_value rabbitmq default "['attributes']['rabbitmq']['client']['enable_notifications']" true
+                fi
             fi
         ;;
         dns)
@@ -2302,6 +2452,7 @@ function custom_configuration
             local cmachines=$(get_all_suse_nodes | head -n 3)
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
             proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
+            [[ $want_designate_proposal = 1 ]] && proposal_set_value dns default "['attributes']['dns']['enable_designate']" true
             # We could do the usual "if iscloudver 6plus ; then", but this
             # would break mkcloud when installing Cloud 6 without updates
             if grep -q CNAME /opt/dell/crowbar_framework/app/helpers/barclamp/dns_helper.rb; then
@@ -2332,6 +2483,15 @@ function custom_configuration
             fi
             if [[ $hacloud = 1 ]] ; then
                 proposal_set_value keystone default "['deployment']['keystone']['elements']['keystone-server']" "['cluster:$clusternameservices']"
+            fi
+            if [[ $want_osprofiler = 1 ]] ; then
+                if grep -q osprofiler /opt/dell/chef/data_bags/crowbar/template-keystone.json ; then
+                    proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['enabled']" "true"
+                    proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['hmac_keys']" "['SECRET']"
+                    proposal_set_value keystone default "['attributes']['keystone']['osprofiler']['trace_sqlalchemy']" "true"
+                else
+                    echo "Warning: osprofiler not available. Not enabling it"
+                fi
             fi
             if [[ $want_ldap = 1 ]] ; then
                 local machine
@@ -2388,6 +2548,9 @@ function custom_configuration
                 fi
                 proposal_set_value glance default "['deployment']['glance']['elements']['glance-server']" "['cluster:$clusternameservices']"
             fi
+            if [[ $want_ironic = 1 && $deployswift ]]; then
+                proposal_set_value glance default "['attributes']['glance']['default_store']" "'swift'"
+            fi
         ;;
         manila)
             if [[ $hacloud = 1 ]] ; then
@@ -2434,6 +2597,9 @@ function custom_configuration
             if [[ $hacloud = 1 ]] ; then
                 echo "Warning: Monasca currently is not HA ready"
             fi
+            if iscloudver 9plus && [[ $want_monasca_tsdb = cassandra ]]; then
+                proposal_set_value monasca default "['attributes']['monasca']['tsdb']" "'$want_monasca_tsdb'"
+            fi
             ;;
 
         barbican)
@@ -2451,7 +2617,9 @@ function custom_configuration
             if iscloudver 7plus; then
                 # create (and test) the trusted flavors
                 proposal_set_value nova default "['attributes']['nova']['trusted_flavors']" "true"
+            fi
 
+            if iscloudver 7; then
                 if [[ $hacloud = 1 ]] ; then
                     proposal_set_value nova default "['deployment']['nova']['elements']['ec2-api']" "['cluster:$clusternameservices']"
                 else
@@ -2490,6 +2658,9 @@ function custom_configuration
             if iscloudver 7plus && [[ $want_ironic = 1 ]] ; then
                 get_novacontroller
                 proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-ironic']" "['$novacontroller']"
+                # remove all other compute roles
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-${libvirt_type}']" "[]"
+                proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-kvm']" "[]"
             fi
         ;;
         horizon|nova_dashboard)
@@ -2504,7 +2675,7 @@ function custom_configuration
             fi
         ;;
         aodh)
-            if [[ $hacloud = 1 ]] ; then
+            if [[ $hacloud = 1 ]] && ( iscloudver 7 || iscloudver 8 ) ; then
                 proposal_set_value aodh default "['deployment']['aodh']['elements']['aodh-server']" "['cluster:$clusternameservices']"
             fi
         ;;
@@ -2538,9 +2709,14 @@ function custom_configuration
                 proposal_set_value ceilometer default "['deployment']['ceilometer']['elements']['ceilometer-agent']" "$ceilometernodes_json"
             fi
         ;;
-        murano)
-            if [[ $hacloud = 1 ]] ; then
-                proposal_set_value murano default "['deployment']['murano']['elements']['murano-server']" "['cluster:$clusternameservices']"
+        designate)
+            if [[ $hacloud = 1 ]] && iscloudver 8plus ; then
+                proposal_set_value designate default "['deployment']['designate']['elements']['designate-server']" "['cluster:$clusternameservices']"
+            fi
+        ;;
+        octavia)
+            if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
+                proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-api']" "['cluster:$clusternameservices']"
             fi
         ;;
         neutron)
@@ -2551,9 +2727,17 @@ function custom_configuration
             fi
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
 
+            if [[ $want_l3_ha = 1 ]]; then
+                if grep -q use_l3_ha /opt/dell/chef/data_bags/crowbar/template-neutron.json ; then
+                    proposal_set_value neutron default "['attributes']['neutron']['l3_ha']['use_l3_ha']" "true"
+                else
+                    echo "Warning: l3 HA not available in this installation. Not enabling it"
+                fi
+            fi
+
             if [ $networkingplugin = openvswitch ] ; then
                 if [[ $networkingmode = vxlan ]] || iscloudver 6plus; then
-                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vxlan','vlan']"
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vxlan','vlan', 'gre']"
                     if [[ $want_dvr = 1 ]]; then
                         proposal_set_value neutron default "['attributes']['neutron']['use_dvr']" "true"
                         # Enable L2 population, because for mkcloud we enable all ml2_type_drivers
@@ -2561,8 +2745,10 @@ function custom_configuration
                         # DVR with GRE or VXLAN requires L2 population
                         proposal_set_value neutron default "['attributes']['neutron']['use_l2pop']" "true"
                     fi
-                else
+                elif [[ $networkingmode = gre ]]; then
                     proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['gre','vlan']"
+                else
+                    proposal_set_value neutron default "['attributes']['neutron']['ml2_type_drivers']" "['vlan']"
                 fi
             elif [ "$networkingplugin" = "linuxbridge" ] ; then
                 if iscloudver 7plus; then
@@ -2581,7 +2767,7 @@ function custom_configuration
             fi
 
             # assign neutron-network role to one of SLE12 nodes
-            if [[ $hacloud && $want_neutronsles12 ]] && iscloudver 5plus ; then
+            if [[ $hacloud = 1 && $want_neutronsles12 ]] && iscloudver 5plus ; then
                 proposal_set_value neutron default "['deployment']['neutron']['elements']['neutron-network']" "['${unclustered_sles12plusnodes[0]}']"
             fi
 
@@ -2705,12 +2891,34 @@ function custom_configuration
             # set discovery root password too
             proposal_set_value provisioner default "['attributes']['provisioner']['discovery']['append']" "\"DISCOVERY_ROOT_PASSWORD=$want_rootpw\""
 
+            # increase chef intervals to 6h to ensure they
+            # don't randomly hit us during tempest run
+            proposal_set_value provisioner default "['attributes']['provisioner']['chef_client_runs']" $((6*60*60))
+
             if [[ $keep_existing_hostname = 1 ]] ; then
                 proposal_set_value provisioner default "['attributes']['provisioner']['keep_existing_hostname']" "true"
             fi
         ;;
         ironic)
-            proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool', 'pxe_ssh']"
+            # cloud9+ use hardware types instead of classic drivers
+            if iscloudver 9plus ; then
+                local maybe_direct_interface=''
+                [[ $deployswift ]] && maybe_direct_interface=", 'direct'"
+                proposal_set_value ironic default "['attributes']['ironic']['enabled_deploy_interfaces']" "['iscsi' $maybe_direct_interface]"
+
+                if [[ $want_tempest = 1 ]]; then
+                    proposal_append_value ironic default "['attributes']['ironic']['enabled_hardware_types']" "'fake-hardware'"
+                    for interface in boot console deploy inspect management power raid storage vendor; do
+                        proposal_append_value ironic default "['attributes']['ironic']['enabled_${interface}_interfaces']" "'fake'"
+                    done
+                fi
+            else
+                local maybe_agent_driver=''
+                [[ $deployswift ]] && maybe_agent_driver=", 'agent_ipmitool'"
+                proposal_set_value ironic default "['attributes']['ironic']['enabled_drivers']" "['pxe_ipmitool' $maybe_agent_driver]"
+
+                [[ $want_tempest = 1 ]] && proposal_append_value ironic default "['attributes']['ironic']['enabled_drivers']" "'fake_pxe'"
+            fi
         ;;
         *) echo "No hooks defined for service: $proposal"
         ;;
@@ -2743,7 +2951,10 @@ function set_proposalvars
     # F1: cloud8 no longer defaults to ceph, even if the nodenumbers allow it
     # background: starting with cloud8 the ceph nodes can not have openstack roles
     # this complicates the nodenumber counting.
-    if iscloudver 8plus ; then
+    # And since the release of mariadb as default database in SOC7, the default number
+    # of nodes changed as well: 3 nodes are required for galera and there's usually not much
+    # left for separate ceph nodes.
+    if iscloudver 8plus || ( iscloudver 7 && [[ $hacloud = 1 ]] ); then
         deployceph=
         if [[ $nodenumber -gt 1 ]]; then
             deployswift=1
@@ -2815,7 +3026,7 @@ function set_proposalvars
 function set_noproxyvar
 {
     [[ $http_proxy ]] || [[ $https_proxy ]] || return 0
-    [[ $no_proxy =~ "localhost" ]] || no_proxy="127.0.0.1,localhost,$no_proxy"
+    [[ $no_proxy =~ "localhost" ]] || no_proxy="127.0.0.1,localhost,::1,$no_proxy"
     [[ ! $adminip ]] || [[ $no_proxy =~ "$adminip" ]] || no_proxy="$adminip,$no_proxy"
     [[ ! $cloudfqdn ]] || [[ $no_proxy =~ "$cloudfqdn" ]] || no_proxy="$cloudfqdn,$no_proxy"
     export no_proxy="${no_proxy%,}";
@@ -2823,7 +3034,7 @@ function set_noproxyvar
         return 0 # only apply this once
     fi
     local ips
-    printf -v ips '%s,' $net_public.{1..254}
+    printf -v ips '%s,' $net_public${ip_sep}{1..254}
     no_proxy="$ips$no_proxy"
     no_proxy="${no_proxy%,}";
 }
@@ -2943,6 +3154,11 @@ function deploy_single_proposal
                 return
             fi
             ;;
+        heat)
+            get_novacontroller
+            safely oncontroller heat_image_setup
+            ;;
+
         nfs_client)
             # nfs client (used by glance) is needed for ha setups but only when
             # neither swift nor ceph are deployed
@@ -2953,6 +3169,12 @@ function deploy_single_proposal
             ;;
         ceph)
             [[ $deployceph ]] || return
+            ;;
+        ceilometer)
+            if [[ $want_monasca_proposal != 1 ]] && iscloudver 9plus; then
+                echo "Ceilometer depends on Monasca which is disabled. Skipping"
+                return
+            fi
             ;;
         magnum)
             # PM does not want to support magnum on s390x
@@ -2983,31 +3205,39 @@ function deploy_single_proposal
                 return
             fi
             ;;
-        swift)
-            [[ $deployswift ]] || return
-            ;;
-        heat)
-            get_novacontroller
-            safely oncontroller heat_image_setup
-            ;;
-        tempest)
-            [[ $want_tempest = 1 ]] || return
-            ;;
         sahara)
             if ! iscloudver 7plus; then
                 echo "Sahara is SOC 7+ only. Skipping"
                 return
             fi
             ;;
-        aodh)
-            if ! iscloudver 7plus; then
-                echo "Aodh is SOC 7+ only. Skipping"
+        swift)
+            [[ $deployswift ]] || return
+            ;;
+        tempest)
+            [[ $want_tempest = 1 ]] || return
+            ;;
+        trove)
+            if iscloudver 9plus; then
+                echo "Trove is only for SOC 8 and below. Skipping"
                 return
             fi
             ;;
-        murano)
-            if ! iscloudver 7plus; then
-                echo "Murano is SOC 7+ only. Skipping"
+        aodh)
+            if ! ( iscloudver 7 || iscloudver 8 ) ; then
+                echo "Aodh is SOC 7 and 8 only. Skipping"
+                return
+            fi
+            ;;
+        designate)
+            if ! iscloudver 8plus ; then
+                echo "Designate is SOC 8+ only. Skipping"
+                return
+            fi
+            ;;
+        octavia)
+            if ! iscloudver 9plus ; then
+                echo "Octavia is SOC 9+ only. Skipping"
                 return
             fi
             ;;
@@ -3064,7 +3294,7 @@ function onadmin_proposal
     done
     # Set the $novacontroller global variable so that we
     # can execute actions from the controller
-    get_novacontroller
+    get_controller
 
     # use local cache whenever possible
     oncontroller mount_localreposdir
@@ -3073,7 +3303,7 @@ function onadmin_proposal
     safely oncontroller check_crm_failcounts
     # For all remaining proposals, check for HA failures after each deployment
     for proposal in horizon ceilometer heat manila trove \
-        barbican magnum sahara murano aodh tempest; do
+        designate barbican octavia magnum sahara aodh tempest; do
         deploy_single_proposal $proposal
         safely oncontroller check_crm_failcounts
     done
@@ -3088,6 +3318,12 @@ function set_node_alias
     if [[ "$node_name" != "$node_alias" ]]; then
         safely crowbarctl node rename $node_name $node_alias
     fi
+}
+
+function get_node_alias
+{
+    local node_name=$1
+    safely crowbarctl node list --plain | grep $node_name | cut -d " " -f 2
 }
 
 function set_node_alias_and_role
@@ -3154,6 +3390,16 @@ function get_cluster_name
                         ['elements']['nova-controller']"`
     local cluster=${element#cluster:}
     echo $cluster
+}
+
+function get_controller
+{
+    if [[ $want_nova_proposal != 1 ]]; then
+        get_neutron_server_node
+        novacontroller=$NEUTRON_SERVER
+    else
+        get_novacontroller
+    fi
 }
 
 function get_novacontroller
@@ -3229,13 +3475,14 @@ function addfloatingip
 {
     local instanceid=$1
     if iscloudver 7plus; then
-        floatingip=$(openstack floating ip create floating -f value -c floating_ip_address)
+        local floatingip=$(openstack floating ip create floating -f value -c floating_ip_address)
         openstack server add floating ip $instanceid $floatingip
     else
         nova floating-ip-create | tee floating-ip-create.out
-        floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
+        local floatingip=$(perl -ne "if(/\d+\.\d+\.\d+\.\d+/){print \$&}" floating-ip-create.out)
         nova add-floating-ip "$instanceid" "$floatingip"
     fi
+    echo ${floatingip}
 }
 
 function ha_services_failover_test
@@ -3291,11 +3538,10 @@ function oncontroller_nova_evacuate
     local hypervisor_host=$(echo $hypervisor_host_fqdn | cut -d '.' -f 1)
 
     # Create instance on specific hypervisor
-    # image always exist after tempest run (cirros-0.3.4-x86_64-tempest-machine)
-    nova boot --image cirros-0.3.4-x86_64-tempest-machine --flavor tempest-stuff --availability-zone nova:$hypervisor_host $vm_name
+    # image always exist after tempest run (cirros-0.4.0-x86_64-tempest-machine)
+    nova boot --image cirros-0.4.0-x86_64-tempest-machine --flavor tempest-stuff --availability-zone nova:$hypervisor_host $vm_name
     # Create floating ip assign to instance
-    addfloatingip $vm_name
-    local floatingip=$(openstack server show -c addresses --format value $vm_name | cut -d " " -f 2)
+    local floatingip=$(addfloatingip $vm_name)
     # Update security group for icmp
     if iscloudver 8plus; then
         local projectid=$(openstack project show -c id --format value $OS_PROJECT_NAME)
@@ -3353,7 +3599,7 @@ function kill_pacemaker_remote
     local n=120
     # Check for nova-evacute log on all cluster nodes
     while [[ $n -gt 0 && $ret != 0 ]]; do
-        for((i=1; i<=$num_controllers; i++)) ; do
+        for i in $(seq 1 $num_controllers) ; do
             ssh controller$i 'grep -q "Completed evacuation of" /var/log/messages'
             ret=$?
             [[ $ret != 0 ]] && break
@@ -3405,24 +3651,42 @@ function oncontroller_run_tempest
     pushd /var/lib/openstack-tempest-test
     sysctl -e kernel.sysrq=1 net.ipv4.neigh.default.gc_thresh1=0
     local tempestret
+    local blacklist=""
+
+    if iscloudver 9; then
+
+        blacklistfile=/var/lib/openstack-tempest-test/blacklist.txt
+        blacklist="--blacklist-file $blacklistfile"
+        cat - > $blacklistfile << EOF
+id-f5dfcc22-45fd-409f-954c-5bd500d7890b
+id-301f5a30-1c6f-4ea0-be1a-91fd28d44354
+id-bdbb5441-9204-419d-a225-b4fdbfb1a1a8
+id-6bba729b-3fb6-494b-9e1e-82bbd89a1045
+manila_tempest_tests.tests.scenario.test_share_basic_ops.TestShareBasicOpsNFS.test_read_write_two_vms # bsc#1137262
+manila_tempest_tests.tests.scenario.test_share_basic_ops.TestShareBasicOpsCIFS.test_read_write_two_vms # bsc#1137262
+EOF
+    fi
 
     tempest cleanup --init-saved-state
     if iscloudver 7plus; then
-        tempest run $tempestoptions 2>&1 | tee tempest.log
+        tempest run $tempestoptions $blacklist 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
     else
         ./run_tempest.sh -N $tempestoptions 2>&1 | tee tempest.log
         tempestret=${PIPESTATUS[0]}
     fi
 
+    local testdriver=testr
+    [ -f ".stestr.conf" ] && testdriver=stestr
+
     # tempest returns 0 also if no tests were executed - so use "testr last"
     # to verify that some tests were executed
     if [ "$tempestret" -eq 0 ]; then
-        testr last || complain 96 "Tempest run succeeded but something is wrong"
+        $testdriver last || complain 96 "Tempest run succeeded but something is wrong"
         # output the slowest tests from the latest run
-        testr slowest
+        $testdriver slowest
     fi
-    testr last --subunit > tempest.subunit.log
+    $testdriver last --subunit > tempest.subunit.log
 
     oncontroller_tempest_cleanup
     popd
@@ -3434,18 +3698,46 @@ function oncontroller_upload_defcore
     pushd /var/lib/openstack-tempest-test
     # get the test list
     wget "https://refstack.openstack.org/api/v1/guidelines/2018.02/tests" -O defcore-with-id.txt
+
     # remove the id in [] or tempest will complain on incorrect regex
     sed -e 's/\[[^][]*\]//g' defcore-with-id.txt > defcore.txt
+
     # run only the specified tests
     tempest run --whitelist-file defcore.txt
-    source /root/.openrc
+
+    # get a subunit-2to1 filter directly
     wget https://raw.githubusercontent.com/testing-cabal/subunit/master/filters/subunit-2to1
-    testr last --subunit | python subunit-2to1 > tempest.subunit_1.log
-    test -d refstack-client || safely git clone https://github.com/openstack/refstack-client
+
+    # save the latest tempest run results
+    local testdriver=testr
+    [ -f ".stestr.conf" ] && testdriver=stestr
+    $testdriver last --subunit | python subunit-2to1 > tempest.subunit_1.log
+
+    # clone a refstack client
+    test -d refstack-client || safely git clone https://github.com/kbaikov/refstack-client
+
+    # upload to refstack server
+    source /root/.openrc
     yes | refstack-client/refstack-client upload-subunit --keystone-endpoint $OS_AUTH_URL --url https://10.86.0.98 --insecure tempest.subunit_1.log
     popd
 }
+function onadmin_upload_tempest_results
+{
+    local scenario_name=$1
+    local hw_number=$2
 
+    #generate subunit results
+    ssh controller1 "pushd /var/lib/openstack-tempest-test;stestr last --subunit > $scenario_name"
+
+    #copy to server in provo
+    scp controller1:/var/lib/openstack-tempest-test/$scenario_name .
+    rsync -a $scenario_name ubuntu@10.84.144.252:/var/www/html/tempest-crowbar/
+
+    #upload resulst to openstack health
+    ssh ubuntu@10.84.144.252 "
+    subunit2sql --database-connection mysql+pymysql://subunit:subunit@10.86.0.167/subunit --run_meta build_uuid:$(uuidgen),project:openstack/tempest/smoke,qe_env:$hw_number,tempest_filter:smoke,build_name:$scenario_name,clm:crowbar --artifacts NA /var/www/html/tempest-crowbar/$scenario_name
+    "
+}
 function onadmin_upload_defcore
 {
     get_novacontroller
@@ -3458,7 +3750,7 @@ function oncontroller_run_integration_test()
     safely $zypper in 'MozillaFirefox<47'
 
     # Add Devel:Languages:Python repo (no GPG checks) to install Selenium
-    local dlp="http://download.opensuse.org/repositories/devel:/languages:/python/$slesdist/"
+    local dlp="http://download.opensuse.org/repositories/devel:/languages:/python:/backports/$slesdist/"
     $zypper ar --no-gpgcheck --refresh $dlp python
     safely $zypper in python-selenium
     safely $zypper in python-nose
@@ -3661,7 +3953,7 @@ function oncontroller_manila_generic_driver_setup()
         manila_tenant_vm_ip=`oncontroller_manila_service_instance_get_floating_ip`
     else
         fixed_net_id=`neutron net-show fixed -f value -c id`
-        timeout 10m nova --insecure boot --poll --flavor 100 --image manila-service-image \
+        timeout 10m nova boot --poll --flavor 100 --image manila-service-image \
             --security-groups $sec_group,default \
             --nic net-id=$fixed_net_id manila-service
 
@@ -3672,11 +3964,12 @@ function oncontroller_manila_generic_driver_setup()
         oscclient_ver=`rpm -q --queryformat '%{VERSION}' python-openstackclient`
         if [ ${oscclient_ver:0:1} -ge 3 ]; then
             # >= Newton
-            manila_tenant_vm_ip=`openstack ip floating create floating -f value -c floating_ip_address`
+            manila_tenant_vm_ip=`openstack floating ip create floating -f value -c floating_ip_address`
+            openstack server add floating ip manila-service $manila_tenant_vm_ip
         else
             manila_tenant_vm_ip=`openstack ip floating create floating -f value -c ip`
+            openstack ip floating add $manila_tenant_vm_ip manila-service
         fi
-        openstack ip floating add $manila_tenant_vm_ip manila-service
 
         [ $? != 0 ] && complain 44 "adding a floating ip to the manila service VM failed"
     fi
@@ -3751,6 +4044,14 @@ function oncontroller_check_crm_failcounts
     return 0
 }
 
+function oncontroller_set_maintenancemode
+{
+    local mode=$1
+
+    crm configure property maintenance-mode=$mode
+    return 0
+}
+
 function oncontroller_mount_localreposdir
 {
     # use the local cache if available. This is done by mounting the local
@@ -3772,7 +4073,7 @@ function oncontroller_testsetup
 
     if ! openstack catalog show manila 2>&1 | grep -q "service manila not found" && \
         ! manila type-list | grep -q "[[:space:]]default[[:space:]]" ; then
-        manila type-create default false || complain 79 "manila type-create failed"
+        manila type-create default false --snapshot_support true || complain 79 "manila type-create failed"
     fi
 
     if iscloudver 7plus && \
@@ -3819,6 +4120,10 @@ function oncontroller_testsetup
         fi
     fi
 
+    # this file is created by the designate barclamp
+    designate_pools="/etc/desigate/pools.crowbar.yaml"
+    [[ -e $designate_pools ]] && designate-manage pool update --file $designate_pools
+
     # Run Tempest Smoketests if configured to do so
     tempestret=0
     if [[ $want_tempest = 1 ]]; then
@@ -3839,8 +4144,10 @@ function oncontroller_testsetup
 
     local image_name="jeos"
     local flavor="m1.smaller"
+    local network=fixed
     local ssh_user="root"
     local local_image_path=""
+    local config_drive=false
 
     if ! glance_image_exists $image_name ; then
         if [[ $wanthyperv ]] ; then
@@ -3865,6 +4172,20 @@ function oncontroller_testsetup
                     --container-format bare --property hypervisor_type=xen \
                     --property vm_mode=xen  $image_name | tee glance.out
             fi
+        elif [[ $want_ironic = 1 ]] ; then
+            local image_filename="openstack/SLES12-SP4-JeOS.${arch}-12.4-OpenStack-Cloud-GM.qcow2"
+            [[ -n "${localreposdir_target}" ]] && local_image_path="${localreposdir_target}/images/x86_64/${image_filename}"
+
+            if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
+                openstack image create --public --property hypervisor_type=baremetal \
+                --disk-format qcow2 --container-format bare \
+                --file $local_image_path $image_name | tee glance.out
+            else
+                curl -s \
+                    $imageserver_url/$arch/$image_filename | \
+                    openstack image create --public --property hypervisor_type=baremetal \
+                    --disk-format qcow2 --container-format bare $image_name | tee glance.out
+            fi
         else
             local image_filename="SLES12-SP1-JeOS-SE-for-OpenStack-Cloud.${arch}-GM.qcow2"
             [[ -n "${localreposdir_target}" ]] && local_image_path="${localreposdir_target}/images/x86_64/${image_filename}"
@@ -3872,18 +4193,20 @@ function oncontroller_testsetup
             if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
                 openstack image create --public --property hypervisor_type=kvm \
                 --disk-format qcow2 --container-format bare \
+                --property hw_vif_multiqueue_enabled='True' \
                 --file $local_image_path $image_name | tee glance.out
             else
                 curl -s \
                     $imageserver_url/$arch/$image_filename | \
                     openstack image create --public --property hypervisor_type=kvm \
+                    --property hw_vif_multiqueue_enabled='True' \
                     --disk-format qcow2 --container-format bare $image_name | tee glance.out
             fi
         fi
     fi
 
     #test for Glance scrubber service, added after bnc#930739
-    if iscloudver 6plus || [[ $cloudsource =~ (devel|newton)cloud ]]; then
+    if iscloudver 6plus || [[ $cloudsource =~ develcloud ]]; then
         configargs="--config-dir /etc/glance"
         iscloudver 6plus && configargs=""
         su - glance -s /bin/sh -c "/usr/bin/glance-scrubber $configargs" \
@@ -3960,24 +4283,32 @@ function oncontroller_testsetup
         nova secgroup-add-rule testvm udp 1 65535 0.0.0.0/0
     fi
 
-    timeout 10m nova --insecure boot --poll --image $image_name --flavor $flavor --key-name testkey --security-group testvm testvm | tee boot.out
+    if [[ $want_ironic = 1 ]] ; then
+        network=ironic
+        flavor=b1.small
+        ssh_user=sles
+        config_drive=true
+    fi
+
+    timeout 10m nova boot --poll --config-drive $config_drive --image $image_name \
+        --flavor $flavor --key-name testkey --nic net-name=$network \
+        --security-group testvm testvm | tee boot.out
     ret=${PIPESTATUS[0]}
     [ $ret != 0 ] && complain 43 "nova boot failed"
     instanceid=`perl -ne "m/ id [ |]*([0-9a-f-]+)/ && print \\$1" boot.out`
     nova show "$instanceid"
-    vmip=`nova show "$instanceid" | perl -ne "m/fixed.network [ |]*([0-9.]+)/ && print \\$1"`
+    vmip=`nova show "$instanceid" | perl -ne "m/$network.network [ |]*([0-9.]+)/ && print \\$1"`
     echo "VM IP address: $vmip"
     if [ -z "$vmip" ] ; then
         echofailed
         tail -n 90 /var/log/nova/*
         complain 38 "VM IP is empty. Exiting"
     fi
-    addfloatingip "$instanceid"
-    vmip=$floatingip
-    wait_for 1000 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm booted and ping returned"
-    wait_for 500  1 "netcat -z $vmip 22" "ssh daemon on testvm is accessible"
+    local floatingip=$(addfloatingip "$instanceid")
+    wait_for 1000 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "testvm booted and ping returned"
+    wait_for 500  1 "netcat -z $floatingip 22" "ssh daemon on testvm is accessible"
 
-    local ssh_target="$ssh_user@$vmip"
+    local ssh_target="$ssh_user@$floatingip"
 
     wait_for 60 5 "timeout -k 20 10 ssh -o UserKnownHostsFile=/dev/null $ssh_target true" "SSH key to be copied to VM"
 
@@ -3996,25 +4327,30 @@ function oncontroller_testsetup
     local volumeresult=""
     local portresult=0
 
-    # Workaround SLE12SP1 regression
-    iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
-    cinder list | grep -q available || cinder create 1
-    wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
-    volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
-    volumeattachret=$?
-    device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
-    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
-    rand=$RANDOM
-    ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
-    nova volume-detach "$instanceid" "$volumeid"
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
-    nova volume-attach "$instanceid" "$volumeid" /dev/vdb
-    wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
-    ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
-    ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
-    volumeresult="$volumecreateret & $volumeattachret"
+    # Ironic doesn't support attaching volumes (yet)
+    if [[ $want_ironic = 1 ]] ; then
+        volumeresult="skipped"
+    else
+        # Workaround SLE12SP1 regression
+        iscloudver 6plus && ssh $ssh_target "modprobe acpiphp"
+        cinder list | grep -q available || cinder create 1
+        wait_for 9 5 "cinder list | grep available" "volume to become available" "volumecreateret=1"
+        volumeid=`cinder list | perl -ne "m/^[ |]*([0-9a-f-]+) [ |]*available/ && print \\$1"`
+        nova volume-attach "$instanceid" "$volumeid" /dev/vdb | tee volume-attach.out
+        volumeattachret=$?
+        device=`perl -ne "m!device [ |]*(/dev/\w+)! && print \\$1" volume-attach.out`
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become attached" "volumeattachret=111"
+        ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=$?
+        rand=$RANDOM
+        ssh $ssh_target "mkfs.ext3 -F $device && mount $device /mnt && echo $rand > /mnt/test.txt && umount /mnt"
+        nova volume-detach "$instanceid" "$volumeid"
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*available'" "volume to become available after detach" "volumeattachret=55"
+        nova volume-attach "$instanceid" "$volumeid" /dev/vdb
+        wait_for 29 5 "cinder show $volumeid | grep 'status.*in-use'" "volume to become reattached" "volumeattachret=56"
+        ssh $ssh_target fdisk -l $device | grep 1073741824 || volumeattachret=57
+        ssh $ssh_target "mount $device /mnt && grep -q $rand /mnt/test.txt" || volumeattachret=58
+        volumeresult="$volumecreateret & $volumeattachret"
+    fi
 
     # cleanup so that we can run testvm without leaking volumes, IPs etc
     if iscloudver 7plus; then
@@ -4089,8 +4425,13 @@ function oncontroller_testsetup
     fi
 
     # check that no port is in binding_failed state
-    for p in $(neutron port-list -f csv -c id --quote none | grep -v id); do
-        if neutron port-show $p -f value | grep -qx binding_failed; then
+    for p in $(openstack port list -f csv -c ID --quote none | grep -v ID); do
+        if openstack port show $p -f value | grep -qx binding_failed; then
+            # Ironic barclamp doesn't use ML2 yet so it will always show 'binding_failed'
+            # See: https://docs.openstack.org/ironic/latest/install/configure-networking.html
+            if openstack port show $p -f value -c binding_vnic_type | grep -qx baremetal; then
+                continue
+            fi
             echo "binding for port $p failed.."
             portresult=1
         fi
@@ -4218,13 +4559,55 @@ y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin'] ||= {}
 y['proposals'].first['attributes']['admin']['password'] = '$updated_password'
 puts y.to_yaml" > /root/keystone-test-pw-update.yaml
-    safely crowbar batch --timeout 900 build < /root/keystone-test-pw-update.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-update.yaml
     safely oncontroller test_keystone_password
     cat /root/keystone-test-pw-update.yaml | ruby -ryaml -e "
 y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin']['password'] = '$old_password'
 puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
-    safely crowbar batch --timeout 900 build < /root/keystone-test-pw-reset.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-reset.yaml
+}
+
+function set_keystone_endpoint
+{
+    local protocol=$1
+    if [ "$protocol" == "https" ] ; then
+        local certfile=$(proposal_get_value keystone default "['attributes']['keystone']['ssl']['certfile']")
+        local keyfile=$(proposal_get_value keystone default "['attributes']['keystone']['ssl']['keyfile']")
+        setup_trusted_cert $certfile $keyfile
+    fi
+    crowbar batch export keystone | ruby -ryaml -e "
+y = YAML.load(ARGF)
+a = y['proposals'].first['attributes']
+a['api']['protocol'] = '$protocol'
+if '$protocol' == 'https'
+    a.key?('ssl') || a['ssl'] = {}
+    a['ssl']['ca_certs'] = '/etc/ssl/ca-bundle.pem'
+end
+puts y.to_yaml" > /root/keystone-test-endpoint-update.yaml
+    safely crowbar batch --timeout 1500 build < /root/keystone-test-endpoint-update.yaml
+}
+
+function test_keystone_toggle_ssl
+{
+    prepare_proposal_for_modification keystone default
+
+    # current keystone protocol could come from $want_all_ssl/$want_keystone_ssl or from batch scenario
+    local keystone_protocol=$(proposal_get_value keystone default "['attributes']['keystone']['api']['protocol']")
+
+    # If SSL is on, turn it off and turn it back on.
+    # If SSL is off, turn it on and turn it back off.
+    if [ "$keystone_protocol" == "https" ] ; then
+        echo "Testing disabling HTTPS on keystone"
+        set_keystone_endpoint http
+        echo "Testing reenabling HTTPS on keystone"
+        set_keystone_endpoint https
+    else
+        echo "Testing enabling HTTPS on keystone"
+        set_keystone_endpoint https
+        echo "Testing re-disabling HTTPS on keystone"
+        set_keystone_endpoint http
+    fi
 }
 
 function onadmin_have_salt_barclamp
@@ -4320,6 +4703,100 @@ EOF
     return $s3radosgwret
 }
 
+function oncontroller_create_ironic_node
+{
+    local node_name=$1
+    local cpus=$2
+    local ram_mb=$3
+    local disk_gb=$4
+    local mac=$5
+
+    local deploy_interface=$6
+
+    local ipmi_ip=$7
+    local ipmi_port=$8
+    local ipmi_user=$9
+    local ipmi_pass=${10}
+
+    # pick latest versions of kernel/ramdisk images
+    local deploy_initrd_uuid=$(openstack image list -f value | grep ir-deploy-ramdisk | sort -V -k 2 | tail -n1 | awk '{print $1}')
+    local deploy_vmlinux_uuid=$(openstack image list -f value | grep ir-deploy-kernel | sort -V -k 2 | tail -n1 | awk '{print $1}')
+
+    openstack baremetal node create \
+        --driver ipmi \
+        --deploy-interface $deploy_interface \
+        --name $node_name \
+        --driver-info ipmi_address=$ipmi_ip \
+        --driver-info ipmi_username=$ipmi_user \
+        --driver-info ipmi_password=$ipmi_pass \
+        --driver-info ipmi_port=$ipmi_port \
+        --driver-info deploy_kernel=$deploy_vmlinux_uuid \
+        --driver-info deploy_ramdisk=$deploy_initrd_uuid \
+        --property cpus=$cpus \
+        --property memory_mb=$ram_mb \
+        --property local_gb=$disk_gb \
+        --property cpu_arch=x86_64
+
+    local ironic_node_id=$(openstack baremetal node list -f value -c UUID -c Name | grep $node_name | cut -d' ' -f1)
+
+    openstack baremetal port create $mac --node $ironic_node_id
+
+    wait_for 10 6 "openstack baremetal node list -f value | grep $node_name | grep enroll" "node to reach enroll state"
+
+    openstack baremetal node manage $node_name
+
+    wait_for 10 6 "openstack baremetal node list -f value | grep $node_name | grep manageable" "node to reach manageable state"
+
+    openstack baremetal node provide $node_name
+
+    # cleaning cycle is done here, wait some more time...
+    wait_for 60 10 "openstack baremetal node list -f value | grep $node_name | grep available" "node to reach available state"
+}
+
+function onadmin_create_ironic_node
+{
+    get_novacontroller
+    oncontroller create_ironic_node "$@"
+}
+
+function oncontroller_delete_ironic_node
+{
+    # Maintenance mode enables delete if node is in error state
+    openstack baremetal node maintenance set "$1" || true
+    openstack baremetal node delete "$1" || true
+
+    # cleaning cycle is done here, wait some more time...
+    wait_for 60 10 "! openstack baremetal node show $1 > /dev/null" "node to get deleted"
+}
+
+function onadmin_delete_ironic_node
+{
+    get_novacontroller
+    # this function is called from pre_exit_cleanup so we need some
+    # additional checks.
+    test -n "$novacontroller" || return 0
+    oncontroller delete_ironic_node "$@"
+}
+
+function oncontroller_create_flavor
+{
+    local name=$1
+    local ram=$2
+    local vcpus=$3
+    local disk=$4
+
+    if openstack flavor show $name 2> /dev/null ; then
+        openstack flavor delete $name
+    fi
+    openstack flavor create $name --ram $ram --vcpus $vcpus --disk $disk
+}
+
+function onadmin_create_flavor
+{
+    get_novacontroller
+    oncontroller create_flavor "$@"
+}
+
 function onadmin_testsetup
 {
     pre_hook $FUNCNAME
@@ -4378,10 +4855,25 @@ function onadmin_testsetup
     # use local cache whenever possible
     oncontroller mount_localreposdir
 
+    keystoneret=0
+
+    if iscloudver 7plus && [[ $cloudsource =~ 'develcloud' ]] ; then
+        [[ $hacloud = 1 ]] && oncontroller set_maintenancemode true
+        test_keystone_toggle_ssl
+        keystoneret=$?
+
+        # Make sure everything is in sync before continuing
+        crowbar_proposal_commit provisioner
+
+        # Now turn maintenance back on
+        [[ $hacloud = 1 ]] && oncontroller set_maintenancemode false
+    fi
+
     oncontroller testsetup
     ret=$?
 
     echo "Tests on controller: $ret"
+    echo "Keystone Toggle SSL: $keystoneret"
     echo "Ceph Tests: $cephret"
     echo "RadosGW S3 Tests: $s3radosgwret"
 
@@ -4417,8 +4909,8 @@ function oncontroller_testpreupgrade
     create_cmd="heat --insecure stack-create upgrade_test -f "
     list_cmd="heat --insecure stack-list"
     if iscloudver 7plus; then
-        create_cmd="openstack --insecure stack create upgrade_test -t "
-        list_cmd="openstack --insecure stack list"
+        create_cmd="openstack stack create upgrade_test -t "
+        list_cmd="openstack stack list"
     fi
     $create_cmd /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
     wait_for 15 20 "$list_cmd | grep upgrade_test | grep CREATE_COMPLETE" \
@@ -4430,12 +4922,12 @@ function oncontroller_testpreupgrade
 function oncontroller_testpostupgrade
 {
     # retrieve the ping results
-    local fips=$(openstack --insecure floating ip list -f value -c "Floating IP Address")
+    local fips=$(openstack floating ip list -f value -c "Floating IP Address")
 
     # remove manila-service fip from list
-    manila_vm=$(openstack --insecure server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
+    manila_vm=$(openstack server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
     if [[ $manila_vm ]]; then
-        manila_fip=$(openstack --insecure server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
+        manila_fip=$(openstack server show $manila_vm -f value -c addresses | awk '{ print $2 }' )
         fips=( "${fips[@]/$manila_fip}" )
     fi
 
@@ -4457,8 +4949,8 @@ function oncontroller_testpostupgrade
         fi
     done
 
-    openstack --insecure stack delete --yes upgrade_test
-    wait_for 15 20 "! openstack --insecure stack show upgrade_test" \
+    openstack stack delete --yes upgrade_test
+    wait_for 15 20 "! openstack stack show upgrade_test" \
              "heat stack for upgrade tests to be deleted"
     echo "test post-upgrade successful."
 }
@@ -4499,6 +4991,10 @@ function onadmin_ping_running_instances
 
 function onadmin_testpostupgrade
 {
+    if ! grep non_disruptive /var/lib/crowbar/upgrade/*-progress.yml ; then
+        complain 11 "The testpostupgrade step is only valid for non-disruptive upgrade mode!"
+    fi
+
     get_novacontroller
     check_novacontroller
 
@@ -4627,9 +5123,9 @@ function onneutron_wait_for_neutron
     [ -z "$NEUTRON_SERVER" ] && return
 
     wait_for 300 3 "ssh $NEUTRON_SERVER 'rcopenstack-neutron status' |grep -q running" "neutron-server service running state"
-    wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron --insecure agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
+    wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
 
-    ssh $NEUTRON_SERVER '. .openrc && neutron --insecure agent-list'
+    ssh $NEUTRON_SERVER '. .openrc && neutron agent-list'
     ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null
     if [ "x$?" != "x0" ]; then
         complain 14 "ping to 8.8.8.8 from $NEUTRON_SERVER failed."
@@ -4676,6 +5172,18 @@ function reboot_controller_clusters
     done
 }
 
+function select_compute_nodes
+{
+    nodesavailable=${unclustered_nodes[@]}
+
+    compute_nodes=$(knife search node "roles:nova-compute-*" -a name | grep ^name: | cut -d : -f 2 | sed 's/\s//g')
+    for node in $compute_nodes; do
+        nodesavailable=$(remove_node_from_list "$node" "$nodesavailable")
+    done
+
+    unclustered_nodes=($nodesavailable)
+}
+
 # reboot all cloud nodes (controller+compute+storage)
 # wait for nodes to go down and come up again
 function onadmin_rebootcloud
@@ -4692,7 +5200,21 @@ function onadmin_rebootcloud
         unclustered_nodes=(`get_all_discovered_nodes`)
     fi
 
+    select_compute_nodes
+
+    # reboot non-compute/controller nodes first
     for machine in ${unclustered_nodes[@]}; do
+        power_cycle_and_wait $machine
+    done
+
+    # wait for non-compute/controller nodes to be back online
+    for machine in ${unclustered_nodes[@]}; do
+        m_hostname=$(echo $machine | cut -d '.' -f 1)
+        wait_for 400 5 "crowbar node_state status | grep $m_hostname | grep -qiE \"ready$|problem$\"" "node $m_hostname to be online"
+    done
+
+    # reboot compute nodes
+    for machine in $compute_nodes; do
         power_cycle_and_wait $machine
     done
 
@@ -4718,10 +5240,9 @@ function oncontroller_waitforinstance
     safely nova list
     nova start testvm || complain 28 "Failed to start VM"
     safely nova list
-    addfloatingip testvm
-    local vmip=`nova show testvm | perl -ne 'm/ fixed.network [ |]*[0-9.]+, ([0-9.]+)/ && print $1'`
-    [[ $vmip ]] || complain 12 "no IP found for instance"
-    wait_for 100 1 "ping -q -c 1 -w 1 $vmip >/dev/null" "testvm to boot up"
+    local floatingip=$(addfloatingip testvm)
+    [[ $floatingip ]] || complain 12 "no IP found for instance"
+    wait_for 100 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "testvm to boot up"
 }
 
 function oncontroller_suspendallinstances
@@ -4779,11 +5300,11 @@ function onadmin_upgrade_ses_to_4
     for node in $ceph_nodes; do
         # Replace SP1 repos with the new ones
         ssh $node "rm /etc/zypp/repos.d/*
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/install SLES12-SP2-12.2-0
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SLES12-SP2-Updates SLES12-SP2-Updates
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SLES12-SP2-Pool SLES12-SP2-Pool
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Pool SUSE-Enterprise-Storage-4-Pool
-zypper ar -f http://$adminip:8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Updates SUSE-Enterprise-Storage-4-Updates
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/install SLES12-SP2-12.2-0
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/repos/SLES12-SP2-Updates SLES12-SP2-Updates
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/repos/SLES12-SP2-Pool SLES12-SP2-Pool
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Pool SUSE-Enterprise-Storage-4-Pool
+zypper ar -f http://$(wrap_ip $adminip):8091/suse-12.2/x86_64/repos/SUSE-Enterprise-Storage-4-Updates SUSE-Enterprise-Storage-4-Updates
 zypper ref
 zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgrade-helper"
 
@@ -4858,7 +5379,12 @@ function onadmin_prepare_cloudupgrade_admin_repos
     elif iscloudver 8; then
         $zypper rr SLES12-SP2-Pool
         $zypper rr SLES12-SP2-Updates
+    elif iscloudver 9; then
+        $zypper rr SLES12-SP3-Pool
+        $zypper rr SLES12-SP3-Updates
     fi
+    # remove old PTF repo
+    $zypper rr cloud-ptf
 
     onadmin_setup_local_zypper_repositories
     create_repos_yml
@@ -5257,10 +5783,10 @@ function onadmin_run_cct
         cd cct
         if [[ $want_cct_pr ]] ; then
             git config --get-all remote.origin.fetch | grep -q pull || \
-                git config --add remote.origin.fetch "+refs/pull/*/head:refs/remotes/origin/pr/*"
+                git config --add remote.origin.fetch "+refs/pull/*/head:refs/remotes/origin-pr/*"
             safely git fetch origin
             # checkout the PR
-            safely git checkout -t origin/pr/$want_cct_pr
+            safely git checkout -t origin-pr/$want_cct_pr
             # merge the PR to always test what will end up in $checkout_branch
             safely git merge $checkout_branch -m temp-merge-commit
         fi
@@ -5401,9 +5927,45 @@ function onadmin_setup_aliases
     return $?
 }
 
+function onadmin_install_ca_certificates
+{
+
+    for node in $(crowbar machines list); do ssh $node "mkdir -p /etc/cloud/ssl" ; scp -r /root/ssl-certs/qa$hw_number/ $node:/etc/cloud/ssl ; done
+    for node in $(crowbar machines list); do scp  /root/ssl-certs/qa$hw_number/* $node:/etc/pki/trust/anchors/ ; done
+    for node in $(crowbar machines list); do ssh $node  "update-ca-certificates -v -f" ; done
+    #Setup repositories
+    for node in $(crowbar machines list); do
+        ssh $node "zypper --gpg-auto-import-keys ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP4/SUSE:CA.repo "
+        ssh $node "zypper --non-interactive in ca-certificates-suse"
+    done
+    #Verify installed certificates
+    for node in $(crowbar machines list); do
+        ssh $node "cd /etc/cloud/ssl/qa$hw_number ; openssl verify -verbose -CAfile SUSE_CA_suse.de.chain.crt qa$hw_number.cloud.suse.de.crt"
+    done
+}
+
 function onadmin_batch
 {
     pre_hook $FUNCNAME
+
+    if [[ $hacloud = 1 ]] ; then
+        onadmin_set_source_variables
+        cluster_node_assignment
+
+        if [[ $want_sbd = 1 ]] ; then
+            local cluster
+            local clustername
+            local nodealias
+            for clustername in data network services ; do
+                eval "cluster=\$clusternodes$clustername"
+                for node in $cluster ; do
+                    nodealias=$(get_node_alias $node)
+                    sbd_device=$(ssh $node echo '/dev/disk/by-id/scsi-$(lsscsi -i |grep LIO|head -n 1| tr -s " " |cut -d " " -f7)')
+                    sed -i "s|##sbd_device_${clustername}_${nodealias}##|${sbd_device}|g" ${scenario}
+                done
+            done
+        fi
+    fi
 
     sed -i "s/##hypervisor_ip##/$admingw/g" ${scenario}
 
@@ -5493,7 +6055,7 @@ function onadmin_external_ceph
     local node
     local i=0
     local ip_alloc
-    local ses_repo="http://$adminip:8091/suse-$suseversion/$arch/repos/SUSE-Enterprise-Storage-$sesversion"
+    local ses_repo="http://$(wrap_ip $adminip):8091/suse-$suseversion/$arch/repos/SUSE-Enterprise-Storage-$sesversion"
     for node in ${ceph_cluster[@]}; do
         set_node_alias $node ceph$i
         let "i+=1"
@@ -5510,10 +6072,15 @@ function onadmin_external_ceph
         setcloudnetvars $cloud
     fi
     echo "== Running SES deployment script =="
-    if [[ $want_separate_ceph_network -eq 1 ]]; then
-        safely ${SCRIPTS_DIR}/build_ses.sh ${net_ceph}.0/24 ${net_storage}.0/24 ${ceph_cluster[@]}
+    if [[ ${want_ipv6} == 0 ]]; then
+        net_end=".0/24"
     else
-        safely ${SCRIPTS_DIR}/build_ses.sh ${net_public}.0/24 ${net_storage}.0/24 ${ceph_cluster[@]}
+        net_end=":/64"
+    fi
+    if [[ $want_separate_ceph_network -eq 1 ]]; then
+        safely ${SCRIPTS_DIR}/build_ses.sh ${net_ceph}${net_end} ${net_storage}${net_end} ${ceph_cluster[@]}
+    else
+        safely ${SCRIPTS_DIR}/build_ses.sh ${net_public}${net_end} ${net_storage}${net_end} ${ceph_cluster[@]}
     fi
 }
 

@@ -1,0 +1,157 @@
+- job:
+    name: openstack-ardana-update
+    project-type: pipeline
+    concurrent: true
+    wrappers:
+      - timestamps
+      - timeout:
+          timeout: 300
+          type: no-activity
+          abort: true
+          write-description: "Job aborted due to 180 minutes of inactivity"
+
+    logrotate:
+      numToKeep: 500
+      daysToKeep: 90
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+      - validating-string:
+          name: cloud_env
+          default: ''
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied cloud_env already
+            exists, it will be replaced.
+
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The OpenStack cloud platform where the virtual cloud environment is
+            running. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+            If the 'cloud_env' value matches one of the virtual cloud slots
+            (https://ci.nue.suse.com/lockable-resources/), the 'os_cloud' parameter is
+            overridden to reflect the OpenStack platform associated with it.
+
+      - choice:
+          name: update_to_cloudsource
+          choices:
+            -
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - GM8+up
+            - hosdevelcloud8
+            - hosGM8
+            - hosGM8+up
+            - stagingcloud9
+            - develcloud9
+            - GM9
+            - GM9+up
+          description: >-
+            The cloud repository (from provo-clouddata) to be used for updating.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
+               GM<X>+up (official GM plus Cloud-Updates)
+               cloud9MX (cloud 9 milestones)
+
+      - bool:
+          name: updates_test_enabled
+          default: false
+          description: >-
+            Enable SLES/Cloud test update repos (the Cloud test update repos will
+            be enabled only when cloudsource is GM based)
+
+      - validating-string:
+          name: maint_updates
+          default: ''
+          regex: '([0-9]+(,[0-9]+)*)*'
+          msg: The entered value failed validation
+          description: List of maintenance update IDs separated by comma (eg. 7396,7487)
+
+      - bool:
+          name: rc_notify
+          default: false
+          description: >-
+            Notify RocketChat when update starts/finishes.
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - string:
+          name: os_project_name
+          default: ''
+          description: >-
+            The name of the OpenStack project that hosts the virtual cloud deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
+
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'cloud-ci' OpenStack project used exclusively for the Cloud CI will be used
+            regardless of this parameter.
+
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false

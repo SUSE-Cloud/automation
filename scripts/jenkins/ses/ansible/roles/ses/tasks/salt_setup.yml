@@ -1,0 +1,64 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Install salt-master and minion
+  package:
+    name: "{{ item }}"
+  with_items:
+    - "salt-master"
+    - "salt-minion"
+  notify:
+    - Restart and enable salt-minion
+    - Restart and enable salt-master
+
+- name: Drop salt configuration
+  template:
+    src: "master.conf.j2"
+    dest: "/etc/salt/minion.d/master.conf"
+  notify:
+    - Restart and enable salt-minion
+
+- name: Drop salt api secret conf
+  template:
+    src: "sharedsecret.conf.j2"
+    dest: "/etc/salt/master.d/sharedsecret.conf"
+  notify:
+    - Restart and enable salt-master
+
+- meta: flush_handlers
+
+- name: Ensure salt-minion initialized
+  command: "salt-key -L"
+  register: minion
+  changed_when: false
+  failed_when: ansible_hostname not in minion.stdout_lines
+  until: minion is succeeded
+  retries: 10
+  delay: 1
+
+- name: Accept salt keys
+  command: "salt-key --accept-all -y"
+  changed_when: false
+
+- name: Ensure salt-minion is up
+  command: "salt-run manage.up --out=yaml"
+  register: minion_up
+  changed_when: false
+  failed_when: ansible_hostname not in minion_up.stdout | from_yaml
+  until: minion_up is succeeded
+  retries: 10
+  delay: 1

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+set -eux
+set -o pipefail
+
+export REPORT_DIR={{ ardana_qe_test_work_dir }}
+
+set +e
+#cleanup files from last run if any
+rm {{ ardana_qe_test_work_dir }}/Keystone_X509ConfigConsole*
+rm {{ ardana_qe_test_work_dir }}/Keystone_X509ConfigReport*
+
+bash {{ keystone_test_ansible_code_folder }}/configure_x509.sh ardana | tee {{ ardana_qe_test_log }}
+
+exit_code=`grep 'domain creation failed' {{ ardana_qe_test_log }}  | wc -l`
+if [[ "$exit_code" > 0 ]]; then
+    {{ ardana_qe_test_venv }}/bin/subunit-output --fail {{ test_name}}  >> {{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit
+else
+    {{ ardana_qe_test_venv }}/bin/subunit-output --success {{ test_name}} >> {{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit
+fi

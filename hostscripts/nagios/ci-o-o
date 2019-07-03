@@ -15,11 +15,11 @@ declare -a STATUS_TEXT=(OK WARNING CRITICAL UNKNOWN)
 
 
 function output () {
-  performance_data=${1:--}
-  check_output=${2:-}
-  status_text="${STATUS_TEXT[$status]}"
-  [ -z "$check_output" ] || status_text="$status_text - $check_output" 
-  echo "$status ${FUNCNAME[1]} $performance_data $status_text"
+    performance_data=${1:--}
+    check_output=${2:-}
+    status_text="${STATUS_TEXT[$status]}"
+    [ -z "$check_output" ] || status_text="$status_text - $check_output"
+    echo "$status ${FUNCNAME[1]} $performance_data $status_text"
 }
 
 
@@ -27,36 +27,36 @@ JENKINS_PORT=$(grep JENKINS_PORT /etc/sysconfig/jenkins  | cut -d"\"" -f2)
 JENKINS_HOST=localhost
 
 function jenkins_server_online () {
-  status=$STATUS_OK
-  if ! curl -s --head $JENKINS_HOST:$JENKINS_PORT > /dev/null ; then
-    status=$STATUS_CRITICAL
-  fi
-  output
+    status=$STATUS_OK
+    if ! curl -s --head $JENKINS_HOST:$JENKINS_PORT > /dev/null ; then
+        status=$STATUS_CRITICAL
+    fi
+    output
 }
 
 function jenkins_slave_online ()
 {
-  status=$STATUS_OK
-  nodename=$1
-  if ! curl -s --head $JENKINS_HOST:$JENKINS_PORT/computer/$nodename/ | grep -q "200 OK" ; then
-    status=$STATUS_CRITICAL
-  fi
-  output "-" "$nodename"
+    status=$STATUS_OK
+    nodename=$1
+    if ! curl -s --head $JENKINS_HOST:$JENKINS_PORT/computer/$nodename/ | grep -q "200 OK" ; then
+        status=$STATUS_CRITICAL
+    fi
+    output "-" "$nodename"
 }
 
 case $HOST in
-  ci-opensuse)
-    jenkins_server_online
-    jenkins_slave_online ci1-opensuse
-    jenkins_slave_online master
-    jenkins_slave_online obs_25_deps_chroot
-    jenkins_slave_online obs_master_deps_chroot
-    jenkins_slave_online openstack-trackupstream
-    jenkins_slave_online unittest-fast
-    jenkins_slave_online unittest-slow
-    jenkins_slave_online yast-jenkins
-    jenkins_slave_online yast-yui
-    ;;
-  ci1-opensuse)
-    ;;
+    ci-opensuse)
+        jenkins_server_online
+        jenkins_slave_online ci1-opensuse
+        jenkins_slave_online master
+        jenkins_slave_online obs_25_deps_chroot
+        jenkins_slave_online obs_master_deps_chroot
+        jenkins_slave_online openstack-trackupstream
+        jenkins_slave_online unittest-fast
+        jenkins_slave_online unittest-slow
+        jenkins_slave_online yast-jenkins
+        jenkins_slave_online yast-yui
+        ;;
+    ci1-opensuse)
+        ;;
 esac

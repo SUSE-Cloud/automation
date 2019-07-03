@@ -1,0 +1,45 @@
+---
+
+- name: Get crowbar admin_network databag contents
+  shell: |
+    knife data bag show crowbar admin_network -F json
+  delegate_to: "{{ cloud_env }}"
+  register: _register_databag
+  run_once: true
+
+- name: Set databag contents as fact
+  set_fact:
+    admin_network_databag: "{{ _register_databag.stdout | from_json }}"
+  run_once: true
+
+- name: Set databag note entry fact
+  set_fact:
+    admin_network_databag_entry:
+      machine: "{{ crowbar_node_name }}"
+      address: "{{ ansible_host }}"
+      interface: "intf{{ admin_interface_index }}"
+
+- name: Update admin network databag allocations
+  set_fact:
+    admin_network_databag: >
+      {%- set _ret = admin_network_databag -%}
+      {%- set _entry = { hostvars[item]['crowbar_node_name']: hostvars[item]['admin_network_databag_entry'] } -%}
+      {%- set _ = admin_network_databag['allocated_by_name'].update( _entry ) -%}
+      {%- set _entry = { hostvars[item]['ansible_host']: hostvars[item]['admin_network_databag_entry'] } -%}
+      {%- set _ = admin_network_databag['allocated'].update( _entry ) -%}
+      {{ _ret }}
+  loop: "{{ groups['cloud_virt_hosts'] }}"
+  run_once: true
+
+- name: Save updated databag contents
+  copy:
+    content: "{{ admin_network_databag | to_json }}"
+    dest: "/tmp/admin_network.json"
+  delegate_to: "{{ cloud_env }}"
+  run_once: true
+
+- name: Update databag
+  shell: |
+    knife data bag from file crowbar /tmp/admin_network.json
+  delegate_to: "{{ cloud_env }}"
+  run_once: true

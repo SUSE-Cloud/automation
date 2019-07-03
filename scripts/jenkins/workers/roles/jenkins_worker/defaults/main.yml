@@ -1,0 +1,102 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+jenkins_worker_reboot: False
+jenkins_worker_zypp_repos:
+  - name: "SUSE-CA"
+    repo: "http://download.suse.de/ibs/SUSE:/CA/{{ ansible_distribution | replace(' ', '_') }}_{{ ansible_distribution_version }}"
+  - name: "Cloud-CI"
+    repo: "https://download.opensuse.org/repositories/Cloud:/CI/{{ ansible_distribution | replace(' ', '_') }}_{{ ansible_distribution_version }}"
+    import_keys: True
+  - name: "Tools"
+    repo: "https://download.opensuse.org/repositories/openSUSE:/Tools/{{ ansible_distribution | replace(' Leap', '') }}_{{ ansible_distribution_version }}"
+    import_keys: True
+
+jenkins_worker_zypp_requires:
+  - ca-certificates-suse
+  - gcc
+  - git-core
+  - jenkins-swarm-client
+  - ntp
+  - obs-service-download_files
+  - obs-service-format_spec_file
+  - obs-service-obs_scm
+  - obs-service-set_version
+  - osc
+  - python3-devel
+  - python3-gitlint
+  - python3-openstackclient
+  - python3-pygerrit2
+  - python3-python-jenkins
+  - python3-sh
+  - python3-virtualenv
+  - ruby2.5-rubygem-activesupport-5.2
+  - sshpass
+
+jenkins_worker_venv_path: "/opt/ansible"
+jenkins_worker_venv_requires:
+  - "ansible{{ jenkins_worker_ansible_version | default('') }}"
+  - "netaddr"
+  - "openstackclient"
+  - "openstacksdk"
+  - "sh"
+
+jenkins_worker_ntp_server: "ntp1.suse.de"
+
+jenkins_worker_labels: "disabled"
+jenkins_worker_master: "https://ci.suse.de/"
+jenkins_workers_executors: 10
+jenkins_worker_swarm_conf_file: "/etc/sysconfig/jenkins-swarm-client"
+jenkins_worker_swarm_config:
+  - line: 'LABELS="{{ jenkins_worker_labels }}"'
+    regexp: '^LABELS='
+  - line: 'PARAMS="-username {{ _swarm_username }} -password {{ _swarm_password }} -master {{ jenkins_worker_master }} -mode exclusive -executors {{ jenkins_workers_executors }} -name {{ ansible_hostname }} -description {{ os_cloud }}/{{ os_project_name }} -disableSslVerification -disableClientsUniqueId -fsroot /home/jenkins/workspace"'
+    regexp: '^PARAMS='
+  - line: 'JENKINS_USER="jenkins"'
+    regexp: '^JENKINS_USER='
+  - line: 'JENKINS_HOME="/home/jenkins"'
+    regexp: '^JENKINS_HOME='
+
+jenkins_worker_copy_files:
+  - path: "/home/jenkins/.ssh/id_rsa"
+    owner: "jenkins"
+    group: "users"
+    mode: "0600"
+  - path: "/home/jenkins/.netrc"
+    owner: "jenkins"
+    group: "users"
+    mode: "0600"
+  - path: "/home/jenkins/.config/openstack/"
+    owner: "jenkins"
+    group: "users"
+    mode: "0644"
+  - path: "/home/jenkins/.oscrc"
+    owner: "jenkins"
+    group: "users"
+    mode: "0600"
+  - path: "/etc/jenkinsapi.conf"
+    owner: "root"
+    group: "root"
+    mode: "0644"
+
+jenkins_worker_authorized_users:
+  - dmueller
+  - esampson
+  - framalho
+  - fmccarthy
+  - rsalevsky
+  - snica

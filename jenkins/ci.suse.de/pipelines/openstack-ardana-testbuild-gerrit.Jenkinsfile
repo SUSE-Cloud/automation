@@ -1,69 +1,63 @@
 /**
- * The cloud-ardana-testbuild-gerrit Jenkins Pipeline
+ * The openstack-ardana-testbuild-gerrit Jenkins Pipeline
  *
  * This job creates test IBS packages corresponding to supplied Gerrit patches.
  */
+
+def ardana_lib = null
+
 pipeline {
 
   // skip the default checkout, because we want to use a custom path
   options {
     skipDefaultCheckout()
+    timestamps()
   }
 
   agent {
     node {
-      label reuse_node ? reuse_node : "openstack-trackupstream"
+      label "cloud-ci"
+      customWorkspace "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
 
   stages {
-    stage('setup workspace and environment') {
+    stage('Setup workspace') {
       steps {
-        cleanWs()
-
-        // If the job is set up to reuse an existing workspace, replace the
-        // current workspace with a symlink to the reused one.
-        // NOTE: even if we specify the reused workspace as the
-        // customWorkspace variable value, Jenkins will refuse to reuse a
-        // workspace that's already in use by one of the currently running
-        // jobs and will just create a new one.
-        sh '''
-          if [ -n "${reuse_workspace}" ]; then
-            rmdir "${WORKSPACE}"
-            ln -s "${reuse_workspace}" "${WORKSPACE}"
-          fi
-        '''
-
         script {
+          // Set this variable to be used by upstream builds
+          env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
+          if (gerrit_change_ids == '') {
+            error("Empty 'gerrit_change_ids' parameter value.")
+          }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${gerrit_change_ids}"
-          env.test_repository_url = sh (
-            returnStdout: true,
-            script: '''
-              echo http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${gerrit_change_ids//,/-}/standard
-            '''
-          )
+          sh('''
+            git clone $git_automation_repo --branch $git_automation_branch automation-git
+          ''')
+          cloud_lib = load "automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_extra_params_as_vars(extra_params)
         }
-      }
-    }
-
-    stage('clone automation repo') {
-      when {
-        expression { reuse_workspace == '' }
-      }
-      steps {
-        sh 'git clone $git_automation_repo --branch $git_automation_branch automation-git'
       }
     }
 
     stage('build test packages') {
       steps {
-        sh '''
-          cd automation-git/scripts/jenkins/ardana/gerrit
-          set -eux
-          python -u build_test_package.py
-          echo "zypper repository for test packages: $test_repository_url"
-        '''
+        sh('echo "IBS project for test packages: https://build.suse.de/project/show/${homeproject}:ardana-ci-${BUILD_NUMBER}"')
+        sh('echo "zypper repository for test packages: http://download.suse.de/ibs/${homeproject//:/:\\/}:/ardana-ci-${BUILD_NUMBER}/standard/${homeproject}:ardana-ci-${BUILD_NUMBER}.repo"')
+        timeout(time: 30, unit: 'MINUTES', activity: true) {
+          sh('''
+            source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
+            cd automation-git/scripts/jenkins/cloud/gerrit
+            set -eux
+            run_python_script -u build_test_package.py --homeproject ${homeproject} --buildnumber ${BUILD_NUMBER} -c ${gerrit_change_ids//,/ -c }
+          ''')
+        }
       }
+    }
+  }
+  post {
+    cleanup {
+      cleanWs()
     }
   }
 }

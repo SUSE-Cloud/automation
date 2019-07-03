@@ -1,0 +1,78 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+---
+
+- import_playbook: cloud-ses-integration.yml
+  when: ses_enabled
+
+- name: Configure ardana and deploy OpenStack
+  hosts: "{{ cloud_env }}"
+  remote_user: ardana
+  gather_facts: True
+  vars:
+    task: "deploy"
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when:
+        - rc_notify
+        - rc_notify_start
+        - not is_physical_deploy
+
+  tasks:
+    - block:
+        - name: Ardana log stream at
+          debug:
+            msg: "http://{{ ansible_host }}:9091/"
+
+        - include_role:
+            name: ardana_deploy
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+      always:
+        - include_role:
+            name: jenkins_artifacts
+          when: lookup("env", "WORKSPACE")
+
+  post_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "finished"
+        rc_state: "Success"
+      when:
+        - rc_notify
+        - not ses_enabled or (ses_enabled and not ses_rgw_enabled)
+
+- import_playbook: ardana-ses-rgw.yml
+  when: ses_enabled and ses_rgw_enabled
+
+- import_playbook: ardana-ses-manila.yml
+  when: ses_enabled and 'manila' not in disabled_services | default('')

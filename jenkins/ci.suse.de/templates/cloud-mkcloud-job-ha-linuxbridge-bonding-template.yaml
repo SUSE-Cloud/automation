@@ -20,13 +20,12 @@
             TESTHEAD=1
             cloudsource=develcloud{version}
             nodenumber={nodenumber}
-            clusterconfig=data+network+services=2
+            clusterconfig=data+network+services=3
             storage_method=swift
             hacloud=1
             mkcloudtarget=all_noreboot
             networkingplugin=linuxbridge
             networkingmode=vxlan
             crowbar_networkingmode=team
-            want_node_aliases=controller={nodenumber_controller},compute=2
             label={label}
             job_name=cloud-mkcloud{version}-job-ha-linuxbridge-{arch}

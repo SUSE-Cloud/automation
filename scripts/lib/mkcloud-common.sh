@@ -27,22 +27,35 @@ function get_getent_hosts
 
 function to_ip6
 {
-    get_getent_hosts $1 ip6
+    echo "[$(get_getent_hosts "$1" ip6)]"
 }
 
 function to_ip4
 {
-    get_getent_hosts $1 ip4
+    get_getent_hosts "$1" ip4
 }
 
 function to_ip
 {
-    to_ip4 $1
+    ip=$(to_ip4 "$1")
+    if [ -z $ip ]; then
+        ip=$(to_ip6 "$1")
+    fi
+    echo "$ip"
 }
 
 function to_fqdn
 {
-    get_getent_hosts $1 fqdn
+    get_getent_hosts "$1" fqdn
+}
+
+function wrap_ip
+{
+    if (( $want_ipv6 > 0 )); then
+        echo "[$1]"
+    else
+        echo $1
+    fi
 }
 
 function max
@@ -270,7 +283,11 @@ function setcloudnetvars
 
     # common cloud network prefix within SUSE Nuremberg:
     netp=10.162
-    net=${net_admin:-192.168.124}
+    if (( $want_ipv6 > 0 )); then
+        net=${net_admin:-'fd00:0:0:3'}
+    else
+        net=${net_admin:-192.168.124}
+    fi
     case "$cloud" in
         p1)
             nodenumbertotal=5
@@ -382,15 +399,36 @@ function setcloudnetvars
     vlan_public=${vlan_public:-300}
     vlan_fixed=${vlan_fixed:-500}
     vlan_sdn=${vlan_sdn:-400}
-    net_fixed=${net_fixed:-192.168.123}
-    net_public=${net_public:-192.168.122}
-    net_storage=${net_storage:-192.168.125}
-    net_ceph=${net_ceph:-192.168.127}
-    net_ironic=${net_ironic:-192.168.128}
-    net_sdn=${net_sdn:-192.168.130}
-    : ${admingw:=$net.1}
-    : ${adminip:=$net.10}
-    : ${ironicgw:=$net_ironic.1}
+    if (( ${want_ipv6} > 0 )); then
+        net_fixed=${net_fixed:-'fd00:0:0:2'}
+        net_public=${net_public:-'fd00:0:0:1'}
+        net_storage=${net_storage:-'fd00:0:0:4'}
+        net_ceph=${net_ceph:-'fd00:0:0:5'}
+        net_ironic=${net_ironic:-'fd00:0:0:6'}
+        net_sdn=${net_sdn:-'fd00:0:0:7'}
+        : ${adminnetmask:=64}
+        : ${ironicnetmask:=64}
+        : ${defaultnetmask:=64}
+        : ${adminip:=${net}:5054:ff:fe77:7770}
+        : ${admin_end_range:=${net}:5054:ff:fe77:7771}
+        : ${admingw:=${net}${ip_sep}${ip_sep}1}
+        : ${publicgw:=${net_public}${ip_sep}${ip_sep}1}
+        : ${ironicgw:=${net_ironic}${ip_sep}${ip_sep}1}
+    else
+        net_fixed=${net_fixed:-192.168.123}
+        net_public=${net_public:-192.168.122}
+        net_storage=${net_storage:-192.168.125}
+        net_ceph=${net_ceph:-192.168.127}
+        net_ironic=${net_ironic:-192.168.128}
+        net_sdn=${net_sdn:-192.168.130}
+        : ${adminnetmask:=255.255.248.0}
+        : ${ironicnetmask:=255.255.255.0}
+        : ${defaultnetmask:=255.255.255.0}
+        : ${adminip:=${net}${ip_sep}10}
+        : ${admingw:=${net}${ip_sep}1}
+        : ${publicgw:=${net_public}${ip_sep}1}
+        : ${ironicgw:=${net_ironic}${ip_sep}1}
+    fi
 }
 
 # Returns success if a change was made
@@ -528,7 +566,7 @@ get_nodenumbercontroller()
 find_fastest_clouddata_server()
 {
     local cache=~/.mkcloud/fastest_clouddata_server
-    if [[ -r $cache ]] && [[ $cache -nt $BASH_SOURCE ]] ; then
+    if [[ -r $cache ]] && [[ -s $cache ]] && [[ $cache -nt $BASH_SOURCE ]] ; then
         exec cat $cache || exit 100
     fi
     mkdir -p ~/.mkcloud
@@ -657,20 +695,20 @@ fi
 # Please ONLY use the suffixed variables: '*_ip' or '*_fqdn'
 
 : ${reposerver:=$(find_fastest_clouddata_server)}
-: ${reposerver_ip:=$(to_ip $reposerver)}
-: ${reposerver_fqdn:=$(to_fqdn $reposerver)}
+: ${reposerver_ip:=$(to_ip "$reposerver")}
+: ${reposerver_fqdn:=$(to_fqdn "$reposerver")}
 : ${reposerver_base_path:=/repos}
 : ${reposerver_url:=http://$reposerver_fqdn$reposerver_httpport$reposerver_base_path}
 : ${imageserver_url:=http://$reposerver_fqdn$reposerver_httpport/images}
 
 : ${nfsserver:=$reposerver}
-: ${nfsserver_ip:=$(to_ip $nfsserver)}
-: ${nfsserver_fqdn:=$(to_fqdn $nfsserver)}
+: ${nfsserver_ip:=$(to_ip "$nfsserver")}
+: ${nfsserver_fqdn:=$(to_fqdn "$nfsserver")}
 : ${nfsserver_base_path:=/srv/nfs}
 
 : ${rsyncserver:=$reposerver}
-: ${rsyncserver_ip:=$(to_ip $rsyncserver)}
-: ${rsyncserver_fqdn:=$(to_fqdn $rsyncserver)}
+: ${rsyncserver_ip:=$(to_ip "$rsyncserver")}
+: ${rsyncserver_fqdn:=$(to_fqdn "$rsyncserver")}
 : ${rsyncserver_images_dir:="cloud/images/$arch"}
 
 : ${test_internet_url:=http://$reposerver_fqdn/test}
@@ -691,9 +729,11 @@ fi
 : ${nodenumberironicnode:=0}
 : ${want_mtu_size:=1500}
 # proposals:
+: ${want_designate_proposal:=0}
 : ${want_magnum_proposal:=0}
 : ${want_monasca_proposal:=0}
-: ${want_murano_proposal:=0}
+: ${want_octavia_proposal:=0}
+: ${want_trove_proposal:=0}
 
 [ -z "$want_test_updates" -a -n "$TESTHEAD" ] && export want_test_updates=1
 
@@ -701,4 +741,13 @@ fi
 iscloudver 8plus && : ${want_database_sql_engine:="mysql"}
 : ${want_external_ceph:=0}
 : ${want_ses_version:=0}
+
+# IPv6 Support
+: ${want_ipv6:=0}
+if (( ${want_ipv6} == 0 )); then
+    : ${ip_sep:="."}
+else
+    : ${ip_sep:=":"}
+fi
+
 # ---- END: common variables and defaults

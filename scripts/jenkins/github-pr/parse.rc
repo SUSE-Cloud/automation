@@ -2,12 +2,12 @@
 ## This file must be sourced so that the calling process can access the variables
 
 # error if github_pr is unset
-${github_pr:?}
+github_pr="${github_pr:?}"
 
 github_opts=(${github_pr//:/ })
 github_pr_repo=${github_opts[0]}
 github_pr_id=${github_opts[1]}
 github_pr_sha=${github_opts[2]}
-github_pr_context=${github_opts[4]}
+github_pr_context=${github_opts[4]:-}
 github_org=${github_pr_repo%/*}
 github_repo=${github_pr_repo##*/}

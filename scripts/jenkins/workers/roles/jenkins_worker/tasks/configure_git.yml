@@ -1,0 +1,16 @@
+- name: Configure git user.name for user jenkins
+  git_config:
+    name: user.name
+    scope: global
+    value: "SUSE Jenkins Gerrit"
+  become_user: jenkins
+  become: yes
+
+- name: Configure git user.email for user jenkins
+  git_config:
+    name: user.email
+    scope: global
+    value: "cloud-jenkins-gerrit-owner@suse.de"
+  become_user: jenkins
+  become: yes
+

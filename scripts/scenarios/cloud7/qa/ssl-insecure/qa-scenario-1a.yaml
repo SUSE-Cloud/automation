@@ -57,6 +57,8 @@ proposals:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
           options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:

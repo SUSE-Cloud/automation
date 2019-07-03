@@ -1,0 +1,70 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Gather repos to add
+  set_fact:
+    repos_to_add: "{{ repos_to_add | default([]) + item.repo }}"
+  when: "item.enabled | default(True)"
+  loop:
+    - repo: "{{ base_repos }}"
+    - repo: "{{ cloud_update_repos }}"
+      enabled: "{{ cloud_update_repos_enabled }}"
+    - repo: "{{ sles_test_repos }}"
+      enabled: "{{ sles_test_repos_enabled }}"
+    - repo: "{{ cloud_test_repos }}"
+      enabled: "{{ cloud_test_repos_enabled }}"
+
+- name: Ensure repo directory exists
+  file:
+    state: directory
+    path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
+  loop: "{{ repos_to_add }}"
+
+- name: Rsync repos that are frequently updated
+  synchronize:
+    mode: pull
+    src: "rsync://{{ clouddata_server }}/cloud/repos/{{ ansible_architecture }}/{{ item }}/"
+    dest: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
+    rsync_opts:
+      - "--sparse"
+      - "--hard-links"
+      - "--fuzzy"
+      - "--delete-delay"
+  delegate_to: "{{ inventory_hostname }}"
+  loop: "{{ repos_to_sync }}"
+  register: sync_result
+  retries: 5
+  until: sync_result.rc != 24
+  delay: 300
+
+- name: Mount repos that are not frequently updated
+  mount:
+    src: "{{ clouddata_server }}:/srv/nfs/repos/{{ ansible_architecture }}/{{ item }}"
+    path: "{{ local_repos_base_dir }}/{{ item }}"
+    opts: ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock,x-systemd.automount,noauto
+    fstype: nfs
+    state: mounted
+  loop: "{{ repos_to_mount }}"
+
+- name: Add zypper repos
+  zypper_repository:
+    name: "{{ zypper_repo_name }}"
+    repo: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
+    state: present
+  loop: "{{ repos_to_add }}"
+  notify:
+    - Refresh all repos

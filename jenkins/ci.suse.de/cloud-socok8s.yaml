@@ -1,0 +1,9 @@
+- project:
+    name: cloud-socok8s-jobs/socok8s
+    repo-name: socok8s
+    repo-owner: SUSE-Cloud
+    # the credentialId for opensusegithubapi
+    repo-credentials: c2350527-476a-45df-b406-84f028614682
+    jobs:
+      - '{name}-integration'
+      - '{name}-nightly-airship-from-rpm'

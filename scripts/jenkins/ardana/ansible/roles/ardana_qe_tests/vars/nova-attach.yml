@@ -1,9 +1,0 @@
-ardana_qe_test_venv_requires:
-  - 'python-subunit'
-
-ardana_qe_test_get_failed_cmd: "grep Pas {{ ardana_qe_test_log }} | grep -v 'Failed:  0' || echo 'None'"
-ardana_qe_test_get_results_cmds:
-  passed: "grep Pas {{ ardana_qe_test_log }} | grep 'Failed:  0' | wc -l"
-  failed: "grep Pas {{ ardana_qe_test_log }} | grep -v 'Failed:  0' | wc -l"
-  ran: "grep Pas {{ ardana_qe_test_log }} | grep Pas | wc -l"
-

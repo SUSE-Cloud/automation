@@ -175,7 +175,8 @@ main () {
                 echo "Running as root, invoking modprobe kvm_$plat."
                 if [ $plat = "intel" ] ; then
                     if ! grep -q nested /etc/modprobe.d/80-kvm-intel.conf ; then
-                        echo "options kvm_intel nested=1" | sudo tee /etc/modprobe.d/80-kvm-intel.conf
+                        echo "options kvm_intel nested=1 emulate_invalid_guest_state=0" | \
+                            sudo tee /etc/modprobe.d/80-kvm-intel.conf
                         modprobe -r kvm_intel
                     fi
                 fi

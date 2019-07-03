@@ -10,10 +10,10 @@
     builders:
       - gerrit-git-prep
       - shell: |
-          #!/bin/bash -e
+          #!/bin/bash -xe
           rpm -qa|grep '\(renderspec\|pymod2pkg\)'
 
-          set -eux
+          set -u
 
           osc_timed="timeout 20m osc"
 
@@ -52,7 +52,7 @@
                   unset failed
                   unset kickscheduler
                   unset succeeded
-                  res=`osc results --csv -w -r standard`
+                  res=`osc results --csv -r standard`
                   if [ $? -ne 0 ]; then
                       sleep 5
                       continue

@@ -65,8 +65,7 @@
           condition-expression: ${ENV,var="run_rally_test"}
           steps: 
           - shell: |
-              #!/bin/bash
-              set -x
+              #!/bin/bash -x
               # Create artifacts dir
               export artifacts_dir=$WORKSPACE/.artifacts
               rm -rf $artifacts_dir
@@ -101,8 +100,7 @@
           condition-expression: ${ENV,var="run_failover_test"}
           steps:
           - shell: |
-              #!/bin/bash
-              set -x
+              #!/bin/bash -x
               export artifacts_dir=$WORKSPACE/.artifacts
               rm -rf $artifacts_dir
               mkdir -p $artifacts_dir

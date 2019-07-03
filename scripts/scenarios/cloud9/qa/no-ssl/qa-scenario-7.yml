@@ -1,0 +1,190 @@
+---
+# 1a - 7 nodes: HA (IPMI 1 x 3), KVM x 1, Swift
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - ''
+          @@controller2@@:
+            devices:
+            - ''
+          @@controller3@@:
+            devices:
+            - ''
+      per_node:
+        nodes:
+          @@controller1@@:
+            params: ''
+          @@controller2@@:
+            params: ''
+          @@controller3@@:
+            params: ''
+    drbd:
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+- barclamp: database
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+- barclamp: rabbitmq
+  attributes:
+    client:
+      enable_notifications: true
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+- barclamp: keystone
+  attributes:
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+- barclamp: swift
+  attributes:
+    replicas: 2
+    cluster_hash: 181d283256
+    keystone_delay_auth_decision: true
+    allow_versions: true
+    middlewares:
+      crossdomain:
+        enabled: true
+      formpost:
+        enabled: true
+      staticweb:
+        enabled: true
+      tempurl:
+        enabled: true
+  deployment:
+    elements:
+      swift-dispersion: []
+      swift-proxy:
+      - cluster:services
+      swift-ring-compute:
+      - "@@controller1@@"
+      swift-storage:
+      - "@@storage-swift@@"
+- barclamp: glance
+  attributes:
+    default_store: swift
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: nfs
+      backend_name: nfs
+      nfs:
+        nfs_shares: ##cinder-storage-shares##
+        nfs_snapshot: true
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - cluster:services
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - ##networkingplugin##
+    ml2_type_drivers:
+    - ##networkingmode##
+    num_vlans: 99
+    ml2_type_drivers_default_provider_network: ##networkingmode##
+    ml2_type_drivers_default_tenant_network: ##networkingmode##
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+
+- barclamp: ironic
+  attributes:
+  deployment:
+    elements:
+      ironic-server:
+      - "@@controller1@@"
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    kvm:
+      ksm_enabled: true
+    metadata:
+      vendordata:
+        json: '{"custom-key": "custom-value"}'
+  deployment:
+    elements:
+      ec2-api:
+      - cluster:services
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm: []
+      nova-compute-qemu: []
+      nova-compute-xen: []
+      nova-compute-ironic:
+      - "@@compute-kvm@@"
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@compute-kvm@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-central:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
+- barclamp: barbican
+  attributes:
+  deployment:
+    elements:
+      barbican-controller:
+      - cluster:services
+- barclamp: sahara
+  attributes:
+  deployment:
+    elements:
+      sahara-server:
+      - cluster:services
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"

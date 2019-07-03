@@ -15,7 +15,7 @@
     <pae/>
   </features>
   <cpu mode='custom' match='exact'>
-    <model fallback='allow'>core2duo</model>
+    <model fallback='allow'>Haswell-noTSX</model>
     <feature policy='require' name='vmx'/>
     <feature policy='disable' name='monitor'/>
   </cpu>
@@ -37,6 +37,7 @@
       <target dev='cloud-a'/>
       <source network='cloud-admin'/>
       <model type='virtio'/>
+      <driver name="vhost" queues="2"/>
       <address type='pci' bus='0x01' slot='0x1'/>
     </interface>
     <serial type='pty'>

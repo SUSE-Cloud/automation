@@ -1,0 +1,21 @@
+- job-template:
+    name: '{cloud_url_trigger_job}'
+    project-type: multijob
+    node: cloud-ci-trigger
+
+    triggers:
+      - pollurl:
+          cron: 'H/5 * * * *'
+          polling-node: cloud-ci-trigger
+          urls:
+            - url: '{url}'
+              check-date: '{check_date|false}'
+              check-content:
+                - simple: true
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+    builders:
+      - trigger-builds: '{projects}'

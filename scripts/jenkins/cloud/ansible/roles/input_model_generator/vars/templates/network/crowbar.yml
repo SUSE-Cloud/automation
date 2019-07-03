@@ -1,0 +1,28 @@
+---
+
+network_groups:
+  - name: MANAGEMENT
+    hostname_suffix: mgmt
+    tagged_vlan: false
+    component_endpoints:
+      - CLM
+      - MANAGEMENT
+      - INTERNAL-API
+      - EXTERNAL-API
+
+  - name: PUBLIC
+    hostname_suffix: public
+    tagged_vlan: true
+    component_endpoints: []
+    routes:
+      - default
+
+  - name: OS_SDN
+    hostname_suffix: os_sdn
+    tagged_vlan: true
+    component_endpoints: []
+
+  - name: STORAGE
+    hostname_suffix: storage
+    tagged_vlan: true
+    component_endpoints: []

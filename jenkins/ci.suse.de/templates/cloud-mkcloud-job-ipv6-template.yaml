@@ -1,0 +1,26 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-ipv6-{arch}'
+    node: cloud-trigger
+    disabled: '{obj:disabled}'
+
+    triggers:
+      - timed: '40 5 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            nodenumber=2
+            want_ipv6=1
+            mkcloudtarget=cleanup prepare setupadmin prepareinstcrowbar bootstrapcrowbar
+            label={label}
+            job_name=cloud-mkcloud{version}-job-ipv6-{arch}

@@ -1,0 +1,63 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+{% set ns = namespace(clm_net_id=0, server_idx=0) %}
+{% for network_group in scenario['network_groups'] %}
+{%   if 'CLM' in network_group['component_endpoints'] %}
+{%     set ns.clm_net_id = loop.index0+gen_subnet_start %}
+{%   endif %}
+{% endfor %}
+{% if ns.clm_net_id == 0  %}
+{%   for network_group in scenario['network_groups'] %}
+{%     if 'MANAGEMENT' in network_group['component_endpoints'] %}
+{%       set ns.clm_net_id = loop.index0+gen_subnet_start %}
+{%     endif %}
+{%   endfor  %}
+{% endif %}
+  product:
+    version: 2
+
+  baremetal:
+    netmask: {{ bm_info.networks.bm_netmask if bm_info is defined else '255.255.255.0' }}
+    subnet: {{ subnet_prefix.ipv4 }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.0
+
+  servers:
+{% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
+{%   for idx in range(service_group['member_count']|int) %}
+{%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
+    - id: {{ bm_info.servers[ns.server_idx].id if bm_info is defined else server_id }}
+      ip-addr: {{ subnet_prefix.ipv4 }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + gen_ip_start }}
+      role: {{ service_group.name|upper }}-ROLE
+      server-group: RACK{{ (idx%3)+1 }}
+      nic-mapping: {{ bm_info.servers[ns.server_idx].nic_mapping if bm_info is defined else 'HEAT' }}
+{% if bm_info is defined and 'ilo_user' in bm_info.servers[ns.server_idx] %}
+      ilo-user: {{ bm_info.servers[ns.server_idx].ilo_user }}
+      ilo-password: {{ bm_info.servers[ns.server_idx].ilo_password }}
+      ilo-ip: {{ bm_info.servers[ns.server_idx].ilo_ip }}
+      mac-addr: {{ bm_info.servers[ns.server_idx].mac_addr }}
+{% elif bm_info is not defined %}
+      # Generate dummy iLO credentials until bsc#1091459 is fixed
+      ilo-user: 'ilouser'
+      ilo-password: 'ilopasswd'
+      ilo-ip: 10.1.1.{{ ns.server_idx + gen_ip_start }}
+{% endif %}
+{% if service_group.distro_id is defined and 'sles' not in service_group.distro_id %}
+      distro-id: {{ service_group.distro_id }}
+{% endif %}
+{%     set ns.server_idx = ns.server_idx + (gen_ip_gap if ns.server_idx == 0 else 1) %}
+
+{%   endfor %}
+{% endfor %}

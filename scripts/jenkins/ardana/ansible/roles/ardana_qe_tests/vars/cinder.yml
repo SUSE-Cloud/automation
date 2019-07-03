@@ -1,6 +1,0 @@
-ardana_qe_test_get_failed_cmd: "grep Passed {{ ardana_qe_test_log }} | grep -v 'Failed:  0' || echo 'None'"
-ardana_qe_test_get_results_cmds:
-  passed: "grep Passed {{ ardana_qe_test_log }} | grep 'Failed:  0' | wc -l"
-  failed: "grep Passed {{ ardana_qe_test_log }} | grep -v 'Failed:  0' | wc -l"
-  ran: "grep Passed {{ ardana_qe_test_log }} | grep Passed | wc -l"
-

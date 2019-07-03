@@ -386,7 +386,7 @@ class Initiator(ISCSI):
         try:
             self.target_ssh.lio_node('--dellunacl', iqn, '1',
                                      initiator, '0')
-        except:
+        except Exception:
             pass
         finally:
             self.target_ssh.lio_node('--addlunacl', iqn, '1',

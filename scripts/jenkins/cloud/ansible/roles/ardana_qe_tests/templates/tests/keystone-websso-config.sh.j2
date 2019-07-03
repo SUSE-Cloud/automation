@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+
+# Requirements for websso login via Horizon
+
+# Public VIP in input model: myhelion.test since the QE ADFS server is set up with myhelion.test as the relying party
+# /etc/hosts entry on deployer and controller nodes updated
+# For example:
+#10.84.81.37      myhelion.test
+#10.84.83.253     ad01.keystone.suse.com
+
+# ADFS Credentials to try login via Horizon: testuser1@keystone.suse.com/Changeme123
+
+set -eux
+set -o pipefail
+
+cd {{ keystone_soapui_code_folder }}
+
+#cleanup files from last run if any
+set +e
+bash {{ keystone_soapui_code_folder }}/configure_websso_federation.sh $HOME {{ ardana_qe_test_work_dir }} | tee {{ ardana_qe_test_log }}
+
+count=`grep websso_failed {{ ardana_qe_test_log }}  | wc -l`
+if [[ "$count" > 0 ]]; then
+    {{ ardana_qe_test_venv }}/bin/subunit-output --fail {{ test_name}}  >> {{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit
+else
+    {{ ardana_qe_test_venv }}/bin/subunit-output --success {{ test_name}} >> {{ ardana_qe_test_work_dir }}/{{ test_name }}.subunit
+fi

@@ -70,11 +70,6 @@
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
 
-      - string:
-          name: cct
-          default: features:base
-          description: Optional, specify cct tests to run
-
       - bool:
           name: horizon-tests
           default: false
@@ -155,7 +150,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           admin=crowbar$hw_number
           cloud=qa$hw_number
 
@@ -182,7 +177,7 @@
           update_automation
 
           # put variables needed during the build process into mkcloud.config file
-          env | grep -e networking -e libvirt -e cloud -e upgrade -e cct -e TESTHEAD > mkcloud.config
+          env | grep -e networking -e libvirt -e cloud -e upgrade -e TESTHEAD > mkcloud.config
 
           # copy scripts/ dir onto the admin node in /root/scripts
           scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
@@ -256,7 +251,6 @@
             predefined-parameters: |
               hw_number=$hw_number
               tempest=$tempest
-              cct_tests=$cct
               horizon-tests=$horizon-tests
               scenario_name=8b
               scenario_job_name=$JOB_NAME

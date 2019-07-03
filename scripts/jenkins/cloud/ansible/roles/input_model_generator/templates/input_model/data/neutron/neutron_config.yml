@@ -1,0 +1,114 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+  product:
+    version: 2
+
+  configuration-data:
+    - name:  NEUTRON-CONFIG-CP1
+      services:
+        - neutron
+      data:
+{% if bm_info is defined %}
+        neutron_provider_networks:
+{{   bm_info.neutron.provider_networks | to_nice_yaml(indent=2) | indent(10, True) }}
+        neutron_external_networks:
+{%   for external_network in bm_info.neutron.external_networks %}
+          - {{ external_network | to_nice_yaml(indent=2) | indent(12, False) }}
+{%     if not enable_external_network_bridge and 'provider' not in external_network %}
+            provider:
+            - network_type: flat
+              physical_network: external{{ loop.index0 | ternary(loop.index0, '') }}
+{%     endif %}
+{%   endfor %}
+{% else %}
+{% set ns = namespace(provider_nets_hdr=False, ext_nets_hdr=False, mgmt_net_id=0, physnet_id=0, net_id=30, vlan_id=gen_subnet_start+scenario.network_groups|length) %}
+{% for network_group in scenario.network_groups %}
+{%   if 'MANAGEMENT' in network_group.component_endpoints %}
+{%     set ns.mgmt_net_id = loop.index0+gen_subnet_start %}
+{%   endif %}
+{% endfor  %}
+{% for network_group in scenario.network_groups %}
+{%   if 'NEUTRON-VLAN' in network_group.component_endpoints %}
+{%     set ns.physnet_id = ns.physnet_id+1 %}
+{%     if not ns.provider_nets_hdr %}
+{%       set ns.provider_nets_hdr=True %}
+        neutron_provider_networks:
+{%     endif %}
+
+          - name: NEUTRON-{{ network_group.name|upper }}-VLAN-NET
+            provider:
+              - network_type: vlan
+                physical_network: physnet{{ ns.physnet_id }}
+                segmentation_id: {{ ns.vlan_id }}
+            no_gateway:  True
+            enable_dhcp: True
+{%     if ipv6 %}
+            cidr: {{ neutron_subnet_prefix.ipv6 }}:{{ ns.net_id }}::/64
+            allocation_pools:
+              - start: {{ neutron_subnet_prefix.ipv6 }}:{{ ns.net_id }}::10
+                end: {{ neutron_subnet_prefix.ipv6 }}:{{ ns.net_id }}::250
+            host_routes:
+              # route to management network
+              - destination: {{ subnet_prefix.ipv6 }}:{{ ns.mgmt_net_id }}::/64
+                nexthop:  {{ neutron_subnet_prefix.ipv6 }}:{{ ns.net_id }}::1
+{%       set ns.net_id = ns.net_id+1 %}
+{%       set ns.vlan_id = ns.vlan_id+1 %}
+{%     else %}
+            cidr: {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.1.0/24
+            allocation_pools:
+              - start: {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.1.10
+                end: {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.1.250
+            host_routes:
+            # route to management network
+              - destination: {{ subnet_prefix.ipv4 }}.{{ ns.mgmt_net_id }}.0/24
+                nexthop:  {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.1.1
+{%     set ns.net_id = ns.net_id+1 %}
+{%     set ns.vlan_id = ns.vlan_id+1 %}
+{%   endif %}
+{%   endif %}
+{% endfor %}
+{%     if not ns.provider_nets_hdr %}
+        neutron_provider_networks: []
+{%     endif %}
+
+{% for network_group in scenario.network_groups if 'NEUTRON-EXT' in network_group.component_endpoints %}
+{%   if not ns.ext_nets_hdr %}
+{%     set ns.ext_nets_hdr=True %}
+        neutron_external_networks:
+{%   endif %}
+
+          - name: ext-net{{ loop.index0 | ternary(loop.index0, '') }}
+{%   if ipv6 %}
+            cidr: {{ neutron_subnet_prefix.ipv6 }}:{{ ns.net_id }}::/64
+            gateway-ip: {{ neutron_subnet_prefix.ipv6 }}:{{ ns.net_id }}::1
+{%     set ns.net_id = ns.net_id+1 %}
+{%   else %}
+            cidr: {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.0.0/16
+            gateway: {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.0.1
+{%     if not enable_external_network_bridge %}
+            provider:
+            - network_type: flat
+              physical_network: external{{ loop.index0 | ternary(loop.index0, '') }}
+{%     endif %}
+{%     set ns.net_id = ns.net_id+1 %}
+{%   endif %}
+{% endfor %}
+{%     if not ns.ext_nets_hdr %}
+        neutron_external_networks: []
+{%     endif %}
+
+{% endif %}

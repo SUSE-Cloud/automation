@@ -1,12 +1,13 @@
 - project:
     name: cloud-mkcloud6-gating
+    disabled: true
     version: 6
     previous_version: 5
     jobs:
         - 'cloud-mkcloud{version}-gating'
 - project:
     name: cloud-mkcloud6-x86_64
-    disabled: false
+    disabled: true
     version: 6
     previous_version: 5
     arch: x86_64
@@ -21,7 +22,7 @@
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
 - project:
     name: cloud-mkcloud6-ha-x86_64
-    disabled: false
+    disabled: true
     version: 6
     previous_version: 5
     arch: x86_64

@@ -1,0 +1,67 @@
+---
+
+- name: set crowbar_node_name fact
+  set_fact:
+    crowbar_node_name: "d{{ hostvars[inventory_hostname]['ansible_%s' | format(admin_interface)].macaddress | replace(':', '-') }}.{{ cloud_fqdn }}"
+
+- name: Create crowbar node list properly sorted
+  set_fact:
+    crowbar_node_list: "{{ crowbar_node_list | default('crowbar.' + cloud_fqdn) }} {{ hostvars[item]['crowbar_node_name'] }}"
+  loop: "{{ groups['cloud_virt_hosts'] }}"
+  delegate_to: "{{ cloud_env }}"
+  run_once: true
+
+- name: Fill in custom crowbar node list in mkcloud.conf
+  lineinfile:
+    dest: "{{ admin_mkcloud_config_file }}"
+    regexp: "^export custom_crowbar_node_order"
+    line: "export custom_crowbar_node_order='{{ crowbar_node_list }}'"
+    state: present
+  delegate_to: "{{ cloud_env }}"
+  run_once: true
+
+- name: Reserve node admin IP addresses in Crowbar
+  include_tasks: reserve_admin_ip.yml
+
+  # When installing extra repositories (such as test-updates), these
+  # repositories are served to cloud nodes using the FQDN instead of the IP,
+  # which confuses crowbar_register
+- name: Ensure admin node FQDN resolvable
+  lineinfile:
+    dest: "/etc/hosts"
+    line: "{{ hostvars['localhost'].admin_conf_ip }}    crowbar.{{ cloud_fqdn }}"
+
+- name: Remove existing repositories
+  shell: |
+    set -e
+    while [ "`zypper lr | grep ^1`" != '' ]; do
+      zypper rr 1
+    done
+
+- name: Run crowbar_register
+  shell: |
+    set -e
+
+    wget {{ crowbar_register_url }} -O {{ crowbar_register_path }}
+    chmod +x {{ crowbar_register_path }}
+
+    SSH_CONNECTION= {{ crowbar_register_path }} -f --interface {{ admin_interface }} --gpg-auto-import-keys --no-gpg-checks 2>&1 | tee {{ crowbar_register_log }}
+    exit ${PIPESTATUS[0]}
+
+- name: Check that node has registered
+  delegate_to: "{{ cloud_env }}"
+  shell: knife node list | tr -d ' '
+  register: _register_tmp
+  # The more nodes we have, the longer this will take
+  retries: "{{ 4 * ( groups['cloud_virt_hosts'] | length ) }}"
+  until: _register_tmp.rc == 0 and crowbar_node_name in _register_tmp.stdout_lines
+  delay: 10
+
+- name: Check that node is ready
+  delegate_to: "{{ cloud_env }}"
+  shell: "knife node show -a state {{ crowbar_node_name }} | awk '{ print $2 }'"
+  register: _register_tmp
+  # The more nodes we have, the longer this will take
+  retries: "{{ 4 * ( groups['cloud_virt_hosts'] | length ) }}"
+  until: _register_tmp.rc == 0 and _register_tmp.stdout == 'ready'
+  delay: 10

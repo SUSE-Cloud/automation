@@ -1,0 +1,67 @@
+#!/bin/bash
+
+# Wrapper script to execute iverify
+# within the venv
+#
+# Usage: remove_node.sh -c <hostname of the compute name to be removed> -n <cobbler node name>
+# eg remove_compute_node.sh -c ardana-qe202-cp1-sles-comp0002-mgmt -n 2M25280TT8
+
+set -o pipefail
+
+
+WORK_HOME={{ ardana_qe_test_work_dir }}
+COMPUTE_TYPE={{ type_of_compute }}
+work_dir={{ ardana_qe_test_work_dir }}
+test_log="$work_dir/remove_compute_node.log"
+subunit_log="$work_dir/remove_compute_node.subunit"
+
+venv_dir={{ ardana_qe_test_venv }}
+source $venv_dir/bin/activate
+subunit_output="$venv_dir/bin/subunit-output"
+
+
+
+
+AUTO_ID="AUTO`date +'%y%m%d%H%M%S'`"
+
+# Run the test
+
+$subunit_output --inprogress remove_compute_node > $subunit_log
+
+
+COBBLER_NODE_NAME=`grep -B3 $COMPUTE_TYPE ~/openstack/my_cloud/definition/data/servers.yml | grep -m1 id: | awk '{print$3}'`
+IP_ADDR=`grep -A3 $COBBLER_NODE_NAME ~/openstack/my_cloud/definition/data/servers.yml | grep -m1 ip-addr | awk '{print$2}'`
+COMPUTE_NODE_NAME=`grep -m1 $IP_ADDR /etc/hosts | awk '{print$2}'`
+
+
+
+{{ ardana_qe_tests_dir }}/ardana-qa-tests/operational/add-remove-nodes/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
+ ${WORK_HOME}/remove_compute_node.log
+
+#/var/lib/ardana/automation/remove_compute_node.sh -c ardana-qe102-cp1-rhel-comp0002-mgmt -n 2M25280TZC -n $AUTO_ID | tee \
+# ${WORK_HOME}/remove_compute_node.log
+
+#/var/lib/ardana/automation/remove_compute_node.sh -c $COMPUTE_NODE_NAME -n $COBBLER_NODE_NAME -n $AUTO_ID | tee \
+# ${WORK_HOME}/remove_compute_node.log
+res=$?
+success=1
+
+tesres=`grep -A 4 'Disabling provisioning on compute host' ${WORK_HOME}/remove_compute_node.log| grep 'QA - testing removing compute node'| gawk '{print $2}'`
+echo $tesres >> ${WORK_HOME}/remove_compute_node.log
+if [ "$tesres" == "$COMPUTE_NODE_NAME" ]; then
+   success=1
+   echo "Remove $COMPUTE_NODE_NAME test PASS" >> ${WORK_HOME}/remove_compute_node.log
+else 
+   success=0
+   echo "Remove $COMPUTE_NODE_NAME test FAIL" >> ${WORK_HOME}/remove_compute_node.log
+fi
+
+echo $success
+if (( $success == 1 )); then
+    $subunit_output --success remove_compute_node >> $subunit_log
+else
+    $subunit_output --fail remove_compute_node >> $subunit_log
+fi
+
+
+exit $res

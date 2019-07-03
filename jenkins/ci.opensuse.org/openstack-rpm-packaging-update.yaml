@@ -13,3 +13,5 @@
             release: 'Queens'
         - 'openstack-rpm-packaging-update-{release}':
             release: 'Rocky'
+        - 'openstack-rpm-packaging-update-{release}':
+            release: 'Stein'

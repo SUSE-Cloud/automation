@@ -1,0 +1,79 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Refresh repo(s) on all ardana nodes
+  command: |
+    ansible -b -a "zypper --non-interactive --gpg-auto-import-keys refresh"
+      'resources:!*rhel*'
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+
+- name: Run ardana-update-pkgs playbook for deployer
+  shell: |
+    ansible-playbook ardana-update-pkgs.yml \
+      -l ARD-SVC--first-member -e \
+      "zypper_update_method={{ update_method }}
+       zypper_update_gpg_checks={{ update_gpg_checks }}
+       zypper_update_licenses_agree={{ update_gpg_checks }}
+       zypper_update_include_reboot_patches={{ update_include_reboot_patches }}"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  environment:
+    SKIP_REPO_CHECKS: 1
+  register: _clm_pkg_updates
+  changed_when: "'CLM package updates were detected' in _clm_pkg_updates.stdout"
+
+- name: Update CLM services
+  include_tasks: _update-clm.yml
+  when: _clm_pkg_updates is changed
+
+- name: Run ardana-update-pkgs playbook for non-deployer nodes serially
+  shell: |
+    ansible-playbook ardana-update-pkgs.yml \
+      --limit {{ item }} -e \
+      "zypper_update_method={{ update_method }}
+       zypper_update_gpg_checks={{ update_gpg_checks }}
+       zypper_update_licenses_agree={{ update_gpg_checks }}
+       zypper_update_include_reboot_patches={{ update_include_reboot_patches }}"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  environment:
+    SKIP_REPO_CHECKS: 1
+    SKIP_SINGLE_HOST_CHECKS: 1
+  loop: "{{ ardana_nodes.stdout_lines }}"
+
+- name: Get update status
+  shell: |
+    ansible-playbook ardana-update-status.yml \
+      -e update_status_brief=true | grep "Pending update actions"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  register: _ardana_update_status
+
+- name: Check if services need to be updated and/or rebooted
+  set_fact:
+    "{{ item.var }}": "{{ item.value }}"
+  loop:
+    - var: pending_service_update
+      value: "{{ 'service update' in _ardana_update_status.stdout or
+                  enforce_service_update | default(false) | bool }}"
+    - var: pending_system_reboot
+      value: "{{ 'system reboot' in _ardana_update_status.stdout }}"
+
+- name: Update Ardana/OpenStack services if needed
+  include_tasks: update_services_{{ update_services_serial | ternary('serial', 'parallel') }}.yml
+  when: pending_service_update

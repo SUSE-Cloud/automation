@@ -1,0 +1,19 @@
+#!/bin/bash
+
+# Wrapper script to execute ansible playbooks testing
+# within the venv
+
+set -o pipefail
+
+VENV={{ ardana_qe_test_venv }}
+STESTR={{  ardana_qe_test_venv }}/bin/stestr
+TEST_DIR={{ ardana_qe_tests_dir }}/ardana-qa-tests/service-ansible-playbooks
+
+# Activate the virtual environment
+source ${VENV}/bin/activate
+
+# Run tests
+cd $TEST_DIR
+${STESTR} init
+${STESTR} run -t ./ --concurrency=1 | tee {{ ardana_qe_test_log }}
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}

@@ -1,9 +1,6 @@
 #!/bin/sh
 set -x
 shopt -s extglob
-# emptying the workspace
-mkdir -p empty
-rsync -r --delete empty/ ./
 
 export artifacts_dir=$WORKSPACE/.artifacts
 rm -rf $artifacts_dir
@@ -11,7 +8,6 @@ mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 export log_dir=$artifacts_dir/mkcloud_log
 
-jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 export ghprrepo=~/github.com/openSUSE/github-pr
 export ghpr=${ghprrepo}/github_pr.rb
 
@@ -32,7 +28,7 @@ case $cloudsource in
             unset want_ldap
         fi
         ;;
-    M*|develcloud9|rockycloud9|develcloud8|develcloud7|GM7|GM7+up|susecloud9)
+    M*|develcloud9|develcloud8|develcloud7|GM7|GM7+up|susecloud9)
         if [[ $mkcloudtarget =~ upgrade ]]; then
             echo "Unsetting want_ldap for upgrade jobs until hybrid backend is migrated to domain-specific backends"
             unset want_ldap
@@ -46,70 +42,70 @@ case $cloudsource in
 esac
 
 if [[ $cinder_backend = " " ]] ; then
-  cinder_backend=""
+    cinder_backend=""
 elif [[ $cinder_backend = "nfs" ]] ; then
-  export nodenumberlonelynode=1
+    export nodenumberlonelynode=1
 fi
 
 
 # HAcloud
 if [[ $hacloud == 1 ]] ; then
-  case $cloudsource in
-    develcloud6|GM7|GM7+up)
-        clusternodes=2
-        nodes=3
-        ;;
-    *)
-        clusternodes=3
-        nodes=4
-        ;;
-  esac
+    case $cloudsource in
+        develcloud6|GM7|GM7+up)
+            clusternodes=2
+            nodes=3
+            ;;
+        *)
+            clusternodes=3
+            nodes=4
+            ;;
+    esac
 
-  : ${clusterconfig:=data+services+network=$clusternodes}
-  export clusterconfig
-  if [[ $nodenumber -lt $nodes ]] ; then
-      export nodenumber=$nodes
-  fi
+    : ${clusterconfig:=data+services+network=$clusternodes}
+    export clusterconfig
+    if [[ $nodenumber -lt $nodes ]] ; then
+        export nodenumber=$nodes
+    fi
 
-  # for now disable ceph deployment in HA mode explicitly
-  # it would need 5 nodes (2 for the cluster + 3 nodes for compute and ceph)
-  #### temorarily allow ceph in HA (test if it works)
-  #export want_ceph=0
-  #export cephvolumenumber=0
+    # for now disable ceph deployment in HA mode explicitly
+    # it would need 5 nodes (2 for the cluster + 3 nodes for compute and ceph)
+    #### temorarily allow ceph in HA (test if it works)
+    #export want_ceph=0
+    #export cephvolumenumber=0
 fi
 
 #storage
 case "$storage_method" in
-  none)
-    want_ceph=0
-    want_swift=0
-    ;;
-  swift)
-    want_ceph=0
-    want_swift=1
-    ;;
-  ceph)
-    want_ceph=1
-    want_swift=0
-    if [[ $nodenumber -lt 5 ]] ; then
-      export nodenumber=5
-    fi
-    if [[ $cephvolumenumber -lt 2 ]] ; then
-      cephvolumenumber=2
-    fi
-    ;;
-  *)
-    unset want_ceph
-    unset want_swift
+    none)
+        want_ceph=0
+        want_swift=0
+        ;;
+    swift)
+        want_ceph=0
+        want_swift=1
+        ;;
+    ceph)
+        want_ceph=1
+        want_swift=0
+        if [[ $nodenumber -lt 5 ]] ; then
+            export nodenumber=5
+        fi
+        if [[ $cephvolumenumber -lt 2 ]] ; then
+            cephvolumenumber=2
+        fi
+        ;;
+    *)
+        unset want_ceph
+        unset want_swift
 esac
 export want_ceph
 export want_swift
 
 if [ ! -z "$UPDATEREPOS" ] ; then
-  # testing update only makes sense with GM and without TESTHEAD
-#  unset TESTHEAD
-#  export cloudsource=GM
-  export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
+    # testing update only makes sense with GM and without TESTHEAD
+    #unset TESTHEAD
+    #export cloudsource=GM
+    export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
 fi
 
 function mkcloudgating_trap()
@@ -124,7 +120,7 @@ if [[ $github_pr ]] ; then
 
     github_context=suse/mkcloud
     if [[ $github_pr_context ]] ; then
-      github_context=$github_context/$github_pr_context
+        github_context=$github_context/$github_pr_context
     fi
     ghpr_paras="--org ${github_org} --repo ${github_repo} --sha $github_pr_sha --context $github_context"
 
@@ -138,30 +134,7 @@ if [[ $github_pr ]] ; then
 
     trap "mkcloudgating_trap" ERR
 
-    # Support for automation self-gating
-    if [[ "$github_pr_repo" = "SUSE-Cloud/automation" ]]; then
-        automationrepo_orig=$automationrepo
-        pr_dir=`mktemp -d $WORKSPACE/SUSE-Cloud.automation.XXXXXX`
-        automationrepo=$pr_dir/automation
-
-        mkdir -p $automationrepo
-        rsync -a ${automationrepo_orig%/}/ $automationrepo/
-        pushd $automationrepo
-        ghremote=origin
-        git config --get-all remote.${ghremote}.fetch | grep -q pull || \
-            git config --add remote.${ghremote}.fetch "+refs/pull/*/head:refs/remotes/${ghremote}/pr/*"
-        git fetch $ghremote 2>&1 | grep -v '\[new ref\]' || :
-        git checkout -t $ghremote/pr/$github_pr_id
-        git config user.email cloud-devel+jenkins@suse.de
-        git config user.name "Jenkins User"
-        echo "we merge to always test what will end up in master"
-        git merge master -m temp-merge-commit
-        # Show latest commit in log to see what's really tested.
-        # Include a unique indent so that the log parser plugin
-        # can ignore the output and avoid false positives.
-        git --no-pager show | sed 's/^/|@| /'
-        popd
-    elif [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
+    if [[ "$github_pr_repo" = "SUSE-Cloud/cct" ]]; then
         export want_cct_pr=$github_pr_id
     fi
 
@@ -177,18 +150,18 @@ env
 echo "########################################################################"
 
 MKCLOUDTARGET=$mkcloudtarget
-[ $UPDATEBEFOREINSTALL == "true" ] && MKCLOUDTARGET='cleanup prepare setupadmin addupdaterepo instcrowbar setupcompute instcompute proposal testsetup'
+[ $UPDATEBEFOREINSTALL == "true" ] && MKCLOUDTARGET='_new_admin _compute testsetup'
 
 [ $(uname -m) = s390x ] && WITHCROWBARREGISTER=true
 if [ $WITHCROWBARREGISTER == "true" ] ; then
-  export nodenumberlonelynode=1
-  [ $(uname -m) = s390x ] && {
-      export nodenumberlonelynode=$nodenumber
-      export nodenumber=0
-      export controller_node_memory=8388608
-      export compute_node_memory=6291456
-  }
-  MKCLOUDTARGET+=" setuplonelynodes crowbar_register"
+    export nodenumberlonelynode=1
+    [ $(uname -m) = s390x ] && {
+        export nodenumberlonelynode=$nodenumber
+        export nodenumber=0
+        export controller_node_memory=8388608
+        export compute_node_memory=6291456
+    }
+    MKCLOUDTARGET+=" setuplonelynodes crowbar_register"
 fi
 
 [ $(uname -m) = aarch64 ] && {
@@ -215,9 +188,7 @@ perl -e "alarm 6*60*60 ; exec '${mkcloudwrapper} bash ${automationrepo}/scripts/
 ret=${PIPESTATUS[0]}
 if [[ $ret != 0 ]] ; then
     if [[ $github_pr_sha ]] ; then
-      mkcloudgating_trap
-    else
-      $jtsync --ci suse --job $JOB_NAME 1
+        mkcloudgating_trap
     fi
     echo "mkcloud ret=$ret"
     exit $ret # check return code before tee
@@ -225,8 +196,6 @@ fi
 
 # report mkcloud-gating status or jenkins trello status
 if [[ $github_pr_sha ]] ; then
-  $ghpr --action set-status --debugratelimit $ghpr_paras --status "success" --targeturl $BUILD_URL --message "PR gating succeeded"
-  trap "-" ERR
-else
-  $jtsync --ci suse --job $JOB_NAME 0
+    $ghpr --action set-status --debugratelimit $ghpr_paras --status "success" --targeturl $BUILD_URL --message "PR gating succeeded"
+    trap "-" ERR
 fi

@@ -14,10 +14,10 @@
           type: user-defined
           name: project
           values:
-            - Cloud:OpenStack:Ocata:Staging
             - Cloud:OpenStack:Pike:Staging
             - Cloud:OpenStack:Queens:Staging
             - Cloud:OpenStack:Rocky:Staging
+            - Cloud:OpenStack:Stein:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -78,13 +78,11 @@
             - openstack-swift
             - openstack-trove
             - openstack-tempest
-            - openstack-utils
             - openstack-zaqar
             - python-heat-cfntools
             - python-monasca-common
             - python-monasca-statsd
             - python-networking-cisco
-            - python-networking-hyperv
             - python-vmware-nsxlib
             - python-vmware-nsx
       - axis:
@@ -109,30 +107,36 @@
             "python-vmware-nsxlib",
             "python-vmware-nsx"
             ].contains(component) ||
-            [ "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
-            [
-              "openstack-ironic-python-agent",
-              "python-vmware-nsxlib",
-              "python-vmware-nsx",
-            ].contains(component) ||
-            [ "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
               "openstack-tempest",
+              "python-monasca-statsd",
+              "python-vmware-nsxlib",
+              "python-vmware-nsx",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Ocata:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging" ].contains(project) &&
             [
-              "openstack-horizon-plugin-freezer-ui",
+              "openstack-trove",
+              "openstack-horizon-plugin-trove-ui",
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Master" ].contains(project) &&
+            [
               "openstack-horizon-plugin-neutron-fwaas-ui",
               "openstack-horizon-plugin-neutron-vpnaas-ui",
               "openstack-neutron-vsphere",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-murano-ui",
               "openstack-gnocchi",
               "openstack-monasca-transform"
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
+            [
+              "openstack-horizon-plugin-freezer-ui",
+              "openstack-nova-virt-zvm"
             ].contains(component)
             )
       sequential: true

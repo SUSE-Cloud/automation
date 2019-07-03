@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Wrapper script to execute the logging test
+#
+# Usage: logging.sh
+
+set -o pipefail
+
+VENV={{ ardana_qe_test_venv }}
+STESTR={{ ardana_qe_test_venv }}/bin/stestr
+
+# Activate the virtual environment
+source ${VENV}/bin/activate
+
+# Run the test
+source ~/service.osrc
+host=`grep -i log-svr /etc/hosts|awk '{print $1}' | uniq`
+pw=`grep kibana ${HOME}/scratch/ansible/next/ardana/ansible/group_vars/* |awk '{print $3}' |uniq`
+export ES_URL=https://$host:5601
+export ES_PASSWORD=$pw
+export ES_USERNAME="kibana"
+export INVENTORY_LOCATION=~/scratch/ansible/next/ardana/ansible/hosts/verb_hosts
+export HLM_USER=ardana
+
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/logging/kronos/centralized
+
+# exclude tests currently failing, WIP
+echo -e "TestAudit\nTestElasticContext.test_filter_debugmsg\nTestMulticp.test_host_in_elastic_chec\nTestMVP\nTransactionInElastic" > dontrunlist
+
+${STESTR} init
+${STESTR} run -t ./ --blacklist-file dontrunlist | tee {{ ardana_qe_test_log }}
+res=$?
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
+
+# run local tests on control node, WIP
+#cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/logging/kronos/local
+#${STESTR} init
+#${STESTR} run -t ./ --no-discover test_file_permissions.py --concurrency=1 | tee {{ ardana_qe_test_log }}
+#res=$?
+#${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
+
+exit $res

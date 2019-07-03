@@ -1,0 +1,26 @@
+#!/bin/bash
+
+# Wrapper script to execute the Magnum tests
+#
+# Usage: tempest_cleanup.sh
+
+set -o pipefail
+
+VENV={{ ardana_qe_test_venv }}
+STESTR={{ ardana_qe_test_venv }}/bin/stestr
+
+# Activate the virtual environment
+source ${VENV}/bin/activate
+
+# Need to explicitly install ospurge
+python -m pip install git+https://git.openstack.org/openstack/ospurge
+
+# Run the test
+source ~/keystone.osrc
+cd {{ ardana_qe_tests_dir }}/ardana-qa-tests/tempest-cleanup
+${STESTR} init
+${STESTR} run -t ./ --no-discover tempest_cleanup.py  --concurrency=1 | tee {{ ardana_qe_test_log }}
+res=$?
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}
+
+exit $res

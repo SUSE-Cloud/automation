@@ -71,11 +71,6 @@
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
 
-      - string:
-          name: cct
-          default: features:base
-          description: Optional, specify cct tests to run
-
       - bool:
           name: rally-tests
           default: false
@@ -126,12 +121,12 @@
           default: linuxbridge
           description: |
               networking plugin to be used by Neutron. Available options are: openvswitch:gre, vlan, vxlan / linuxbridge:vlan
-       
+
       - string:
           name: networkingmode
           default: vlan
           description: networking mode to be used by Neutron. Available options are gre, vlan, vxlan
-      
+
       - string:
           name: nodenumber
           default: "7"
@@ -159,7 +154,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           admin=crowbar$hw_number
           cloud=qa$hw_number
           netapp_server=$netapp_server
@@ -325,7 +320,6 @@
             predefined-parameters: |
               hw_number=$hw_number
               tempest=$tempest
-              cct_tests=$cct
               scenario_name=2c
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER

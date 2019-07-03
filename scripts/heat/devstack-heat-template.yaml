@@ -1,0 +1,218 @@
+# See docs/devstack/ for documentation on how to use this.
+
+heat_template_version: 2016-10-14
+
+description: Single-node devstack
+
+parameters:
+  key_name:
+    type: string
+    label: SSH public key name
+    description: Name of the SSH public key to be used for access to the compute instance
+
+  floating_network_name:
+    type: string
+    label: Floating network name
+    default: floating
+
+  flavor_name:
+    type: string
+    label: Flavor
+    description: Flavor of the server
+    default: m1.large
+
+  image_name:
+    type: string
+    label: Image
+    description: Image to boot the server with
+    default: openSUSE-Leap-15.0
+    # This would be better, but DNS is broken:
+    # default: openSUSE-Leap-15.0-JeOS.x86_64
+
+  run_tempest:
+    type: boolean
+    label: Run Tempest
+    description: Set to 'True' to run Tempest tests.  Defaults to 'False'.
+    default: False
+
+  automation_fork:
+    type: string
+    label: qa_devstack.sh fork
+    description: >-
+      GitHub user/organization from which to fetch the automation repo
+      which contains qa_devstack.sh.
+    default: SUSE-Cloud
+
+  automation_branch:
+    type: string
+    label: qa_devstack.sh branch
+    description: >-
+      GitHub branch from which to fetch the automation repo
+      which contains qa_devstack.sh.
+    default: master
+
+  devstack_fork:
+    type: string
+    label: devstack fork
+    description: GitHub user/organization from which to fetch devstack
+    default: openstack-dev
+
+  devstack_branch:
+    type: string
+    label: devstack branch
+    description: GitHub branch from which to fetch devstack
+    default: master
+
+  devstack_extra_config:
+    type: string
+    label: devstack extra config
+    description: >-
+      Extra configuration to put in local.conf.  Config starts off
+      under the [[local|localrc]] header, but other headers can be
+      specified for text following them.
+    default:
+
+conditions:
+  skip_tempest_res:
+    equals:
+      - {get_param: run_tempest}
+      - False
+
+resources:
+  ping_ssh_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: ping_ssh_secgroup
+      description: Ping and SSH
+      rules:
+      - protocol: icmp
+      - protocol: tcp
+        port_range_min: 22
+        port_range_max: 22
+
+  network:
+    type: OS::Neutron::Net
+    properties:
+      port_security_enabled: True
+
+  subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: network }
+      cidr: 10.1.1.0/24
+      ip_version: 4
+      enable_dhcp: True
+      allocation_pools:
+        - start: 10.1.1.50
+          end:   10.1.1.99
+      gateway_ip: 10.1.1.1
+
+  router_ext:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network: { get_param: floating_network_name }
+
+  router_ext_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router_ext }
+      subnet_id: { get_resource: subnet }
+
+  port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_resource: network }
+      fixed_ips:
+        - subnet_id: { get_resource: subnet }
+      security_groups:
+        - default
+        - { get_resource: ping_ssh_secgroup }
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: floating
+
+  floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: floating_ip }
+      port_id: { get_resource: port }
+
+  server:
+    type: OS::Nova::Server
+    properties:
+      key_name: { get_param: key_name }
+      image: { get_param: image_name }
+      flavor: { get_param: flavor_name }
+      networks:
+        - port: { get_resource: port }
+      user_data_format: SOFTWARE_CONFIG
+      user_data:
+        get_resource: cloud_init
+
+  cloud_init:
+    type: OS::Heat::CloudConfig
+    properties:
+      cloud_config:
+        disable_root: false
+
+        groups:
+          - stack
+
+        users:
+          - name: stack
+            lock_passwd: False
+            sudo: ["ALL=(ALL) NOPASSWD:ALL\nDefaults:stack !requiretty"]
+            shell: /bin/bash
+            primary_group: stack
+            # Not supported on openSUSE yet; causes this message:
+            #   Skipping modules 'ssh-import-id' because they are not verified on distro 'opensuse'.  To run anyway, add them to 'unverified_modules' in config.
+            #ssh_import_id: { get_param: key_name }
+
+        runcmd:
+          # Work around https://bugs.launchpad.net/cloud-init/+bug/1486113
+          - mkdir /home/stack/.ssh
+          - cp -p /root/.ssh/authorized_keys /home/stack/.ssh
+
+          # Use curl to retrieve qa_devstack.sh server-side rather than relying
+          # on heat's write_files client-side magic.  This works around
+          # https://bugs.launchpad.net/cloud-init/+bug/1486113 which would write
+          # the file before the stack user/group exist, but more importantly, it
+          # allows us to dynamically determine the URL from the parameters.
+          - str_replace:
+              template: |
+                curl -o /home/stack/qa_devstack.sh \
+                  https://raw.githubusercontent.com/$fork/automation/$branch/scripts/jenkins/qa_devstack.sh
+              params:
+                $fork:
+                  get_param: automation_fork
+                $branch:
+                  get_param: automation_branch
+          - chmod 755 /home/stack/qa_devstack.sh
+
+          - chown -R stack:stack /home/stack
+          - str_replace:
+              template: |
+                export HOME=/root
+                export DISABLE_TEMPESTRUN=$tempest
+                export DEVSTACK_FORK=$fork
+                export DEVSTACK_BRANCH=$branch
+                export DEVSTACK_EXTRA_CONFIG="$extra"
+                /home/stack/qa_devstack.sh # ipv6
+              params:
+                $fork:
+                  get_param: devstack_fork
+                $branch:
+                  get_param: devstack_branch
+                $tempest:
+                  if: ["skip_tempest_res", "yes", ""]
+                $extra:
+                  get_param: devstack_extra_config
+
+outputs:
+  # floating IP address of the admin node
+  floating-ip:
+    description: Floating IP address of the admin node
+    value: { get_attr: [floating_ip, floating_ip_address] }

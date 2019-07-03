@@ -58,6 +58,8 @@ proposals:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
           options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -156,7 +158,6 @@ proposals:
   attributes:
     itxt_instance: ''
     use_migration: true
-    vnc_keymap: de
     kvm:
       ksm_enabled: true
     metadata:
@@ -202,31 +203,10 @@ proposals:
       heat-server:
       - cluster:services
 
-- barclamp: ceilometer
-  attributes:
-    api:
-      protocol: https
-    ssl:
-      generate_certs: true
-      insecure: true
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm@@"
-      - "@@monasca-server@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
-
 - barclamp: monasca
   attributes:
   deployment:
     elements:
-      monasca-master:
-      - "@@crowbar@@"
       monasca-server:
       - "@@monasca-server@@"
       monasca-log-agent:
@@ -245,6 +225,25 @@ proposals:
       - "@@storage-swift1@@"
       - "@@storage-swift2@@"
       - "@@monasca-server@@"
+
+- barclamp: ceilometer
+  attributes:
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@compute-kvm@@"
+      - "@@monasca-server@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-central:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
 
 - barclamp: tempest
   attributes:

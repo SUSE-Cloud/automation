@@ -2,25 +2,31 @@
     name: update-automation
     builders:
       - shell: |
-          #!/bin/bash
-          [ -e ~/bin/update_automation ] || wget -O ~/bin/update_automation https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation && chmod a+x ~/bin/update_automation
+          #!/bin/bash -x
+          if [ ! -e ~/bin/update_automation ]; then
+              mkdir -p ~/bin
+              tmpf=$(mktemp ~/bin/update_automation.XXXXXX)
+              wget -O $tmpf https://raw.github.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation
+              chmod a+x $tmpf
+              mv -vu $tmpf ~/bin/update_automation
+              rm -f $tmpf
+          fi
           # fetch the latest automation updates
-          update_automation
+          ~/bin/update_automation
 
 
 - builder:
     name: gerrit-git-prep
     builders:
       - shell: |
-          #!/bin/bash -e
+          #!/bin/bash -xe
 
           #
           # NOTE(toabctl): The script is basically a copy of:
           # https://github.com/openstack-infra/project-config/blob/master/jenkins/scripts/gerrit-git-prep.sh
           #
 
-          GERRIT_SITE='https://review.openstack.org'
-          GIT_ORIGIN='git://git.openstack.org'
+          GERRIT_SITE='https://review.opendev.org'
 
           # git can sometimes get itself infinitely stuck with transient network
           # errors or other issues with the remote end.  This wraps git in a
@@ -49,7 +55,7 @@
             done
           }
           if [ -z "$GERRIT_SITE" ]; then
-            echo "The gerrit site name (eg 'https://review.openstack.org') must be the first argument."
+            echo "The gerrit site name (eg 'https://review.opendev.org') must be the first argument."
             exit 1
           fi
 
@@ -60,8 +66,6 @@
 
           if [ -z "$GIT_ORIGIN" ] || [ -n "$ZUUL_NEWREV" ]; then
             GIT_ORIGIN="$GERRIT_SITE/p"
-            # git://git.openstack.org/
-            # https://review.openstack.org/p
           fi
 
           if [ -z "$ZUUL_REF" ]; then

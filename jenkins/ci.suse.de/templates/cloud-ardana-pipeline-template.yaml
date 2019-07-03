@@ -1,0 +1,487 @@
+- job-template:
+    name: '{ardana_job}'
+    project-type: pipeline
+    disabled: '{obj:disabled|False}'
+    concurrent: '{concurrent|False}'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 30
+
+    triggers: '{triggers}'
+
+    parameters:
+      - validating-string:
+          name: cloud_env
+          default: '{cloud_env|}'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied cloud_env already
+            exists, it will be replaced.
+
+      - bool:
+          name: reserve_env
+          default: '{reserve_env|true}'
+          description: >-
+            Reserve the 'cloud_env' lockable resource throughout the execution of this job.
+
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The target OpenStack cloud platform used as infrastructure for a
+            virtual cloud deployment. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'os_cloud' parameter is overridden to reflect the OpenStack platform associated with it.
+
+      - choice:
+          name: cloudsource
+          choices:
+            - '{cloudsource|stagingcloud9}'
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - GM8+up
+            - hosdevelcloud8
+            - hosGM8
+            - hosGM8+up
+            - stagingcloud9
+            - develcloud9
+            - GM9
+            - GM9+up
+          description: >-
+            The cloud repository (from provo-clouddata) to be used for testing.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X> (official GM)
+               GM<X>+up (official GM plus Cloud-Updates)
+               cloud9MX (cloud 9 milestones)
+
+      - bool:
+          name: deploy_cloud
+          default: '{deploy|true}'
+          description: >-
+            If left unchecked, the cloud deployment steps will be skipped. This option can be
+            used if you only need to set up the infrastructure and configure the cloud media and
+            repositories, but skip the actual cloud deployment, e.g. for testing purposes.
+
+      - bool:
+          name: updates_test_enabled
+          default: '{updates_test_enabled|true}'
+          description: >-
+            Enable SLES/Cloud test update repos (the Cloud test update repos will
+            be enabled only when cloudsource is GM based)
+
+      - bool:
+          name: update_after_deploy
+          default: '{update_after_deploy|false}'
+          description: >-
+            Run ardana update after the cloud is deployed. If true the MU's will
+            be applied only after the cloud is deployed.
+            If `updates_test_enabled` is true, the test updates will be
+            applied post-deployment only if the cloudsource is GM based.
+
+      - choice:
+          name: update_to_cloudsource
+          choices:
+            - '{update_to_cloudsource|}'
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - GM8+up
+            - hosdevelcloud8
+            - hosGM8
+            - hosGM8+up
+            - stagingcloud9
+            - develcloud9
+            - GM9
+            - GM9+up
+          description: >-
+            Only valid if update_after_deploy is true. The cloud repository
+            (from provo-clouddata) to be used to update.
+
+      - validating-string:
+          name: maint_updates
+          default: ''
+          regex: '([0-9]+(,[0-9]+)*)*'
+          msg: The entered value failed validation
+          description: List of maintenance update IDs separated by comma (eg. 7396,7487)
+
+      - choice:
+          name: model
+          choices:
+            - '{model|}'
+            - dac-3cp
+            - dac-min
+            - demo
+            - deployerincloud
+            - deployerincloud-lite
+            - entry-scale-swift
+            - mid-size
+            - minimal
+            - standard
+            - std-3cm
+            - std-3cp
+            - std-min
+            - std-split
+          description: >-
+            The name of the one of the available 'ardana-ci' input models to use from the ardana-input-model git repository.
+
+
+            NOTE: use this parameter only if you want to use an existing input model. To generate an input model instead,
+            leave this field empty and use the 'scenario_name' parameter instead.
+
+      - choice:
+          name: scenario_name
+          choices:
+            - '{scenario_name|}'
+            - entry-scale-kvm
+            - mid-scale-kvm
+            - standard
+            - std-lmm
+            - std-split
+          description: >-
+            The name of one of the available scenarios that can be used to generate input models.
+            If this parameter is set, the following parameters may also be set to different values, to control
+            various aspects of the generated input model: clm_model, controllers, core_nodes, lmm_nodes, dbmq_nodes,
+            neutron_nodes, swift_nodes, sles_computes, rhel_computes and disabled_services.
+
+
+            NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
+            leave this field empty and use the 'model' parameter instead.
+
+      - choice:
+          name: clm_model
+          choices:
+            - '{clm_model|standalone}'
+            - standalone
+            - integrated
+          description: |
+            The type of deployer node deployment to use for the generated input model. Can take one of the following values:
+
+              standalone - one node dedicated for CLM
+              integrated - the first controller node will also be used as a CLM node
+
+            Input model generator scenarios using this parameter : all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: controllers
+          default: '{controllers|3}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of controller nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: standard, entry-scale-kvm.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: core_nodes
+          default: '{core_nodes|2}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of OpenStack core services nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: lmm_nodes
+          default: '{lmm_nodes|3}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of LMM services nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split, std-lmm.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: dbmq_nodes
+          default: '{dbmq_nodes|3}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of database & rabbitmq service nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: neutron_nodes
+          default: '2'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of neutron network nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: swift_nodes
+          default: '3'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of swift proxy/account/container/object service nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: sles_computes
+          default: '{sles_computes|2}'
+          regex: '[0-9]+'
+          msg: The entered value failed validation
+          description: |
+            The number of SLES compute nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: rhel_computes
+          default: '{rhel_computes|0}'
+          regex: '[0-9]+'
+          msg: The entered value failed validation
+          description: |
+            The number of RHEL (CentOS) compute nodes in the generated input model.
+
+            Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - string:
+          name: disabled_services
+          default: '{disabled_services|}'
+          description: |
+            Regex matching service components and component groups to exclude from the generated input model.
+
+            Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - bool:
+          name: ses_enabled
+          default: '{ses_enabled|true}'
+          description: Configure SES backend for glance, cinder, cinder-backup and nova
+
+      - bool:
+          name: ses_rgw_enabled
+          default: '{ses_rgw_enabled|true}'
+          description: |
+            Configure object-store service with RADOS Gateway. This only takes effect
+            if ses_enabled is set to true.
+
+            NOTE: tempest does not support testing RADOS Gateway, so failures on object_storage
+            tempest tests are expected when ses_rgw_enabled is set to true.
+
+      - choice:
+          name: rhel_os
+          choices:
+            - '{rhel_os|CentOS_75}'
+            - CentOS_73
+            - CentOS_75
+            - RHEL_73
+            - RHEL_75
+          description: |
+            The OS distribution and version to use for Ardana RHEL compute nodes.
+
+            NOTE: some of these values are only known to work in combination with bare-metal
+            deployments (RHEL_73, CentOS_75), while other are only known to work with virtual
+            deployments (CentOS_73, CentOS_75).
+
+      - extended-choice:
+          name: tempest_filter_list
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: '{tempest_filter_list|ci}'
+          value: >-
+            ci,smoke,keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,
+            fwaas,vpnaas,designate,heat,ceilometer,magnum,manila,freezer,monasca
+          description: >-
+            Name of the filter file to use for tempest. Selecting multiple values
+            will run tempest for each selected value.
+
+            Use an empty value to skip running tempest.
+
+      - extended-choice:
+          name: qa_test_list
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: '{qa_test_list|}'
+          value: >-
+            iverify,ceilometer,ceilometer_capacity_management,cinder,cinder-parallel,getput,
+            heat,magnum,logging,monasca,neutron,nova-attach,nova_volume,nova_migrate,
+            nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
+            barbican-functional,horizon,freezer,
+            keystone-api,keystone-ldap,keystone-k2k-config,keystone-websso-config,keystone-x509-config,
+            remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,enable_tls,
+            change_credentials,nova_guest_images
+          description: >-
+            Select QA tests to run.
+
+            Use an empty value to skip running QA tests.
+
+      - validating-string:
+          name: extra_repos
+          default: ''
+          regex: '((http(s)?:\/\/[^ ,]+)(,http(s)?:\/\/[^ ,]+)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of repository urls to be added on the deployer node
+
+            NOTE: The packages from those repositories will be available to all cloud nodes
+            through a repository with a higher priority, meaning that those packages will be
+            installed even if there is a newer package available on other repositories
+
+      - bool:
+          name: rc_notify
+          default: '{rc_notify|false}'
+          description: >-
+            Notify RocketChat when deployment starts/finishes.
+
+      - string:
+          name: github_pr
+          description: >-
+            String is a ':' separated list of these values:
+            $ORG/$repo:$PR_ID:$SHA1:$BRANCH:$context
+
+      - validating-string:
+          name: gerrit_change_ids
+          default: ''
+          regex: '(([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of IDs for changes in
+            gerrit.prv.suse.net to test. The patchset may be supplied as part
+            of the change ID in the form:
+
+               <change_number>[/<patchset_number>]
+
+      - bool:
+          name: want_caasp
+          default: false
+          description: >-
+            Deploy CaaSP using the caasp-openstack-heat-templates.
+
+      - choice:
+          name: cleanup
+          choices:
+            - '{cleanup|on success}'
+            - 'never'
+            - 'always'
+            - 'on success'
+            - 'on failure'
+          description: >-
+            Configure the conditions that trigger the virtual environment cleanup. Possible values are:
+              - never
+              - always
+              - on success
+              - on failure
+
+      - string:
+          name: git_automation_repo
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: '{git_automation_branch|master}'
+          description: >-
+            The git automation branch
+
+      - string:
+          name: external_name
+          default: ''
+          description: >-
+            Configurable external name for your public endpoints
+
+      - string:
+          name: os_project_name
+          default: ''
+          description: >-
+            The name of the OpenStack project that hosts the virtual cloud deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
+
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'cloud-ci' OpenStack project used exclusively for the Cloud CI will be used
+            regardless of this parameter.
+
+      - bool:
+          name: ipv6
+          default: '{ipv6|false}'
+          description: >-
+            Enable ipv6 support in the cloud configuration
+
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+      - hidden:
+          name: cloud_product
+          default: 'ardana'
+          description: >-
+            Cloud product (ardana or crowbar)
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${{git_automation_repo}}
+            branches:
+              - ${{git_automation_branch}}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/openstack-ardana.Jenkinsfile
+      lightweight-checkout: false

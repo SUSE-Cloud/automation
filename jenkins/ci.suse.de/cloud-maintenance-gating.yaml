@@ -1,0 +1,111 @@
+- job:
+    name: cloud-maintenance-gating
+    project-type: pipeline
+    concurrent: true
+
+    logrotate:
+      numToKeep: 500
+      daysToKeep: 90
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+      - validating-string:
+          name: cloud_env
+          default: 'cloud-ardana-maintenance-slot'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied cloud_env already
+            exists, it will be replaced.
+
+      - bool:
+          name: reserve_env
+          default: true
+          description: >-
+            Reserve the 'cloud_env' lockable resource throughout the execution of this job
+
+      - extended-choice:
+          name: cloudversion
+          type: multi-select
+          visible-items: 2
+          multi-select-delimiter: ','
+          default-value: '{cloudversion|}'
+          value: >-
+            SOC8,SOC9
+
+      - validating-string:
+          name: maint_updates
+          default: ''
+          regex: '([0-9]+(,[0-9]+)*)*'
+          msg: The entered value failed validation
+          description: List of maintenance update IDs separated by comma (eg. 7396,7487)
+
+      - bool:
+          name: deploy
+          default: true
+          description: >-
+            Start a job to deploy ardana with MU(s)
+
+      - bool:
+          name: deploy_and_update
+          default: true
+          description: >-
+            Start a job to deploy ardana then update with MU(s)
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - text:
+          name: extra_params
+          default: |
+            tempest_retry_failed=True
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/openstack-maintenance-gating.Jenkinsfile
+      lightweight-checkout: false

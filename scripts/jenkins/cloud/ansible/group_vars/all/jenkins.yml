@@ -1,0 +1,6 @@
+jenkins_build_url: "{{ lookup('env', 'BUILD_URL') | replace('ci.suse.de', 'ci.nue.suse.com') }}"
+jenkins_artifacts_url: "{{ jenkins_build_url + 'artifact/.artifacts/' if jenkins_build_url else 'NA' }}"
+
+jenkins_artifacts_dir: "{{ lookup('env', 'WORKSPACE') }}/.artifacts"
+
+jjb_file: "../../../../jenkins/ci.suse.de/{{ lookup('env', 'JOB_NAME') }}.yaml"

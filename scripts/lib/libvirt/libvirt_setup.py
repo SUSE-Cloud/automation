@@ -180,6 +180,11 @@ def get_net_for_nic(args, index):
 def net_interfaces_config(args, nicmodel):
     nic_configs = []
     bootorderoffset = 2
+    nicdriver = ''
+
+    if 'virtio' in nicmodel:
+        nicdriver = '<driver name="vhost" queues="2"/>'
+
     for index, mac in enumerate(args.macaddress):
         mainnicaddress = get_mainnic_address(index)
         values = dict(
@@ -188,6 +193,7 @@ def net_interfaces_config(args, nicmodel):
             nicindex=index,
             net=get_net_for_nic(args, index),
             macaddress=mac,
+            nicdriver=nicdriver,
             nicmodel=nicmodel,
             bootorder=bootorderoffset + (index * 10),
             mainnicaddress=mainnicaddress)
@@ -198,6 +204,9 @@ def net_interfaces_config(args, nicmodel):
 
 
 def net_config(args):
+    template_file = "%s-net.xml" % args.network
+    if args.ipv6:
+        template_file = "%s-net-v6.xml" % args.network
     values = {
         'cloud': args.cloud,
         'bridge': args.bridge,
@@ -208,10 +217,7 @@ def net_config(args):
         'forwardmode': args.forwardmode
     }
 
-    return get_config(
-        values,
-        os.path.join(TEMPLATE_DIR, "%s-net.xml" % args.network)
-    )
+    return get_config(values, os.path.join(TEMPLATE_DIR, template_file))
 
 
 def merge_dicts(d1, d2):
@@ -223,8 +229,9 @@ def compute_config(args, cpu_flags=cpuflags()):
     localrepomount = _get_localrepomount_config(args)
 
     libvirt_type = args.libvirttype
-    alldevices = it.chain(it.chain(string.lowercase[1:]),
-                          it.product(string.lowercase, string.lowercase))
+    alldevices = it.chain(it.chain(string.ascii_lowercase[1:]),
+                          it.product(string.ascii_lowercase,
+                                     string.ascii_lowercase))
 
     configopts = {
         'nicmodel': 'e1000',
@@ -246,7 +253,8 @@ def compute_config(args, cpu_flags=cpuflags()):
         targetdevprefix = "sd"
         configopts['target_bus'] = 'ide'
         configopts['memballoon'] = "    <memballoon model='none' />"
-        target_address = ""
+        target_address = "<address type='drive' controller='0' " \
+            "bus='{0}' target='0' unit='0'/>"
 
     # override nic model for ironic setups
     if args.ironicnic >= 0:
@@ -321,6 +329,13 @@ def compute_config(args, cpu_flags=cpuflags()):
     else:
         ipmi_config = ''
 
+    if not hypervisor_has_virtio(libvirt_type):
+        target_address = target_address.format('0')
+        # map virtio addr to ide:
+        raidvolume = raidvolume.replace("bus='0x17'", "bus='1'")
+        cephvolume = cephvolume.replace("bus='0x17'", "bus='1'")
+        drbdvolume = drbdvolume.replace("bus='0x17'", "bus='1'")
+
     values = dict(
         cloud=args.cloud,
         nodecounter=args.nodecounter,
@@ -356,10 +371,10 @@ def domain_cleanup(dom):
     print("undefining {0}".format(dom.name()))
     try:
         dom.undefineFlags(flags=libvirt.VIR_DOMAIN_UNDEFINE_NVRAM)
-    except:
+    except Exception:
         try:
             dom.undefine()
-        except:
+        except Exception:
             print("failed to undefine {0}".format(dom.name()))
 
 

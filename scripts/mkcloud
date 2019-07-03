@@ -56,11 +56,15 @@ mkcconf=mkcloud.config
 rm -f $mkcconf # we dont want to source old info in the line below
 
 : ${virtualcloud:=virtual}
-: ${net_admin:=192.168.124}
+if (( $want_ipv6 > 0 )); then
+    echo ">>> WARNING: IPv6 (want_ipv6) is under active development <<<"
+    : ${net_admin:='fd00:0:0:3'}
+    firmware_type="uefi"
+else
+    : ${net_admin:=192.168.124}
+fi
 setcloudnetvars $virtualcloud
 : ${forwardmode:=nat}
-: ${adminnetmask:=255.255.248.0}
-: ${ironicnetmask:=255.255.255.0}
 : ${nodenumber:=2}
 # expect to have this many physical machines attached via $mkch_physcloudif
 # these replace virtual machines, so we start less VMs
@@ -109,7 +113,7 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${lonelynode_hdd_size:=20}
 : ${ironicnode_hdd_size:=20}
 
-if [[ $hacloud ]] && [[ "$want_database_sql_engine" != "mysql" ]]; then
+if [[ $hacloud = 1 ]] && ( [[ "$want_database_sql_engine" == "postgresql" ]] || iscloudver 6minus ) ; then
     : ${drbd_hdd_size:=15}
 else
     : ${drbd_hdd_size:=0}
@@ -123,7 +127,7 @@ if [[ $want_magnum_proposal = 1 ]]; then
     : ${computenode_hdd_size:=80}
 fi
 # pvlist is filled below
-pvlist=
+: ${pvlist:=}
 next_pv_device=
 pv_cur_device_no=0
 
@@ -162,6 +166,11 @@ fi
 host_mtu=$(determine_mtu)
 iscloudver 7plus && [[ $arch == x86_64 ]] && \
     [[ -n $want_efi ]] && firmware_type="uefi"
+
+# TODO(colleen) Fix cloudsource check once there are new MUs for cloud7/8
+iscloudver 7plus && [[ $cloudsource =~ develcloud ]] && [[ -z $want_ssl_trusted ]] && {
+    export want_ssl_trusted=1
+}
 
 pidfile=mkcloud.pid
 
@@ -207,6 +216,7 @@ function show_environment
 
 function pre_exit_cleanup
 {
+    [[ $want_ironic = 1 ]] && teardown_ironic_test_env
     rm $pidfile
 }
 
@@ -225,7 +235,7 @@ function onhost_supportconfig
             timeout 600 supportconfig | wc &
             wait
         '
-        $scp root@$adminip:/var/log/*tbz $artifacts_dir/
+        $scp root@$(wrap_ip $adminip):/var/log/*tbz $artifacts_dir/
     fi
 }
 
@@ -354,8 +364,8 @@ EOF
     env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig -e ^ironicnetmask | sort >> $mkcconf
 
     cp -a $mkcconf $artifacts_dir/
-    $scp -r $SCRIPTS_DIR $mkcconf root@$adminip:
-    [[ $need_scenario = 1 ]] && $scp $scenario_path root@$adminip:
+    $scp -r $SCRIPTS_DIR $mkcconf root@$(wrap_ip $adminip):
+    [[ $need_scenario = 1 ]] && $scp $scenario_path root@$(wrap_ip $adminip):
     ssh $sshopts root@$adminip "echo `hostname` > cloud ; . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ; $@"
     return $?
 }
@@ -433,18 +443,26 @@ function setupadmin
 {
     ${mkclouddriver}_do_setupadmin
 
-    wait_for 300 1 "ping -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
+    ping_cmd="ping"
+    if (( $want_ipv6 > 0 )); then
+        ping_cmd="ping6"
+    fi
+    wait_for 300 1 "$ping_cmd -q -c 1 -w 1 $adminip >/dev/null" 'crowbar admin VM'
     wait_for_crowbar_ssh
 
     echo "Injecting public key into admin node..."
     local x keyfile
-    for keyfile in ~/.ssh/*.pub ; do
-        local pubkey=`cat $keyfile`
+    for keyfile in ~/.ssh/id_{ed25519,rsa,dsa}.pub ; do
+        if ! [ -r $keyfile ]; then
+            continue
+        fi
+        local pubkey=$(< $keyfile)
         ssh_password root@$adminip "
             mkdir -p ~/.ssh;
             grep -q '$pubkey' ~/.ssh/authorized_keys 2>/dev/null ||
-                echo '$pubkey injected-from-host' >> ~/.ssh/authorized_keys
+                echo '$pubkey' >> ~/.ssh/authorized_keys
         "
+        break
     done
     if [[ $user_keyfile ]]; then
         cat $user_keyfile | sshrun "cat >> ~/.ssh/authorized_keys"
@@ -582,8 +600,9 @@ function crowbar_register
     local i
     for i in $(nodes ids lonely) ; do
         local mac=$(macfunc $i)
-        sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register"
+        sshrun "lonelymac=$mac adminip=$adminip onadmin_crowbar_register" &
     done
+    wait
 }
 
 # setup an NFS server on the first lonely node
@@ -597,6 +616,8 @@ function lonelynode_nfs_server
 function prepareinstcrowbar
 {
     echo "connecting to crowbar admin server at $adminip"
+    ! [ -e crowbar.patch ] || $scp crowbar.patch root@$(wrap_ip $adminip):
+    ! [ -e network.json.patch ] || $scp network.json.patch root@$(wrap_ip $adminip):
     onadmin prepareinstallcrowbar
     return $?
 }
@@ -613,7 +634,7 @@ function scp_install_chef_suse_override
     if [ -e "$install_chef_suse_override" ]; then
         ssh root@$adminip "mv /opt/dell/bin/install-chef-suse.sh{,.orig}"
         $scp -p "$install_chef_suse_override" \
-            root@$adminip:/opt/dell/bin/install-chef-suse.sh
+            root@$(wrap_ip $adminip):/opt/dell/bin/install-chef-suse.sh
         ssh root@$adminip "chmod +x /opt/dell/bin/install-chef-suse.sh"
     fi
 }
@@ -623,7 +644,7 @@ function instcrowbar
     scp_install_chef_suse_override
     onadmin installcrowbar
     local ret=$?
-    $scp root@$adminip:$crowbar_install_log "$artifacts_dir/"
+    $scp root@$(wrap_ip $adminip):$crowbar_install_log "$artifacts_dir/"
     return $ret
 }
 
@@ -633,7 +654,7 @@ function instcrowbarfromgit
     safely rsync -av --exclude ".git" --exclude ".ci-tracking" ./crowbar root@$adminip:/root/
     onadmin installcrowbarfromgit
     local ret=$?
-    $scp root@$adminip:$crowbar_install_log "$artifacts_dir/"
+    $scp root@$(wrap_ip $adminip):$crowbar_install_log "$artifacts_dir/"
     return $ret
 }
 
@@ -642,10 +663,15 @@ function mkvlan
     local defvlan=$1 ; shift
     local ip=$1 ; shift
     local intf=$cloudbr.$defvlan
+    if (( $want_ipv6 > 0 )); then
+        local netmask=$defaultnetmask
+    else
+        local netmask=24
+    fi
     $sudo ip link add link $cloudbr name $intf type vlan id $defvlan
     safely $sudo ip link set $intf up
-    if ! ip addr show $intf | grep -q $ip/24; then
-        safely $sudo ip addr add $ip/24 dev $intf
+    if ! ip addr show $intf | grep -q $ip/$netmask; then
+        safely $sudo ip addr add $ip/$netmask dev $intf
     fi
 }
 
@@ -653,7 +679,7 @@ function setuppublicnet
 {
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
-    mkvlan $vlan_public $net_public.1
+    mkvlan $vlan_public $publicgw
     if [[ $mkch_physcloudif ]] ; then
         $sudo brctl addif $cloudbr $mkch_physcloudif
         $sudo ip link set dev $mkch_physcloudif up
@@ -801,18 +827,109 @@ function proposal
     return $?
 }
 
+function install_vbmc
+{
+    # vbmc already available?
+    vbmc --version 2> /dev/null && return
+
+    # TODO: virtualbmc package is available in cloud9, switch to that,
+    #       when cloud hosts are upgraded
+    # virtualenv is also not (yet) available in standard repos
+    virtualenv --version 2> /dev/null || \
+        rpm -i http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/standard/noarch/python-virtualenv-15.1.0-3.3.noarch.rpm
+    # include global packages to avoid compiling libvirt bindings
+    virtualenv --system-site-packages $cloud-vbmc
+    . $cloud-vbmc/bin/activate
+    pip install virtualbmc
+}
+
+function start_vbmc
+{
+    local ironic_node=$1
+    local ipmi_port=$2
+    local ipmi_user=$3
+    local ipmi_password=$4
+    # make sure old vbmc is not interfering
+    vbmc stop $ironic_node || true
+    vbmc delete $ironic_node || true
+
+    vbmc add $ironic_node --port $ipmi_port \
+        --username $ipmi_user --password $ipmi_password
+    vbmc start $ironic_node
+}
+
+function setup_ironic_test_env
+{
+    local ipmi_user=admin
+    local ipmi_password=ipmipass
+
+    local host_admin_ip=${net_admin}${ip_sep}1
+
+    local deploy_interface=direct
+
+    install_vbmc
+
+    local i
+    for i in $(nodes ids ironic) ; do
+        local ironic_node=$cloud-node$i
+        local ipmi_port
+
+        # pick some free port from (arbitrary) 6230-7230 range
+        # NOTE: if some other vbmc was already created for this port,
+        # but it was not started yet, it might cause conflict later
+        for ipmi_port in $(seq 6230 7230); do
+            netstat -atun | grep -q ":$ipmi_port\s" || break;
+        done
+
+        wait_for 5 2 "start_vbmc $ironic_node $ipmi_port $ipmi_user $ipmi_password" 'vbmc to start successfully'
+
+        # test if IPMI interface is working
+        ipmitool -I lanplus -H $host_admin_ip -p $ipmi_port -U $ipmi_user -P $ipmi_password power status
+
+        local ram_mb=$(( compute_node_memory / 1024 ))
+        # create node in ironic
+        onadmin create_ironic_node $cloud-node$i \
+            $vcpus $ram_mb $ironicnode_hdd_size $(macfunc $i 1) \
+            $deploy_interface \
+            $host_admin_ip $ipmi_port $ipmi_user $ipmi_password
+    done
+
+    onadmin create_flavor b1.small $ram_mb $vcpus $(( $ironicnode_hdd_size - 1 ))
+}
+
+function teardown_ironic_test_env
+{
+    install_vbmc
+
+    local i
+    for i in $(nodes ids ironic) ; do
+        local ironic_node=$cloud-node$i
+
+        onadmin delete_ironic_node $cloud-node$i
+
+        # cleanup vbmc for this ironic node
+        vbmc stop $ironic_node || true
+        vbmc delete $ironic_node || true
+    done
+}
+
 function testsetup
 {
+    [[ $want_ironic = 1 ]] && setup_ironic_test_env
+
     onadmin testsetup
     local ret=$?
-    $scp root@$adminip:tempest*.log "$artifacts_dir/"
+
+    [[ $want_ironic = 1 ]] && teardown_ironic_test_env
+
+    $scp root@$(wrap_ip $adminip):tempest*.log "$artifacts_dir/"
 
     # Register the cloud in Rally and import the results
     if [[ $rally_server && -f $artifacts_dir/tempest.subunit.log ]] ; then
         local title=$(testname)
         local type=$(testtype)
 
-        $scp root@$adminip:.openrc "$artifacts_dir/"
+        $scp root@$(wrap_ip $adminip):.openrc "$artifacts_dir/"
         local tmpdir=`ssh $sshopts rally@$rally_server "mktemp -d rally-XXXXXX"`
         $scp "$artifacts_dir/tempest.subunit.log" "$artifacts_dir/.openrc" rally@$rally_server:$tmpdir
         ssh $sshopts rally@$rally_server "
@@ -880,6 +997,8 @@ function testtype
             type="defcore"
         elif [[ $tempestoptions =~ --load-list ]] ; then
             type="ad-hoc"
+        elif [[ $tempestoptions =~ ironic ]] ; then
+            type="ironic"
         fi
     fi
 
@@ -932,11 +1051,11 @@ function qa_test
         git clone https://$ghsc/qa-openstack-cli.git
     fi
     popd
-    rsync -av ~/$ghsc/qa-openstack-cli root@$adminip:
+    rsync -av ~/$ghsc/qa-openstack-cli root@$(wrap_ip $adminip):
     onadmin qa_test
     ret=$?
 
-    $scp -r root@$adminip:qa_test.logs/ $artifacts_dir/
+    $scp -r root@$(wrap_ip $adminip):qa_test.logs/ $artifacts_dir/
     return $ret
 }
 
@@ -945,7 +1064,7 @@ function crowbarbackup
     safely onadmin crowbarbackup "$@"
     local btargetdir=${artifacts_dir:-.}
     mkdir -p "$btargetdir"
-    safely $scp root@$adminip:/tmp/backup-crowbar.tar.gz "$btargetdir"
+    safely $scp root@$(wrap_ip $adminip):/tmp/backup-crowbar.tar.gz "$btargetdir"
 }
 
 function crowbarrestore
@@ -956,7 +1075,7 @@ function crowbarrestore
         complain 56 "No crowbar backup tarball found."
     fi
     onhost_reset_admin
-    safely $scp "$btarball" root@$adminip:/tmp/
+    safely $scp "$btarball" root@$(wrap_ip $adminip):/tmp/
     safely onadmin crowbarrestore "$@"
 }
 
@@ -966,6 +1085,7 @@ function onhost_reset_admin
     safely onhost_cleanup_admin_node
     safely onhost_prepareadmin
     safely setupadmin
+    safely addupdaterepo
     safely prepareinstcrowbar
     safely bootstrapcrowbar
 }
@@ -1138,7 +1258,7 @@ Mandatory
     cloudpv=/dev/vdx (default /dev/vdb)
         Device where a LVM physical volume will be created, all data lost on this device
         Should be at least 80 GB. The volume group will be called 'cloud'.
-    cloudsource=develcloud6/7/8/9 | susecloud9 | GM6 | GM6+up | GM7 | GM7+up | GM8 | GM8+up | M?  (default '')
+    cloudsource=develcloud6/7/8/9 | GM6 | GM6+up | GM7 | GM7+up | GM8 | GM8+up | GM9 | GM9+up  (default '')
         NOTE: The latest version always is in development. So do NOT expect it to work out of the box.
         NOTE: If you need a stable/working version use <latest-version>-1.
         defines the installation source of the product
@@ -1146,15 +1266,15 @@ Mandatory
         develcloud7   : product from IBS Devel:Cloud:7
         develcloud8   : product from IBS Devel:Cloud:8
         develcloud9   : product from IBS Devel:Cloud:9
-        rockycloud9   : product from IBS Devel:Cloud:9:Rocky
-        susecloud9    : product from IBS SUSE:SLE....
         GM6           : SUSE Cloud Goldmaster 6 without updates
         GM7           : SUSE Cloud Goldmaster 7 without updates
         GM8           : SUSE Cloud Goldmaster 8 without updates
+        GM9           : SUSE Cloud Goldmaster 9 without updates
         GM6+up        : SUSE Cloud Goldmaster 6 with released maintenance updates
         GM7+up        : SUSE Cloud Goldmaster 7 with released maintenance updates
         GM8+up        : SUSE Cloud Goldmaster 8 with released maintenance updates
-        M?            : uses official Milestone? ISO image (? is a number)
+        GM9+up        : SUSE Cloud Goldmaster 9 with released maintenance updates
+        M?*           : uses official Milestone? ISO image (? is a number)
 
 Optional
     qa_crowbarsetup='path/to/script' (default: same directory as mkcloud is located in)
@@ -1257,12 +1377,13 @@ Optional
         want_aodh_proposal=0
         want_barbican_proposal=0
         want_sahara_proposal=0
-        want_trove_proposal=0
         The following proposals are default off:
         Set to 1 to enable \$PROPOSAL to be deployed. e.g.
+        want_designate_proposal=1 (Cloud9+ only)
         want_magnum_proposal=1
         want_monasca_proposal=1   (Cloud7+ only)
-        want_murano_proposal=1
+        want_octavia_proposal=1 (Cloud9+ only)
+        want_trove_proposal=1
     want_horizon_integration_test=1 (default='')
         Execute selenium integration tests for Horizon after Tempest. This test is in beta, and
         a fail will not be considered for now.
@@ -1309,6 +1430,16 @@ Optional
     localreposdir_src (default='')
         If you want to use repositories from your host's local filesystem, set
         this variable to point to the root of the hierarchy.
+    want_all_ssl (default='0')
+        If set, enables TLS for all services. Can also enable TLS for
+        individual services using want_{proposal}_ssl.
+    want_ssl_trusted (default='1' for cloud7+)
+        If set, does not use the --insecure flag in openstack CLI commands.
+    want_monasca_tsdb (Cloud9+ only)
+        Allows setting time-series DB used for Monasca [influxdb|cassandra].
+    want_ipv6 (Currently in development)
+        Prepare crowbar to use a full IPv6 single stack control plane. Enabling will also set
+        the firmware_type to UEFI as it's required to netboot nodes over IPv6.
 EOUSAGE
     qacrowbarsetup_help
     exit 1
@@ -1384,12 +1515,12 @@ function sanity_checks
 
     if [ -z "$cloudsource" ] ; then
         echo "Please set the env variable:"
-        echo "export cloudsource=M?|develcloud6|develcloud7|develcloud8|develcloud9|rockycloud9|susecloud9|GM6|GM6+up|GM7|GM7+up|GM8|GM+up"
+        echo "export cloudsource=M?*|develcloud6|develcloud7|develcloud8|develcloud9|GM6|GM6+up|GM7|GM7+up|GM8|GM9|GM9+up"
         exit 1
     fi
 
     # checking clusterconfig
-    if [[ $hacloud && ! $clusterconfig ]] ; then
+    if [[ $hacloud = 1 && ! $clusterconfig ]] ; then
         echo "Examples for clusterconfig:"
         echo '3 clusters: clusterconfig="data=2:network=3:services=3"'
         echo '2 clusters: clusterconfig="services+data=2:network=3"'

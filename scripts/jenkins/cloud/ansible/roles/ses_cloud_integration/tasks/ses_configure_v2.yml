@@ -1,0 +1,61 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Get salt-api token
+  uri:
+    url: "http://{{ hostvars['ses-' ~ ses_cluster_id].ansible_host }}:8000/login"
+    method: POST
+    body:
+      username: "admin"
+      sharedsecret: "{{ ses_salt_api_secret }}"
+      eauth: "sharedsecret"
+    body_format: "json"
+  register: _salt_token
+
+- name: Run openstack.integrate
+  uri:
+    url: "http://{{ hostvars['ses-' ~ ses_cluster_id].ansible_host }}:8000/"
+    method: POST
+    headers:
+      X-Auth-Token: "{{ _salt_token.json.return.0.token }}"
+    body:
+      client: "runner"
+      fun: "openstack.integrate"
+      prefix: "{{ cloud_env }}"
+    body_format: "json"
+  register: _ses_conf
+
+- name: Generate ses-config.yml
+  copy:
+    content: "{{ _ses_conf.json.return.0 | to_nice_yaml }}"
+    dest: "{{ ses_cloud_config_path }}/ses_config.yml"
+
+- name: Remove RADOS GW config entries (will be configured after ardana deployment)
+  lineinfile:
+    path: "{{ ses_cloud_config_path }}/ses_config.yml"
+    regexp: "{{ item }}"
+    state: absent
+  loop:
+    - "^radosgw_url.*"
+    - "^-.*swift.*v1$"
+
+- name: Upload Crowbar SES configuration
+  shell: |
+    crowbarctl ses upload {{ ses_cloud_config_path }}/ses_config.yml
+  delegate_to: "{{ cloud_env }}"
+  run_once: true
+  when: cloud_product == 'crowbar'

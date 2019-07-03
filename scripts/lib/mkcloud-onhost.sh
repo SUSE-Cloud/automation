@@ -24,15 +24,22 @@ function onhost_setup_portforwarding
         mosh_end=$((   $cloud_port_offset + 60010 ))
 
         mkdir -p $boot_mkcloud_d
+        if [[ ${want_ipv6} == 0 ]]; then
+            net_end=".0/24"
+            iptables="iptables"
+        else
+            net_end=":/64"
+            iptables="ip6tables"
+        fi
         $sudo tee $boot_mkcloud_d_cloud >/dev/null <<EOS
 #!/bin/bash
 # Auto-generated from $0 on `date`
 
 iptables_unique_rule () {
     # First argument must be chain
-    if ! iptables -C "\$@" 2>/dev/null; then
-        iptables -I "\$@"
-        echo "iptables -I \$*"
+    if ! $iptables -C "\$@" 2>/dev/null; then
+        $iptables -I "\$@"
+        echo "$iptables -I \$*"
     fi
 }
 
@@ -40,7 +47,7 @@ iptables_unique_rule () {
 for port in 22 80 443 3000 4000 4040; do
     iptables_unique_rule PREROUTING -t nat -p tcp \\
         --dport \$(( $cloud_port_offset + \$port )) \\
-        -j DNAT --to-destination $adminip:\$port
+        -j DNAT --to-destination $(wrap_ip $adminip):\$port
 done
 
 # Connect to admin server with mosh (if installed) via:
@@ -57,18 +64,18 @@ for port in 22 80 443 5000 7630; do
         host_port_offset=\$(( \$host - \$offset ))
         iptables_unique_rule PREROUTING -t nat -p tcp \\
             --dport \$(( $cloud_port_offset + \$port + \$host_port_offset )) \\
-            -j DNAT --to-destination $net_admin.\$host:\$port
+            -j DNAT --to-destination $(wrap_ip "${net_admin}${ip_sep}\$host"):\$port
     done
 done
 
 # Forward VNC port
 iptables_unique_rule PREROUTING -t nat -p tcp --dport \$(( $cloud_port_offset + 6080 )) \\
-    -j DNAT --to-destination $net_public.2
+    -j DNAT --to-destination ${net_public}${ip_sep}2
 
 # need to delete+insert on top to make sure our ACCEPT comes before libvirt's REJECT
 for x in D I ; do
-    iptables -\$x FORWARD -d $net_admin.0/24 -j ACCEPT
-    iptables -\$x FORWARD -d $net_public.0/24 -j ACCEPT
+    $iptables -\$x FORWARD -d ${net_admin}${net_end} -j ACCEPT
+    $iptables -\$x FORWARD -d ${net_public}${net_end} -j ACCEPT
 done
 
 echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
@@ -125,11 +132,13 @@ function onhost_cacheclouddata
                 [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-$suffix/***"
                 echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
                 echo "repos/$a/SUSE-Enterprise-Storage-$sesversion-$suffix/***"
+                echo "repos/$a/SLE12-Module-Adv-Systems-Management-$suffix/***"
             done
             echo "repos/$a/SLES$slesversion-LTSS-Updates/***"
             [[ $want_test_updates = 1 ]] && {
                 echo "repos/$a/SLES$slesversion-Updates-test/***"
                 [[ $hacloud = 1 ]] && echo "repos/$a/SLE$slesversion-HA-Updates-test/***"
+                echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-Updates-test/***"
                 echo "repos/$a/SUSE-Enterprise-Storage-$sesversion-Updates-test/***"
             }
             echo "install/suse-$suseversion/$a/install/***"
@@ -139,9 +148,6 @@ function onhost_cacheclouddata
             if [[ $cloudsource =~ (develcloud) ]]; then
                 suffix="devel"
                 [ -n "$TESTHEAD" ] && suffix+="-staging"
-            fi
-            if [[ $cloudsource =~ (rockycloud) ]]; then
-                suffix="devel-rocky"
             fi
             echo "repos/$a/SUSE-OpenStack-Cloud-$cloudrepover-$suffix/***"
 

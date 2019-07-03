@@ -3,7 +3,8 @@ function libvirt_modprobe_kvm()
     if [[ $(uname -m) = x86_64 ]]; then
         $sudo modprobe kvm-amd
         if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
-            echo "options kvm-intel nested=1" | $sudo dd of=/etc/modprobe.d/80-kvm-intel.conf
+            echo "options kvm-intel nested=1 emulate_invalid_guest_state=0" | \
+                $sudo dd of=/etc/modprobe.d/80-kvm-intel.conf
             $sudo rmmod kvm-intel
         fi
         $sudo modprobe kvm-intel
@@ -51,8 +52,11 @@ function libvirt_start_daemon()
 
 function libvirt_net_start()
 {
-    $sudo virsh net-start $cloud-admin
+    if ! $sudo virsh net-info $cloud-admin | grep -q 'Active.*yes' ; then
+        $sudo virsh net-start $cloud-admin || exit $?
+    fi
     $sudo sysctl -e net.ipv4.conf.$cloudbr.forwarding=1
+    $sudo sysctl -e net.ipv6.conf.$cloudbr.forwarding=1
     for dev in $cloudbr-nic $cloudbr ; do
         $sudo ip link set mtu 9000 dev $dev
     done
@@ -60,6 +64,7 @@ function libvirt_net_start()
     if [[ $want_ironic ]]; then
         $sudo virsh net-start $cloud-ironic
         $sudo sysctl -e net.ipv4.conf.$ironicbr.forwarding=1
+        $sudo sysctl -e net.ipv6.conf.$ironicbr.forwarding=1
     fi
 
     onhost_setup_portforwarding
@@ -71,12 +76,19 @@ function libvirt_prepare()
     libvirt_modprobe_kvm
     libvirt_start_daemon
 
+    local need_ipv6
+    if (( $want_ipv6 > 0 )); then
+        need_ipv6="--ipv6"
+    else
+        need_ipv6=""
+    fi
+
     # admin network
-    ${scripts_lib_dir}/libvirt/net-config 'admin' $cloud $cloudbr $admingw $adminnetmask $forwardmode $cloudfqdn $adminip > /tmp/$cloud-admin.net.xml
+    ${scripts_lib_dir}/libvirt/net-config $need_ipv6 'admin' $cloud $cloudbr $admingw $adminnetmask $forwardmode $cloudfqdn $adminip > /tmp/$cloud-admin.net.xml
     $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-admin.net.xml || exit $?
     # ironic network
     if [[ $want_ironic ]]; then
-        ${scripts_lib_dir}/libvirt/net-config 'ironic' $cloud $ironicbr $ironicgw $ironicnetmask $forwardmode > /tmp/$cloud-ironic.net.xml
+        ${scripts_lib_dir}/libvirt/net-config $need_ipv6 'ironic' $cloud $ironicbr $ironicgw $ironicnetmask $forwardmode > /tmp/$cloud-ironic.net.xml
         $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-ironic.net.xml || exit $?
     fi
     libvirt_net_start
@@ -113,15 +125,30 @@ function libvirt_do_setuphost()
             echo 1 > /proc/sys/vm/allocate_pgste
         }
     fi
+    # For IPv6 setups in CI, we have a proxy address automatically configured
+    # on the virtual bridge device, which doesn't exist yet, so unset
+    # http_proxy
+    if (( $want_ipv6 > 0 )); then
+        saved_proxy=$http_proxy
+        http_proxy=
+    fi
     zypper_override_params="--non-interactive" extra_zypper_install_params="--no-recommends" ensure_packages_installed \
         libvirt libvirt-python $kvmpkg $extra_packages \
         lvm2 curl wget iputils bridge-utils \
         dnsmasq netcat-openbsd ebtables iproute2 sudo kpartx rsync
 
+    if [[ -n "$saved_proxy" ]]; then
+        http_proxy=$saved_proxy
+    fi
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
-    echo 0 > /proc/sys/net/ipv4/conf/all/rp_filter
+    echo "net.ipv6.conf.all.forwarding = 1" > /etc/sysctl.d/90-cloudipv6.conf
+    # activate settings
+    sysctl -p
+
     libvirt_do_sanity_checks
+    libvirt_enable_ksm
+
     if [ -n "$needcvol" ] ; then
         safely_skip_support pvcreate "$cloudpv"
         safely_skip_support vgcreate "$cloudvg" "$cloudpv"
@@ -341,11 +368,11 @@ function libvirt_do_cleanup()
 
 function libvirt_do_prepare()
 {
-    libvirt_enable_ksm
     libvirt_do_create_cloud_lvm
     onhost_add_etchosts_entries
     libvirt_prepare
     onhost_prepareadmin
+    libvirt_start_radvd
 }
 
 function libvirt_do_onhost_deploy_image()
@@ -356,6 +383,8 @@ function libvirt_do_onhost_deploy_image()
     local image_path=$cache_dir/$image
 
     if [[ ! $want_cached_images = 1 ]] ; then
+        [ -n $rsyncserver_fqdn ] || complain 95 "Missing RSYNC Server FQDN!"
+
         safely rsync --compress --progress --inplace --archive --verbose \
             rsync://$rsyncserver_fqdn/$rsyncserver_images_dir/$image $cache_dir/
     else
@@ -490,4 +519,21 @@ function libvirt_do_macfunc
     local nodenumber=$1
     local nicnumber=${2:-"1"}
     printf "$macprefix:77:%02x:%02x" $nicnumber $nodenumber
+}
+
+function libvirt_start_radvd
+{
+    if (( $want_ipv6 > 0 )); then
+        if ! pidof radvd >/dev/null; then
+            if ! grep -q $cloudbr /etc/radvd.conf; then
+                snippet=$($scripts_lib_dir/ipv6/radvd-conf-template)
+                radvd_conf=$(mktemp)
+                cat /etc/radvd.conf > $radvd_conf
+                sed -e "s/<INTERFACE>/$cloudbr/" -e "s/<PREFIX>/$net_admin/" < $snippet >> $radvd_conf
+                mv $radvd_conf /etc/radvd.conf
+                rm $snippet
+            fi
+            systemctl start radvd.service || complain 94 "can't start radvd"
+        fi
+    fi
 }

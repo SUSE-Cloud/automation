@@ -1,18 +1,24 @@
 #!/bin/bash
 
+# We can pass an argument to the function to configure ipv6
+# Use ipv4 by default so we are backwards compatible
+SVC_IP_VERSION=4
+[[ $1 == "ipv6" ]] && SVC_IP_VERSION=6
+
 ##########################################################################
 # Setup devstack and run Tempest
 ##########################################################################
 
 DEVSTACK_DIR="/opt/stack/devstack"
-
+: ${DEVSTACK_FORK:=openstack-dev}
+: ${DEVSTACK_BRANCH:=master}
 
 # if this variable is set to non-empty, the clone of devstack git
 # will be set up with this gerrit review id being merged
 
 # This allows testing with an unmerged change included. An
 # empty variable disables that behavior
-PENDING_REVIEW="576798"
+PENDING_REVIEW=""
 
 set -ex
 
@@ -53,8 +59,10 @@ function h_setup_base_repos {
     if [[ $DIST_NAME == "openSUSE_Leap" ]]; then
         $zypper ar -f http://download.opensuse.org/distribution/leap/${DIST_VERSION}/repo/oss/ Base || true
         $zypper ar -f http://download.opensuse.org/update/leap/${DIST_VERSION}/oss/openSUSE:Leap:${DIST_VERSION}:Update.repo || true
-        # Python 3.x support is quite broken atm
-        if false && [[ $DIST_VERSION == "15.0" ]]; then
+        # Python 2.7 is scheduled for end-of-life in 2020
+        # Openstack goal is to have python3 supported on the end of the T cycle
+        # https://governance.openstack.org/tc/resolutions/20180529-python2-deprecation-timeline.html
+        if [[ $DIST_VERSION == "15.0" ]]; then
             USE_PYTHON3=True
             PYTHON3_VERSION=3.6
         fi
@@ -78,6 +86,13 @@ function h_setup_base_repos {
             $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SDK/${DIST_VERSION}/x86_64/product" SDK || true
             $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SDK/${DIST_VERSION}/x86_64/update/" SDK-Update || true
         fi
+        if [[ $DIST_VERSION == 12-SP3 ]]; then
+            $zypper ar -f "https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP3/" devel_languages_python_backports  || true
+            $zypper ar -f "https://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_12_SP3/" Cloud:OpenStack:Master  || true
+        elif [[ $DIST_VERSION == 12-SP4 ]]; then
+            $zypper ar -f "https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP4/" devel_languages_python_backports  || true
+            $zypper ar -f "https://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_12_SP4/" Cloud:OpenStack:Master  || true
+        fi
     fi
 }
 
@@ -100,21 +115,38 @@ function h_setup_extra_disk {
 }
 
 function h_setup_devstack {
+    if [[ $DIST_VERSION == 12-SP[34] ]]; then
+        $zypper --no-gpg-checks in http://download.opensuse.org/repositories/openSUSE:/Leap:/42.3/standard/noarch/git-review-1.25.0-6.2.noarch.rpm
+    fi
     $zypper in git-core which ca-certificates-mozilla net-tools git-review
-    $zypper in 'group(nogroup)'
+    if ! getent group nobody >/dev/null; then
+        $zypper in 'group(nogroup)'
+    fi
 
-    git config --global user.email root@cleanvm.ci.opensuse.org
-    git config --global user.name "Devstack User"
+    if ! modinfo openvswitch >/dev/null; then
+        echo "openvswitch kernel module is not available; maybe you are" \
+             "running a -base kernel?  Aborting." >&2
+        exit 1
+    fi
 
-    git clone https://github.com/openstack-dev/devstack.git $DEVSTACK_DIR
-    hostname -f || hostname cleanvm.ci.opensuse.org
+    if ! [ -e $DEVSTACK_DIR ]; then
+        git clone \
+            -b $DEVSTACK_BRANCH \
+            https://github.com/$DEVSTACK_FORK/devstack.git \
+            $DEVSTACK_DIR
+    fi
+
+    if ! hostname -f; then
+        echo "You must set a hostname before running qa_devstack.sh; aborting." >&2
+        exit 1
+    fi
 
     if [[ "$PENDING_REVIEW" ]]; then
         pushd $DEVSTACK_DIR
         changerev="refs/changes/${PENDING_REVIEW: -2}/${PENDING_REVIEW}"
         # Find latest rev
-        changerev=$(git ls-remote -q --refs origin "$changerev/*" | sort -V \
-            egrep -o "$changerev.*" | tail -n 1)
+        changerev=$(git ls-remote -q --refs origin "$changerev/*" | \
+            egrep -o "$changerev.*" | sort -V | tail -n 1)
         git pull --no-edit origin $changerev
         popd
     fi
@@ -123,6 +155,7 @@ function h_setup_devstack {
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
 
     SWIFT_SERVICES="
+enable_service c-bak
 enable_service s-proxy
 enable_service s-object
 enable_service s-container
@@ -158,7 +191,6 @@ enable_service placement-api
 enable_service n-cpu
 enable_service c-vol
 enable_service n-obj
-enable_service c-bak
 enable_service q-agt
 disable_service horizon
 enable_service cinder
@@ -183,7 +215,12 @@ VERBOSE_NO_TIMESTAMP=True
 
 NOVNC_FROM_PACKAGE=True
 RECLONE=yes
+
+GIT_DEPTH=1
+IP_VERSION=4+6
+SERVICE_IP_VERSION=$SVC_IP_VERSION
 HOST_IP=127.0.0.1
+HOST_IPV6=::1
 LOGFILE=stack.sh.log
 LOGDAYS=1
 SCREEN_LOGDIR=/opt/stack/logs
@@ -193,6 +230,7 @@ TEMPEST_ALLOW_TENANT_ISOLATION=True
 
 USE_PYTHON3=$USE_PYTHON3
 PYTHON3_VERSION=$PYTHON3_VERSION
+$DEVSTACK_EXTRA_CONFIG
 
 [[test-config|$$TEMPEST_CONFIG]]
 [compute]
@@ -220,14 +258,18 @@ h_setup_devstack
 h_echo_header "Run devstack"
 sudo -u stack -i <<EOF
 cd $DEVSTACK_DIR
-FORCE=yes ./stack.sh
+./stack.sh
 EOF
 h_echo_header "Run tempest"
 
 if [ -z "${DISABLE_TEMPESTRUN}" ]; then
+pip install junitxml
     sudo -u stack -i <<EOF
 cd /opt/stack/tempest
-tox -e smoke
+tempest run --smoke --subunit | tee tempest.subunit | subunit-trace -f -n
+subunit2html tempest.subunit /opt/stack/results.html
+# subunit2junitxml will fail if test run failed as it forwards subunit stream result code, ignore it
+subunit2junitxml tempest.subunit > /opt/stack/results.xml || true
 EOF
 fi
 

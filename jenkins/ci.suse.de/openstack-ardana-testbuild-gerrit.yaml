@@ -1,85 +1,68 @@
 - job:
     name: openstack-ardana-testbuild-gerrit
-    concurrent: true
     project-type: pipeline
-    description: |
-      <!-- Managed by Jenkins Job Builder -->
+    concurrent: true
 
     logrotate:
-        numToKeep:  300
-        daysToKeep: 300
+      numToKeep:  300
+      daysToKeep: 300
 
     properties:
       - authorization:
           cloud:
-               - job-build
-               - job-cancel
-               - job-configure
-               - job-delete
-               - job-discover
-               - job-read
-               - job-workspace
-               - run-delete
-               - run-update
-               - scm-tag
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
           anonymous:
-               - job-read
+            - job-read
 
     parameters:
-     - string:
-        name: gerrit_change_ids
-        default:
-        description: >-
-          A comma separated list of IDs for changes in gerrit.suse.provo.cloud
-          to test.
+      - string:
+          name: gerrit_change_ids
+          default:
+          description: >-
+            A comma separated list of IDs for changes in gerrit.prv.suse.net
+            to test. The patchset may be supplied as part of the change ID in the form:
 
-     - string:
-        name: develproject
-        default: Devel:Cloud:8
-        description: The IBS development project that will be linked against.
+               <change_number>[/<patchset_number>]
 
-     - string:
-         name: repository
-         default: SLE_12_SP3
-         description: >-
-           Name of the repository in IBS against which to build the test packages.
+      - string:
+          name: homeproject
+          default: 'Devel:Cloud:Testbuild'
+          description: >-
+            Project in IBS that will act as the parent project for the newly
+            generated test project.
 
-     - string:
-         name: homeproject
-         default: 'home:opensuseapibmw'
-         description: >-
-           Project in IBS that will act as the parent project for the newly
-           generated test project.
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: The git automation repository to use
 
-     - string:
-        name: git_automation_repo
-        default: https://github.com/SUSE-Cloud/automation.git
-        description: The git automation repository to use
+      - string:
+          name: git_automation_branch
+          default: master
+          description: The git automation branch
 
-     - string:
-         name: git_automation_branch
-         default: master
-         description: The git automation branch
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
 
-     - string:
-         name: jenkinsfile_path
-         default: jenkins/ci.suse.de/pipelines/openstack-ardana-testbuild-gerrit.Jenkinsfile
-         description: >-
-           The location of the Jenkinsfile defining the pipeline
+              <parameter_name>=<parameter-value>
 
-     - string:
-         name: reuse_node
-         default: ''
-         description: >-
-           The Jenkins agent where this job must run. Used by upstream jobs to
-           force a job to reuse the same node.
-
-     - string:
-         name: reuse_workspace
-         default: ''
-         description: >-
-           The Jenkins workspace that this job must reuse. Used by upstream jobs to
-           force a job to use the same workspace.
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
 
     pipeline-scm:
       scm:
@@ -89,20 +72,5 @@
               - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
-      script-path: ${jenkinsfile_path}
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
       lightweight-checkout: false
-
-    wrappers:
-      - timestamps
-      - timeout:
-          timeout: 20
-          type: no-activity
-          abort: true
-          write-description: "Job aborted due to 20 minutes of inactivity."
-
-    publishers:
-      - workspace-cleanup:
-          clean-if:
-            - failure: false
-            - aborted: false
-            - unstable: false

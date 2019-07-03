@@ -26,6 +26,7 @@
             - release-notes-suse-openstack-cloud
             - documentation-suse-openstack-cloud
             - caasp-openstack-heat-templates
+            - python-psql2mysql
       - axis:
           type: user-defined
           name: project
@@ -51,7 +52,8 @@
               "crowbar-init",
               "openstack-dashboard-theme-HPE",
               "documentation-suse-openstack-cloud",
-              "caasp-openstack-heat-templates"
+              "caasp-openstack-heat-templates",
+              "python-psql2mysql"
             ].contains(component)
           )
           ||
@@ -66,7 +68,8 @@
               "openstack-dashboard-theme-SUSE",
               "release-notes-suse-openstack-cloud",
               "documentation-suse-openstack-cloud",
-              "caasp-openstack-heat-templates"
+              "caasp-openstack-heat-templates",
+              "python-psql2mysql"
             ].contains(component)
           )
           ||
@@ -76,8 +79,16 @@
             ].contains(project) &&
             [
               "openstack-dashboard-theme-HPE",
-              "documentation-suse-openstack-cloud",
-              "caasp-openstack-heat-templates"
+              "documentation-suse-openstack-cloud"
+            ].contains(component)
+          )
+          ||
+          (
+            [
+              "Devel:Cloud:8:Staging"
+            ].contains(project) &&
+            [
+              "python-psql2mysql"
             ].contains(component)
           )
           ||
@@ -86,7 +97,8 @@
               "Devel:Cloud:9:Staging"
             ].contains(project) &&
             [
-              "openstack-dashboard-theme-HPE"
+              "openstack-dashboard-theme-HPE",
+              "python-psql2mysql"
             ].contains(component)
           )
 

@@ -1,0 +1,17 @@
+---
+
+# OpenSUSE Leap version number corresponding to the cloud version
+leap_version:
+  cloud7: "42.2"
+  cloud8: "42.3"
+  cloud9: "15.0"
+
+leap_repo_url: "http://download.opensuse.org/distribution/leap/{{ leap_version[cloud_release] }}/repo/oss/"
+
+sle_packages:
+  - "python-setuptools"
+  - "python-os-testr" # includes subunit2html.py
+  - "python-python-subunit"
+
+leap_packages:
+  - "python-junitxml"

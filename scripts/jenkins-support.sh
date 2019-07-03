@@ -35,18 +35,3 @@ function connect_rally_server_run_test
     rally task report --out=$out_dir/output.html
 EOF
 }
-
-function onadmin_install_ca_certificates
-{
-
-    for node in $(crowbar machines list); do ssh $node "mkdir -p /etc/cloud/ssl" ; scp -r /root/ssl-certs/qa$hw_number/ $node:/etc/cloud/ssl ; done
-    #Setup repositories
-    for node in $(crowbar machines list); do
-        ssh $node "zypper --gpg-auto-import-keys ar -f http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP2/SUSE:CA.repo "
-        ssh $node "zypper --non-interactive in ca-certificates-suse"
-    done
-    #Verify installed certificates
-    for node in $(crowbar machines list); do
-        ssh $node "cd /etc/cloud/ssl/qa$hw_number ; openssl verify -verbose -CAfile SUSE_CA_suse.de.chain.crt qa$hw_number.cloud.suse.de.crt"
-    done
-}

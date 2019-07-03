@@ -55,6 +55,8 @@ proposals:
       certfile: ##certfile##
       keyfile: ##keyfile##
       client_ca_certs: ##cafile##
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:

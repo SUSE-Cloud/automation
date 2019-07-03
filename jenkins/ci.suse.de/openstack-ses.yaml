@@ -1,0 +1,118 @@
+- job:
+    name: openstack-ses
+    project-type: pipeline
+    concurrent: true
+
+    logrotate:
+      numToKeep: 300
+      daysToKeep: 90
+
+    properties:
+      - authorization:
+          cloud:
+            - job-build
+            - job-cancel
+            - job-configure
+            - job-delete
+            - job-discover
+            - job-read
+            - job-workspace
+            - run-delete
+            - run-update
+            - scm-tag
+          anonymous:
+            - job-read
+
+    parameters:
+      - validating-string:
+          name: ses_id
+          default: ''
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The SES environment identifier. This field should be set to a
+            value that will uniquely identify the heat stack.
+
+            WARNING: if a heat stack associated with the supplied ses_id already
+            exists, it will be replaced if this job is launched.
+
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The target OpenStack cloud platform. Possible values are:
+
+              engcloud - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+      - string:
+          name: server_key_name
+          default: ""
+          description: >-
+            Keypair to be used on the SES instance
+
+      - string:
+          name: server_image
+          default: "cleanvm-jeos-SLE12SP3"
+          description: >-
+            Image used to boot the SES instance
+
+      - string:
+          name: server_flavor
+          default: "cloud-ses"
+          description: >-
+            SES instance flavor
+
+      - string:
+          name: floating_net
+          default: "floating"
+          description: >-
+            External network
+
+      - string:
+          name: network
+          default: ""
+          description: >-
+            An existing network to connect the SES node to.
+            If empty a new network will be created.
+
+      - string:
+          name: subnet_cidr
+          default: "192.168.200.0/24"
+          description: >-
+            If network parameter is empty a new network will be created with
+            this CIDR.
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - string:
+          name: os_project_name
+          default: ''
+          description: >-
+            The name of the OpenStack project that hosts the virtual SES deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false

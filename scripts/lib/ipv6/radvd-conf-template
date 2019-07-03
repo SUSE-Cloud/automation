@@ -1,0 +1,28 @@
+#!/bin/sh
+
+set -e
+
+snippet=$(mktemp)
+cat <<EOF >$snippet
+interface <INTERFACE>
+{
+  AdvSendAdvert on;
+  MinRtrAdvInterval 30;
+  MaxRtrAdvInterval 100;
+  AdvManagedFlag off;
+  AdvOtherConfigFlag off;
+  prefix <PREFIX>::/64
+  {
+    AdvOnLink on;
+    AdvAutonomous on;
+    AdvRouterAddr off;
+  };
+  RDNSS <PREFIX>::1
+  {
+    AdvRDNSSLifetime 100;
+  };
+};
+
+EOF
+
+echo "$snippet"

@@ -1,84 +1,251 @@
 - project:
-    name: cloud-ardana8-gating
-    version: 8
-    label: cloud-trigger
-    build_pool: cloud-ardana-ci-slot
+    name: cloud-8-gating-trigger
+    cloud_url_trigger_job: '{name}'
+    version: '8'
+    url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
+    projects:
+      - project: 'cloud-{version}-gating'
+        block: false
     jobs:
-        - 'cloud-ardana{version}-gating'
+        - '{cloud_url_trigger_job}'
 
 - project:
-    name: cloud-ardana8-std-3cp-x86_64
+    name: cloud-8-gating
+    cloud_gating_job: '{name}'
+    concurrent: False
+    version: '8'
+    cloud_env: 'cloud-ardana-gate{version}-slot'
+    extra_params: |
+      tempest_retry_failed=True
+    jobs:
+        - '{cloud_gating_job}'
+
+- project:
+    name: cloud-ardana8-job-std-3cp-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-dac-3cp-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '3'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-std-min-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-std-min-lmm-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: std-lmm
+    clm_model: standalone
+    controllers: '2'
+    lmm_nodes: '1'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-demo-x86_64
+    ardana_job: '{name}'
+    cloudsource: stagingcloud8
+    cloud_env: cloud-ardana-ci-slot
+    scenario_name: standard
+    clm_model: integrated
+    controllers: '1'
+    sles_computes: '1'
+    disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-std-split-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: std-split
+    clm_model: standalone
+    core_nodes: '1'
+    lmm_nodes: '1'
+    dbmq_nodes: '1'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-entry-scale-kvm-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    tempest_filter_list: "\
+      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
+      designate,heat,manila,ceilometer,magnum,freezer,monasca"
+    triggers: []
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-entry-scale-kvm-update-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: develcloud8
+    update_after_deploy: true
+    update_to_cloudsource: stagingcloud8
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    rhel_computes: '0'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    tempest_filter_list: "\
+      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
+      designate,heat,ceilometer,magnum,freezer,monasca"
+    triggers: []
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-entry-scale-kvm-test-maintenance-updates-x86_64
+    ardana_job: '{name}'
     disabled: false
-    version: 8
-    arch: x86_64
-    model: std-3cp
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: GM8+up
+    updates_test_enabled: true
+    update_after_deploy: true
+    update_to_cloudsource: GM8+up
+    scenario_name: entry-scale-kvm
+    clm_model: integrated
+    controllers: '3'
+    sles_computes: '2'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-{arch}'
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana8-dac-3cp-x86_64
+    name: cloud-ardana8-job-entry-scale-kvm-maintenance-update-x86_64
+    ardana_job: '{name}'
     disabled: false
-    version: 8
-    arch: x86_64
-    model: dac-3cp
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    reserve_env: false
+    cloudsource: GM8+up
+    updates_test_enabled: false
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    sles_computes: '2'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    tempest_filter_list: "\
+      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
+      designate,heat,ceilometer,magnum,freezer,monasca"
+    triggers: []
     jobs:
-        - 'cloud-ardana{version}-job-{model}-{arch}'
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana8-std-min-x86_64
-    disabled: false
-    version: 8
-    arch: x86_64
-    model: std-min
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    name: cloud-ardana8-job-std-min-suse-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: GM8+up
+    updates_test_enabled: false
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-{arch}'
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana8-std-split-x86_64
-    disabled: false
-    version: 8
-    arch: x86_64
-    model: std-split
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    name: cloud-ardana8-job-std-min-centos-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: stagingcloud8
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    sles_computes: '0'
+    rhel_computes: '2'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+     - timed: 'H H * * *'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-{arch}'
+        - '{ardana_job}'
 
 - project:
-    name: cloud-ardana8-std-3cp-staging-update-x86_64
-    disabled: true
-    version: 8
-    arch: x86_64
-    model: std-3cp
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
+    name: cloud-ardana8-job-image-update
+    cloud_image_update_job: '{name}'
+    os_cloud:
+      - engcloud:
+          image_visibility: shared
+      - susecloud:
+          image_visibility: private
+    openstack_cloud_job: cloud-ardana8-job-std-min-x86_64
+    download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images-SLE_12_SP3/ardana-jeos-lvm-SLE12SP3.x86_64.qcow2.xz
+    sles_image: cleanvm-jeos-lvm-SLE12SP3
+    triggers:
+     - timed: 'H H * * H(6-7)'
     jobs:
-        - 'cloud-ardana{version}-job-{model}-devel-staging-updates-{arch}'
-
-- project:
-    name: cloud-ardana8-std-3cp-maintenance-update-x86_64
-    disabled: true
-    version: 8
-    arch: x86_64
-    model: std-3cp
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
-    jobs:
-        - 'cloud-ardana{version}-job-{model}-test-maintenance-updates-{arch}'
-
-- project:
-    name: cloud-ardana8-std-min-suse-x86_64
-    disabled: false
-    version: 8
-    arch: x86_64
-    model: std-min
-    tempest_run_filter: ci
-    build_pool: cloud-ardana-ci-slot
-    jobs:
-        - 'cloud-ardana{version}-job-{model}-suse-{arch}'
+        - '{cloud_image_update_job}-{os_cloud}'

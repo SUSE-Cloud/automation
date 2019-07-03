@@ -1,0 +1,13 @@
+- project:
+    name: openstack-staging
+    disabled: false
+    release:
+      - Newton
+      - Pike
+      - Queens
+      - Rocky
+      - Stein
+      - Master
+    jobs:
+      - 'openstack-staging-{release}'
+

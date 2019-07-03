@@ -1,0 +1,122 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Configure CephFS backend for manila
+  hosts: "{{ cloud_env }}"
+  remote_user: ardana
+  gather_facts: no
+  vars:
+    task: "deploy"
+    ses_cluster_id: "{{ (cloud_env.startswith('pcloud') or cloud_env.startswith('qe')) | ternary('qe', 'virt') }}"
+    ses_cloud_config_path: "/tmp/ses_config"
+    ardana_openstack_path: "~/openstack/ardana/ansible"
+    ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
+    ardana_openstack_playbooks:
+      - "config-processor-run.yml -e encrypt='' -e rekey=''"
+      - "ready-deployment.yml"
+
+  tasks:
+    - block:
+        - name: Copy manila keyring to MNL-API hosts
+          shell:
+            ansible -m copy -a "src={{ ses_cloud_config_path }}/ceph.client.{{ cloud_env }}-manila.keyring \
+              dest=/etc/ceph/ owner=manila group=ceph" -b MNL-API
+          args:
+            chdir: "{{ ardana_scratch_path }}"
+
+        - name: Ensure manila client section on ceph.conf
+          shell:
+            ansible -m ini_file -a "dest=/etc/ceph/ceph.conf section=client.{{ cloud_env }}-manila \
+              option='{{ item.option }}' value={{ item.value }}" -b MNL-API
+          args:
+            chdir: "{{ ardana_scratch_path }}"
+          loop:
+            - option: "client mount uid"
+              value: 0
+            - option: "client mount gid"
+              value: 0
+            - option: "keyring"
+              value: "/etc/ceph/ceph.client.{{ cloud_env }}-manila.keyring"
+
+        - name: Add CephFS backend section to manila config
+          blockinfile:
+            path: "/var/lib/ardana/openstack/my_cloud/config/manila/manila.conf.j2"
+            block: |
+              [cephfsnative1]
+              driver_handles_share_servers = False
+              share_backend_name = CEPHFSNATIVE1
+              share_driver = manila.share.drivers.cephfs.cephfs_native.CephFSNativeDriver
+              cephfs_conf_path = /etc/ceph/ceph.conf
+              cephfs_protocol_helper_type = CEPHFS
+              cephfs_auth_id = {{ cloud_env }}-manila
+              cephfs_cluster_name = ceph
+              cephfs_enable_snapshots = False
+
+        - name: Enable CephFS backend in manila config
+          ini_file:
+            path: "{{ ardana_openstack_path }}/roles/_MNL-CMN/templates/manila.conf.j2"
+            section: "DEFAULT"
+            option: "{{ item.option }}"
+            value: "{{ item.value }}"
+          loop:
+            - option: "enabled_share_protocols"
+              value: "NFS,CIFS,CEPHFS"
+            - option: "enabled_share_backends"
+              value: "cephfsnative1"
+
+        - name: Commit changes
+          shell: |
+            git add -A
+            git commit -m 'Enabled CphFS backend for manila'
+          args:
+            chdir: "{{ ardana_openstack_path }}"
+
+        - name: Run playbooks from "{{ ardana_openstack_path }}"
+          command: "ansible-playbook -i hosts/localhost {{ item }}"
+          args:
+            chdir: "{{ ardana_openstack_path }}"
+          loop: "{{ ardana_openstack_playbooks }}"
+          register: ansible_openstack_plays
+          when: not (ansible_openstack_plays | default({})) is failed
+
+        - name: Reconfigure manila
+          command: "ansible-playbook {{ item }}"
+          args:
+            chdir: "{{ ardana_scratch_path }}"
+          loop:
+            - "manila-reconfigure.yml"
+          register: manila_plays
+          when: not (manila_plays | default({})) is failed
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+
+  post_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "finished"
+        rc_state: "Success"
+      when: rc_notify

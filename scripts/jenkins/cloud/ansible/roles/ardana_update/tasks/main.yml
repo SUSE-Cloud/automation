@@ -1,0 +1,48 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Get list of non-deployer nodes
+  shell: |
+    deployer=`grep -A 1 ARD-SVC--first-member hosts/verb_hosts | tail -1`
+    for line in $(awk '/resources/' RS= hosts/verb_hosts); do
+      if [[ $deployer != *$line* ]]; then
+        echo $line
+      fi
+    done
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  register: ardana_nodes
+
+- include_tasks: add_mu_repos.yml
+  when: maint_updates_list | length
+
+- include_tasks: pre_cloudsource_update.yml
+  when:
+    - cloudsource is defined
+    - cloudsource != ''
+
+- include_tasks: update_nodes.yml
+
+- include_tasks: reboot_nodes.yml
+  when: pending_system_reboot
+
+- name: Check ardana services after update
+  command: |
+    ansible-playbook -i hosts/verb_hosts ardana-status.yml
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  changed_when: False

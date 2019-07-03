@@ -72,11 +72,6 @@
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
 
-      - string:
-          name: cct
-          default: features:base
-          description: Optional, specify cct tests to run
-
       - bool:
           name: rally-tests
           default: false
@@ -148,7 +143,7 @@
 
     builders:
       - shell: |
-          #!/bin/bash
+          #!/bin/bash -x
           export admin=crowbar$hw_number;
           export cloud=qa$hw_number;
 
@@ -245,7 +240,6 @@
             predefined-parameters: |
               hw_number=$hw_number
               tempest=$tempest
-              cct_tests=$cct
               scenario_name=1b
               scenario_job_name=$JOB_NAME
               scenario_build_number=$BUILD_NUMBER

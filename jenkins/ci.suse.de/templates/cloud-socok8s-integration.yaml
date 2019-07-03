@@ -1,0 +1,59 @@
+- job-template:
+    name: '{name}-integration'
+    project-type: multibranch
+    periodic-folder-trigger: 5m
+    number-to-keep: 30
+    days-to-keep: 30
+    script-path: Jenkinsfile.integration
+    scm:
+      - github:
+          repo: '{repo-name}'
+          repo-owner: '{repo-owner}'
+          credentials-id: '{repo-credentials}'
+          branch-discovery: no-pr
+          discover-pr-forks-strategy: current
+          discover-pr-forks-trust: permission
+          discover-pr-origin: current
+          submodule:
+            recursive: true
+          notification-context: continuous-integration/jenkins
+          filter-head-regex: ^(master|stable\-\d\.\d|PR\-\d+)$
+
+- job-template:
+    name: '{name}-nightly-airship-from-rpm'
+    project-type: pipeline
+    concurrent: false
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+    triggers:
+      - timed: '@daily'
+
+    parameters:
+      - string:
+          name: git_automation_repo
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: '{git_automation_branch|master}'
+          description: >-
+            The git automation branch
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${{git_automation_repo}}
+            branches:
+              - ${{git_automation_branch}}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/socok8s-airship-from-rpm.Jenkinsfile
+      # NOTE(jhesketh): We cannot use a lightweight checkout when supplying the
+      # git-scm module with an environment variable (for some odd jenkins
+      # reason).
+      lightweight-checkout: false

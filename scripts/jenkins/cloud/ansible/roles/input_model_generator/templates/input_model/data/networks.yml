@@ -1,0 +1,52 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+  product:
+    version: 2
+
+  networks:
+
+{% set ns = namespace(net_id=gen_subnet_start) %}
+{% for network_group in scenario['network_groups'] %}
+{%   if network_group.rack_network|default(False) %}
+{%     for az in range(scenario.availability_zones) %}
+    - name: {{ network_group.name|upper }}-NET-RACK{{ az + 1 }}
+{{ bm_info.networks[network_group.name|replace('-', '_')|lower]['rack' ~ (az+1)] | to_nice_yaml(indent=2) | indent(6, True) -}}
+{{'      network-group: ' ~ network_group.name|upper }}
+
+{%     endfor %}
+{%   else %}
+    - name: {{ network_group.name|upper }}-NET
+{%  if bm_info is defined %}
+{{ bm_info.networks[network_group.name|replace('-', '_')|lower] | to_nice_yaml(indent=2) | indent(6, True) }}
+{%-  else -%}
+{%   if network_group['tagged_vlan']|default(True) %}
+      vlanid: {{ ns.net_id }}
+{%   endif %}
+      tagged-vlan: {{ network_group['tagged_vlan']|default('False')|lower }}
+{%     if ipv6 and ns.net_id != gen_subnet_start %}
+      cidr: {{ subnet_prefix.ipv6 }}:{{ ns.net_id }}::/64
+      gateway-ip: {{ subnet_prefix.ipv6 }}:{{ ns.net_id }}::1
+{%     else  %}
+      cidr: {{ subnet_prefix.ipv4 }}.{{ ns.net_id }}.0/24
+      gateway-ip: {{ subnet_prefix.ipv4 }}.{{ ns.net_id }}.1
+{%     endif %}
+{%   endif %}
+      network-group: {{ network_group.name|upper }}
+
+{%   set ns.net_id = ns.net_id+1 %}
+{%   endif %}
+{% endfor %}

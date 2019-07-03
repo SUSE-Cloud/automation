@@ -106,6 +106,8 @@ proposals:
           device: ##shared_nfs_for_rabbitmq##
           fstype: nfs
           options: nfsvers=3
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
@@ -212,7 +214,6 @@ proposals:
   attributes:
     itxt_instance: ''
     use_migration: true
-    vnc_keymap: de
     kvm:
       ksm_enabled: true
     ssl:
@@ -259,19 +260,6 @@ proposals:
     elements:
       heat-server:
       - cluster:services
-
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
 
 - barclamp: manila
   attributes:

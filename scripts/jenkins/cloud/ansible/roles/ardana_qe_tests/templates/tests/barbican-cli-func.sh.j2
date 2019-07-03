@@ -1,0 +1,74 @@
+#!/usr/bin/env bash
+
+set -eux
+set -o pipefail
+
+# This script runs barbican client functional tests from upstream
+
+# Discover cli tests
+export OS_TEST_PATH="{{ ardana_qe_tests_dir }}/functionaltests"
+export OS_TOP_LEVEL="{{ ardana_qe_tests_dir }}"
+export VENV_FOLDER="{{ ardana_qe_test_venv }}"
+export STESTR="{{ ardana_qe_test_venv }}/bin/stestr"
+export PYTHON="{{ ardana_qe_test_venv }}/bin/python"
+export TESTS_TO_SKIP_BIN="{{ ardana_qe_tests_dir }}/tests2skip.py"
+#export RUN_FILTER="{{ ardana_qe_tests_dir }}/run_filters/{{ test_name }}/${1:-{{ test_run_filter }}}.txt"
+export RUN_FILTER="{{ ardana_qe_tests_dir }}/run_filters/${1:-{{ test_run_filter }}}.txt"
+export REQUESTS_CA_BUNDLE={{ ca_bundle }}
+
+source /var/lib/ardana/keystone.osrc
+km_url=`openstack endpoint list --service barbican --interface admin -f value -c URL`
+set +u
+source $VENV_FOLDER/bin/activate
+set -u
+cd {{ ardana_qe_tests_dir }}
+
+$VENV_FOLDER/bin/pip install --upgrade pip
+$VENV_FOLDER/bin/pip install -r requirements.txt
+$VENV_FOLDER/bin/pip install -r test-requirements.txt
+$PYTHON setup.py install
+
+#Workaround for bug 1084362 for upstream pike-cloud8
+if [[ "{{ ardana_qa_tests_branch }}" = *"pike"* ]]; then
+    git checkout .
+    git grep -l '2018-02' | xargs sed -i 's/2018-02/2021-02/g'
+fi
+
+if [ ! -d {{ ardana_qe_tests_dir }}/.stestr ]; then
+    ${STESTR} init
+fi
+
+
+cat >{{ ardana_qe_tests_dir }}/.stestr.conf <<EOF
+[DEFAULT]
+test_path=./functionaltests
+top_dir=./
+EOF
+
+cat >{{ ardana_qe_tests_dir }}/etc/functional_tests.conf <<EOF
+[DEFAULT]
+[identity]
+uri={{ os_unversioned_auth_url }}
+auth_version=v3
+username={{ os_admin_osrc.OS_USERNAME }}
+tenant_name=admin
+password={{ os_admin_osrc.OS_PASSWORD }}
+domain_name={{ os_admin_osrc.OS_DOMAIN_NAME }}
+admin_username={{ os_admin_osrc.OS_USERNAME }}
+admin_tenant_name=admin
+admin_password={{ os_admin_osrc.OS_PASSWORD }}
+admin_domain_name={{ os_admin_osrc.OS_DOMAIN_NAME }}
+[keymanager]
+url=$km_url
+username={{ km_username }}
+password={{ km_password }}
+project_name={{ km_project_name }}
+project_id={{ km_project_id }}
+#max_payload_size=10000
+project_domain_name={{ km_project_domain_name }}
+EOF
+
+cp /var/lib/ardana/openstack/ardana/ansible/roles/tempest/files/tests2skip.py {{ ardana_qe_tests_dir }}/tests2skip.py
+
+${STESTR} run --concurrency=1 $($PYTHON ${TESTS_TO_SKIP_BIN} ${RUN_FILTER}) | tee {{ ardana_qe_test_log }}
+${STESTR} last --subunit > {{ ardana_qe_test_subunit }}

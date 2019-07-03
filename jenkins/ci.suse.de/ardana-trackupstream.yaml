@@ -23,8 +23,8 @@
             - ardana-cobbler
             - ardana-db
             - ardana-designate
+            - ardana-extensions-apicaci
             - ardana-extensions-dcn
-            - ardana-extensions-example
             - ardana-extensions-nsx
             - ardana-freezer
             - ardana-glance
@@ -56,6 +56,7 @@
             - ardana-swift
             - ardana-tempest
             - ardana-tls
+            - python-ardana-configurationprocessor
             - python-ardana-opsconsole-server
             - python-cinderlm
       - axis:
@@ -69,19 +70,17 @@
           name: label
           values:
             - openstack-trackupstream
-    # execution-strategy:
-    #   combination-filter: |
-    #     !(
-    #       (
-    #         [
-    #           "Devel:Cloud:8:Staging"
-    #         ].contains(project) &&
-    #         [
-    #           "XXX"
-    #         ].contains(component)
-    #       )
-
-    #     )
-    #   sequential: true
+    execution-strategy:
+      combination-filter: |
+        !(
+          (
+            [
+              "Devel:Cloud:9:Staging"
+            ].contains(project) &&
+            [
+              "ardana-freezer"
+            ].contains(component)
+          )
+        )
     builders:
       - trackupstream

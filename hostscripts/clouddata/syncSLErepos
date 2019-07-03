@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# provide a constant path for mounting as non-root user
+tmpiso=/srv/nfs/repos/.tmp.iso
+if [[ $UID == 0 ]] ; then
+    grep -q /mnt/cloud /etc/fstab ||
+        echo "$tmpiso /mnt/cloud iso9660 loop,ro,user" >> /etc/fstab
+
+    grep -q ^jenkins: /etc/passwd &&
+        exec sudo -u jenkins "$0" "$@"
+fi
+
 SITE_DEFAULT="nue"
 [[ $(hostname) =~ provo ]] && SITE_DEFAULT="prv"
 
@@ -75,9 +85,11 @@ mount_and_rsync()
     local to=$2
     local oneiso=`ls $from | tail -1`
     if [ -e "$oneiso" ] ; then
-        $M mount -o loop,ro "$oneiso" /mnt/cloud
+        ln -f "$oneiso" "$tmpiso"
+        $M mount /mnt/cloud
         [ $? == 0 ] && $rsync /mnt/cloud/ $to
         $M umount /mnt/cloud
+        rm -f "$tmpiso"
     fi
 }
 
@@ -119,6 +131,7 @@ for version in 9 8 7 6; do
             rsync_and_unpack_iso ${ibs_source_nue}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-official
         fi
 
+        # Ardana flavor
         if [ "$version" != "8" ] || [ "$arch" = "x86_64" ]; then
             if [ -z "$sync_from_ibs" ]; then
                 rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
@@ -132,24 +145,32 @@ for version in 9 8 7 6; do
             rsync_with_create $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
         fi
 
+        # Cloud8-HOS flavor
         if [ "$version" = "8" -a "$arch" = "x86_64" ]; then
-            rsync_and_unpack_iso ${ibs_source_nue}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
+            rsync_and_unpack_iso ${ibs_source}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
             rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Pool/
             rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Updates/
         fi
 
+        # SOC-Crowbar flavor
         if [ "$version" = "8" -o "$version" = "9" ]; then
-            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
-            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
             rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud-Crowbar/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Pool/
             rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud-Crowbar/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates/
             rsync_with_create $ibsmaint/OpenStack-Cloud-Crowbar\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates-test/
 
+            if [ -z "$sync_from_ibs" ]; then
+                rsync_and_unpack_iso $install_source/SLE-12-SP$servicepack-Cloud$version-GM/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-GM-DVD1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-official
+                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
+                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
+            else
+                rsync_and_unpack_iso ${ibs_source_nue}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-official
+                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
+                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
+            fi
         fi
     done
 done
 
-rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/9\:/Rocky/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-9-x86_64-Media1.iso /srv/nfs/repos/x86_64/SUSE-OpenStack-Cloud-Crowbar-9-devel-rocky
 rsync_with_create ${ibs_source_nue}/Devel:/Cloud:/8:/HOS5Migration/SLE_12_SP3/ /srv/nfs/repos/x86_64/SUSE-OpenStack-Cloud-8-devel-HOS5Migration/
 
 ##############
@@ -159,7 +180,7 @@ rsync_with_create ${ibs_source_nue}/Devel:/Cloud:/8:/HOS5Migration/SLE_12_SP3/ /
 for servicepack in 4 3 2 1; do
     # fetch latest code from service pack in development (not just latest beta)
     sync_from_ibs=
-    [ $servicepack -eq 4 ] && sync_from_ibs=1
+    [ $servicepack -eq 5 ] && sync_from_ibs=1
 
     version="12-SP$servicepack"
     repo_version="$version"
@@ -232,7 +253,7 @@ done
 
 
 # LTSS enablement
-for servicepack in 3 2 1; do
+for servicepack in 2 1; do
 
     version="12-SP$servicepack-LTSS"
     repo_version="$version"
@@ -242,6 +263,10 @@ for servicepack in 3 2 1; do
         destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
         mkdir -p $destdir_sles_updates
         $rsync ${ibs_source}/SUSE/Updates/SLE-SERVER/$version/$arch/update/ $destdir_sles_updates
+
+        destdir_sles_updates_test=/srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
+        mkdir -p $destdir_sles_updates_test
+        $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ $destdir_sles_updates_test
     done
 done
 
@@ -250,7 +275,7 @@ done
 # Storage
 ##############
 
-for version in 5 4 2.1; do
+for version in 6 5 4 2.1; do
 
     for arch in $archs; do
         [ "$arch" != x86_64 -a $version = 2.1 ] && continue
@@ -258,10 +283,10 @@ for version in 5 4 2.1; do
 
         echo ================== Updating Storage $version
 
-        # sync version 5 from ibs while in development
+        # sync version 6 from ibs while in development
         poolsource=
-        if [[ $version == 5 ]]; then
-            poolsource=${ibs_source}/SUSE\:/SLE-12-SP3\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
+        if [[ $version == 6 ]]; then
+            poolsource=${ibs_source}/SUSE\:/SLE-15-SP1\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
         else
             poolsource=${ibs_source}/SUSE/Products/Storage/$version/$arch/product/
         fi
@@ -293,9 +318,15 @@ for arch in $archs ; do
 done
 
 if [ $SITE = "nue" ]; then
-    # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
-    for obsrepo in devel:/languages:/ruby:/extensions/SLE_12 devel:/tools:/building/SLE_12_SP3 ; do
-        rsync_with_create rsync://rsync.opensuse.org/buildservice-repos/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
+    for v in 12 15 ; do
+        rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/devel:/languages:/ruby:/extensions/SLE_$v/ /srv/nfs/repos/repositories/devel:/languages:/ruby:/extensions/SLE_$v
+    done
+
+    for servicepack in 4 3; do
+        # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
+        for obsrepo in devel:/tools:/building/SLE_12_SP$servicepack ; do
+            rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
+        done
     done
 
     # this one is always failing - we need to ignore that otherwise the lock file remains stuck

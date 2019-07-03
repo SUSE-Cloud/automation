@@ -232,12 +232,39 @@ You can use the [`build-rpms`](https://github.com/openSUSE/pack-tools/blob/maste
 in a local (or remote) repository.  Once you have followed the installation
 instructions, this process is as simple as a one-line command, e.g.
 
-    $ build-rpms -l -r my-git-branch ~/IBS/Devel/Cloud/5/crowbar-barclamp-rabbitmq
+    $ build-rpms -l -r my-git-branch ~/IBS/Devel/Cloud/9/crowbar-core
 
 The output of this command should end with something like:
 
-    /var/tmp/build-root/SLE_11_SP3/x86_64/usr/src/packages/RPMS/noarch/crowbar-barclamp-rabbitmq-1.9+git.1428427665.a11b19b-0.noarch.rpm
-    rpms saved in /home/adam/tmp/build-rpms/IBS_Devel_Cloud_5_crowbar-barclamp-rabbitmq
+    /var/tmp/build-root/SLE_12_SP4-x86_64/home/abuild/rpmbuild/RPMS/x86_64/crowbar-core-6.0+git.1555416537.339e8987a-0.x86_64.rpm
+    rpms saved in /home/adam/tmp/build-rpms/IBS_Devel_Cloud_9_crowbar-core
+
+Alternatively, you can use the [`osc`](https://en.opensuse.org/openSUSE:OSC)
+command directly, which you should already have installed. Create a patch file
+containing your change:
+
+    $ git format-patch HEAD^
+
+Check out a local copy of the package you wish to build:
+
+    $ osc bco Devel:Cloud:9:Staging crowbar-core
+
+Copy the patch to the package, add it as a Patch file, and update the %setup
+section. Build a local copy of the package:
+
+    $ osc build --no-verify
+
+The output will show you where the rpm is saved, something like:
+
+    /var/tmp/build-root/SLE_12_SP4-x86_64/home/abuild/rpmbuild/RPMS/x86_64/crowbar-core-6.0+git.1555416537.339e8987a-0.x86_64.rpm
+
+Yet another alternative is to commit the change to your remote branch:
+
+    $ osc commit -m "test bugfix"
+    $ osc results
+
+OBS will build it for you. Ensure your branch is configured to publish the
+packages.
 
 ### Getting `mkcloud` to use PTF packages
 
@@ -248,27 +275,29 @@ create a directory for each topic you want to test, to avoid
 accidentally mixing up which PTF packages get applied during a
 particular mkcloud test run.  For example,
 
-    # ptfdir=/data/install/PTF/rabbitmq-bugfix
+    # ptfdir=/data/install/PTF/crowbar-bugfix
     # mkdir -p $ptfdir
-    # cp ~/tmp/build-rpms/IBS_Devel_Cloud_5_crowbar-barclamp-rabbitmq/*.noarch.rpm $ptfdir
+    # cp ~/tmp/build-rpms/IBS_Devel_Cloud_9_crowbar-core/*.noarch.rpm $ptfdir
 
-Set up Apache on the host to export `$ptfdir` as http://192.168.124.1/ptf/
+Run a simple HTTP web server to serve the RPMs:
 
-    # cat <<EOF >/etc/apache2/conf.d/cloud-ptf.conf
-    Alias /ptf /data/install/PTF/
-    <Directory /data/install/PTF/>
-        Options +Indexes +FollowSymLinks
-        IndexOptions +NameWidth=*
-
-        Order allow,deny
-        Allow from all
-    </Directory>
-    EOF
+    $ cd $ptfdir
+    $ python3 -m http.server
 
 Now it is ready to be used by `mkcloud`:
 
-    # export UPDATEREPOS=http://192.168.124.1/ptf/rabbitmq-bugfix/
-    # mkcloud plain
+    # export UPDATEREPOS=http://192.168.124.1:8000/
+    # mkcloud all_noreboot
+
+Alternatively, if you commit your package to your remote OBS branch, you do not
+need to host the PTF content and can instead point mkcloud at your branch:
+
+    # export UPDATEREPOS=http://download.suse.de/ibs/home:/comurphy:/branches:/Devel:/Cloud:/9:/Staging/SLE_12_SP4/
+    # mkcloud all_noreboot
+
+Ensure the mkcloud step uses 'addupdaterepo' and 'runupdate' before the
+'bootstrapcrowbar' step is run. This happens automatically with the 'all*' steps
+but not with the 'plain*' steps.
 
 Now subsequent `mkcloud` runs will automatically apply any packages
-found under `/data/install/PTF/rabbitmq-bugfix`.
+found under `/data/install/PTF/crowbar-bugfix`.

@@ -50,6 +50,8 @@ proposals:
         mode: drbd
         drbd:
           size: 5
+    client:
+      enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
