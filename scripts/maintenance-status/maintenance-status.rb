@@ -48,9 +48,16 @@ class ObsHandler
 
   def request_status(id, status, message = "")
     review_id = maintenance_review(id)
+
+    if review_id.empty?
+      puts "No open review request found!"
+      return
+    end
+
     unless message == ""
       message = " (#{message})"
     end
+
     if status == :running
       obs_api_call(
         "/comments/request/#{review_id}",
@@ -78,7 +85,12 @@ class ObsHandler
     reviews = obs_api_call(
       "/search/request?match=(state/@name='review')+and+(action/target/@project='SUSE:Maintenance:#{maintenance_id}'+or+submit/target/@project='SUSE:Maintenance:#{maintenance_id}'+or+action/source/@project='SUSE:Maintenance:#{maintenance_id}'+or+submit/source/@project='SUSE:Maintenance:#{maintenance_id}')"
     )
-    reviews["request"]["id"]
+
+    if reviews["request"]
+      reviews["request"]["id"]
+    else
+      ""
+    end
   end
 
   def open_requests()
