@@ -12,12 +12,11 @@
           - "innodb_flush_method = O_DIRECT"
           - "innodb_flush_log_at_timeout = 60"
 {% endif %}
-{% if ssl_enabled %}
-        ssl:
-          enabled: true
-          generate_certs: true
-          insecure: true
-{% endif %}
+{#
+  Use a Jinja 'macro' trick in order to indent the block included from ses.yml.j2
+#}
+{% macro ssl_block() %}{% include 'barclamps/lib/ssl.yml.j2' %}{% endmacro %}
+  {{ ssl_block()|indent(2) }}
 {% set db_ns = namespace(db_role='database-server') %}
 {% if when_cloud7 %}
 {%   set db_ns.db_role = 'mysql-server' %}

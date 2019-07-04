@@ -1,0 +1,42 @@
+{#
+
+   This template is used to generate the common SSL configuration bits
+   for all barclamps.
+
+#}
+{% if ssl_enabled %}
+{%   if barclamp != 'horizon' %}
+      ssl:
+{%     if barclamp in ['database', 'nova', 'rabbitmq', 'swift'] %}
+        enabled: true
+{%     endif %}
+{%       if barclamp != 'nova' or nova_service != 'novnc' %}
+        generate_certs: {{ ssl_insecure }}
+        insecure: {{ ssl_insecure }}
+{%       endif %}
+{%     if not ssl_insecure %}
+        certfile: {{ ssl_certfile }}
+        keyfile: {{ ssl_keyfile }}
+{%       if barclamp != 'nova' or nova_service != 'novnc' %}
+{%         if barclamp not in ['database', 'keystone', 'swift'] %}
+        cert_required: {{ ssl_cert_required }}
+{%         endif %}
+{%         if barclamp not in ['swift'] %}
+        ca_certs: {{ ssl_ca_certs }}
+{%         endif %}
+{%         if barclamp == 'rabbitmq' %}
+        client_ca_certs: {{ ssl_ca_certs }}
+{%         endif %}
+{%       endif %}
+{%     endif %}
+{%   else %}
+      apache:
+        ssl: true
+        generate_certs: {{ ssl_insecure }}
+{%     if not ssl_insecure %}
+        ssl_crt_file: {{ ssl_certfile }}
+        ssl_key_file: {{ ssl_keyfile }}
+        ssl_crt_chain_file: {{ ssl_ca_certs }}
+{%     endif %}
+{%   endif %}
+{% endif %}

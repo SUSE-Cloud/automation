@@ -6,12 +6,8 @@
         # The default of 8 is a bit too much for our default virtual setup
         processes: 2
 {% endif %}
-{% if ssl_enabled %}
-        protocol: https
-      ssl:
-        generate_certs: true
-        insecure: true
-{% endif %}
+        protocol: {{ api_protocol }}
+{% include 'barclamps/lib/ssl.yml.j2' %}
 {% if want_keystone_token_type is defined %}
       signing:
         token_format: {{ want_keystone_token_type }}

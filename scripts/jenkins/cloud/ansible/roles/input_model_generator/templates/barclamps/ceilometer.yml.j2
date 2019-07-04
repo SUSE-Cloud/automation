@@ -1,13 +1,8 @@
 {% if not when_cloud9 or ('monasca' in deployments and 'monasca-server' in deployments['monasca']) %}
-
   - barclamp: ceilometer
-{%   if ssl_enabled %}
     attributes:
       api:
-        protocol: https
-      ssl:
-        generate_certs: true
-        insecure: true
-{%   endif %}
+        protocol: {{ api_protocol }}
+{%   include 'barclamps/lib/ssl.yml.j2' %}
 {%   include 'barclamps/lib/deployment.yml.j2' %}
 {% endif %}

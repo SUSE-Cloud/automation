@@ -502,3 +502,5 @@ neutron_networkingplugin: openvswitch
 neutron_networkingmode: vxlan
 neutron_use_dvr: false
 neutron_use_l3_ha: false
+
+api_protocol: "{{ ssl_enabled|ternary('https', 'http') }}"

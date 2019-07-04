@@ -1,12 +1,8 @@
   - barclamp: manila
     attributes:
-{% if ssl_enabled %}
       api:
-        protocol: https
-      ssl:
-        generate_certs: true
-        insecure: true
-{% endif %}
+        protocol: {{ api_protocol }}
+{% include 'barclamps/lib/ssl.yml.j2' %}
       default_share_type: default
       shares:
         - backend_driver: generic

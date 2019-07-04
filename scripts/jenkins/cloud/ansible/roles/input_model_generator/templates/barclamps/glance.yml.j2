@@ -1,12 +1,8 @@
   - barclamp: glance
     attributes:
-{% if ssl_enabled %}
       api:
-        protocol: https
-      ssl:
-        generate_certs: true
-        insecure: true
-{% endif %}
+        protocol: {{ api_protocol }}
+{% include 'barclamps/lib/ssl.yml.j2' %}
 {% if ses_enabled %}
       default_store: rbd
 {% elif 'swift' in deployments %}

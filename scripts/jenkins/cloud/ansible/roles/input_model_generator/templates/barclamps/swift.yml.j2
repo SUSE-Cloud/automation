@@ -11,12 +11,7 @@
       # swift in Liberty or newer started refusing devicecount < zones*replicas
       replicas: {{ ns.storage_nodes }}
 {% endif %}
-{% if ssl_enabled %}
-      ssl:
-        enabled: true
-        generate_certs: true
-        insecure: true
-{% endif %}
+{% include 'barclamps/lib/ssl.yml.j2' %}
       keystone_delay_auth_decision: true
       allow_versions: true
       middlewares:

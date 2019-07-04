@@ -12,3 +12,15 @@ mkcloud_config_file: "{{ workspace_path }}/mkcloud.config"
 crowbar_batch_file: "{{ workspace_path }}/scenario.yml"
 
 ssl_enabled: true
+
+# Generate insecure, self-signed certificates for each service if set,
+# otherwise generate a root CA certificate and use a global certificate
+# for all services
+ssl_insecure: false
+
+# Require client certificates
+ssl_cert_required: false
+
+ssl_certfile: /etc/cloud/ssl/certs/signing_cert.pem
+ssl_keyfile: /etc/cloud/private/signing_key.pem
+ssl_ca_certs: /etc/ssl/ca-bundle.pem
