@@ -50,10 +50,10 @@ projects:
       - openstack-rpm-packaging-update-Stein
 
 jobs:
-  - name: openstack-rpm-packaging-sles12-Master
+  - name: openstack-rpm-packaging-sles15-Master
     branch: master
-    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Master-{build.build_set.commit}
-    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Master-{build.build_set.commit}
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Master-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Master-{build.build_set.commit}
 
   - name: openstack-rpm-packaging-sles12-Newton
     branch: stable/newton
@@ -80,10 +80,10 @@ jobs:
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Rocky-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Rocky-{build.build_set.commit}
 
-  - name: openstack-rpm-packaging-sles12-Stein
+  - name: openstack-rpm-packaging-sles15-Stein
     branch: stable/stein
-    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Rocky-{build.build_set.commit}
-    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Rocky-{build.build_set.commit}
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Stein-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Stein-{build.build_set.commit}
 
   - name: openstack-rpm-packaging-update-Master
     branch: master
