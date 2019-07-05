@@ -32,9 +32,9 @@
             qa_crowbarsetup_cmd: onadmin_batch
 
         - include_role:
-            name: reboot_node
+            name: crowbar_setup
           vars:
-            reboot_target: cloud_nodes_crowbar
+            qa_crowbarsetup_cmd: onadmin_rebootcloud
           when:
             - not update_after_deploy
             - maint_updates_list | length
