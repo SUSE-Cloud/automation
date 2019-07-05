@@ -5231,18 +5231,25 @@ function onadmin_rebootcloud
     exit $ret
 }
 
-# make sure that testvm is up and reachable
-# if VM was shutdown, VM is started
+# make sure that testvm and manila-service VMs are up and reachable
+# if VMs were shutdown, VMs are started
 # adds a floating IP to VM
 function oncontroller_waitforinstance
 {
     . .openrc
-    safely nova list
-    nova start testvm || complain 28 "Failed to start VM"
-    safely nova list
-    local floatingip=$(addfloatingip testvm)
-    [[ $floatingip ]] || complain 12 "no IP found for instance"
-    wait_for 100 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "testvm to boot up"
+    safely openstack server list
+    if [[ -n $(openstack server show testvm -f value -c id) ]]; then
+        openstack server start testvm || complain 28 "Failed to start VM"
+        safely openstack server list
+        local floatingip=$(addfloatingip testvm)
+        [[ $floatingip ]] || complain 12 "no IP found for instance"
+        wait_for 100 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "testvm to boot up"
+    fi
+    export OS_TENANT_NAME='manila-service'
+    export OS_PROJECT_NAME=$OS_TENANT_NAME
+    if [[ -n $(openstack server show manila-service -f value -c id) ]]; then
+        oncontroller_manila_generic_driver_setup
+    fi
 }
 
 function oncontroller_suspendallinstances
