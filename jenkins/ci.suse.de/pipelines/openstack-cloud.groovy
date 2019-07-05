@@ -153,25 +153,30 @@ def convert_to_build_params(param_map) {
 //    included
 //  * task_config_file: filesystem path pointing to a yaml configuration
 //    file describing the tasks
+//  * task_filter: when non-empty, stages are only generated for tasks that
+//    are found in this list. Otherwise, stages will be generated for all the
+//    tasks in the supplied list of task groups
 //  * body: closure that will be called for each of the generated
 //    stages. The closure will be supplied two parameters: the
 //    <task-name> and the map of <attribute>: <value> pairs read from
 //    the task configuration file
 //
-def generate_parallel_stages(task_group_list, task_config_file, body) {
+def generate_parallel_stages(task_group_list, task_filter, task_config_file, body) {
   def out_stages = [:]
   task_config = readYaml file: task_config_file
   for (task_group in task_group_list) {
     if (task_group in task_config) {
       task_config[task_group].each { task_name, task_def ->
-        // we need local scope variables, otherwise the closure is
-        // called with the last values that the task_name and task_def
-        // iterator variables get
-        def out_task_def = task_def
-        def out_task_name = task_name
-        out_stages[task_name] = {
-          stage(task_name) {
-            body(out_task_name, out_task_def)
+        if (task_filter.isEmpty() || task_name in task_filter) {
+          // we need local scope variables, otherwise the closure is
+          // called with the last values that the task_name and task_def
+          // iterator variables get
+          def out_task_def = task_def
+          def out_task_name = task_name
+          out_stages[task_name] = {
+            stage(task_name) {
+              body(out_task_name, out_task_def)
+            }
           }
         }
       }

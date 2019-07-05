@@ -33,7 +33,7 @@
           type: multi-select
           visible-items: 5
           multi-select-delimiter: ','
-          default-value: '{cloudversion|}'
+          default-value: ''
           value: >-
             SOC8,SOC9,SOCC7,SOCC8,SOCC9
 
@@ -43,6 +43,23 @@
           regex: '([0-9]+(,[0-9]+)*)*'
           msg: The entered value failed validation
           description: List of maintenance update IDs separated by comma (eg. 7396,7487)
+
+      - extended-choice:
+          name: job_filter
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: ''
+          value: >-
+            ardana8-deploy,ardana8-update,ardana9-deploy,ardana9-update,
+            crowbar7-deploy,crowbar7-ha-deploy,crowbar8-deploy,crowbar8-ha-deploy,
+            crowbar9-deploy,crowbar9-ha-deploy
+          description: >-
+            Use this parameter to filter the list of jobs that are triggered to test the maintenance
+            updates. This is useful e.g. when re-running only the subset of jobs that have failed
+            during a previous run for environmental reasons.
+
+            Leave empty to run all applicable jobs.
 
       - string:
           name: git_automation_repo
