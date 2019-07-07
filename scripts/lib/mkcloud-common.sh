@@ -144,10 +144,14 @@ function rubyjsonparse
 
 function intercept
 {
-    if [[ $shell ]] ; then
+    if [[ $shell_intercept ]] ; then
         echo "Now starting bash for manual intervention..."
         echo "When ready exit this shell to continue with $1"
         bash
+    elif [[ $netcat_intercept ]]; then
+        echo "Pausing execution via netcat for manual intervention..."
+        echo "When ready to proceed, nc -z $mkcloud_host 34567"
+        nc -l 34567
     fi
 }
 
