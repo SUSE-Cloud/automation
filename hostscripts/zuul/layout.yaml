@@ -33,13 +33,13 @@ pipelines:
 projects:
   - name: openstack/rpm-packaging
     rpm-packaging:
-      - openstack-rpm-packaging-sles12-Master
+      - openstack-rpm-packaging-sles15-Master
       - openstack-rpm-packaging-sles12-Newton
       - openstack-rpm-packaging-sles12-Ocata
       - openstack-rpm-packaging-sles12-Pike
       - openstack-rpm-packaging-sles12-Queens
       - openstack-rpm-packaging-sles12-Rocky
-      - openstack-rpm-packaging-sles12-Stein
+      - openstack-rpm-packaging-sles15-Stein
     post-rpm-packaging:
       - openstack-rpm-packaging-update-Master
       - openstack-rpm-packaging-update-Newton
