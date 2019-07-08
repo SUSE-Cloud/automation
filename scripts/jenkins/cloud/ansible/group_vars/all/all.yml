@@ -69,6 +69,8 @@ ipv6: False
 
 updates_test_enabled: False
 
+reboot_after_deploy: False
+
 update_after_deploy: False
 maintenance_updates_path:
   Cloud: "SUSE_Updates_{{ cloud_repo_path }}_{{ sles_cloud_version[ansible_distribution_version] }}_x86_64"
