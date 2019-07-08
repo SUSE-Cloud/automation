@@ -36,8 +36,7 @@
           vars:
             qa_crowbarsetup_cmd: onadmin_rebootcloud
           when:
-            - not update_after_deploy
-            - maint_updates_list | length
+            - reboot_after_deploy
 
       rescue:
         - include_role:
