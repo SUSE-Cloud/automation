@@ -50,6 +50,7 @@ pipeline {
         script {
           parallel cloud_lib.generate_parallel_stages(
             cloudversion.split(','),
+            job_filter.tokenize(','),
             "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/cloud-gating-config.yml") {
             job_title, job_def ->
 
