@@ -830,17 +830,16 @@ function proposal
 function install_vbmc
 {
     # vbmc already available?
-    vbmc --version 2> /dev/null && return
+    vbmc --version 2> /dev/null && return 0
 
-    # TODO: virtualbmc package is available in cloud9, switch to that,
-    #       when cloud hosts are upgraded
-    # virtualenv is also not (yet) available in standard repos
-    virtualenv --version 2> /dev/null || \
-        rpm -i http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/standard/noarch/python-virtualenv-15.1.0-3.3.noarch.rpm
-    # include global packages to avoid compiling libvirt bindings
-    virtualenv --system-site-packages $cloud-vbmc
-    . $cloud-vbmc/bin/activate
-    pip install virtualbmc
+    # some simple checks before we try to add SP4-Cloud9 repo
+    grep -q 12-SP4 /etc/os-release || return 1
+
+    # virtualbmc package is available in cloud9 repo
+    zypper addrepo --priority 500 --refresh \
+        http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/standard/ \
+        SLE-12-SP4-Cloud9
+    zypper -n in python-virtualbmc
 }
 
 function start_vbmc
