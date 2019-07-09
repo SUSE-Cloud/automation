@@ -131,7 +131,7 @@
             group: ardana
             mode: 0700
 
-        - name: Add ardana public key to autohrized_keys
+        - name: Add ardana public key to authorized_keys
           lineinfile:
             path: "/var/lib/ardana/.ssh/authorized_keys"
             line: "{{ hostvars[cloud_env].ardana_pub_key.content | b64decode }}"
