@@ -839,6 +839,11 @@ function install_vbmc
     zypper addrepo --priority 500 --refresh \
         http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/standard/ \
         SLE-12-SP4-Cloud9
+
+    # TODO: remove when https://review.opendev.org/#/c/669862/ is merged and
+    #       gets to SUSE repos
+    zypper -n in python-cliff python-pyzmq
+
     zypper -n in python-virtualbmc
 }
 
