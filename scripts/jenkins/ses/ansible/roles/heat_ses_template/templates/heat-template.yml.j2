@@ -23,6 +23,12 @@ parameters:
     description: Existing network to be used by SES
     default: "{{ network }}"
 
+  router:
+    type: string
+    label: Router
+    description: Existing router to be used by SES network
+    default: "{{ router }}"
+
   subnet_cidr:
     type: string
     label: Default CIDR
@@ -46,17 +52,19 @@ resources:
       ip_version: 4
       enable_dhcp: True
 
+{% if router is not defined or router|length == 0 %}
   ses_router:
     type: OS::Neutron::Router
     properties:
       name: {{ heat_resource_name_prefix }}
       external_gateway_info:
         network: { get_param: floating_network }
+{% endif %}
 
   ses_router_interface:
     type: OS::Neutron::RouterInterface
     properties:
-      router: { get_resource: ses_router }
+      router: { {{ (router is not defined or router|length == 0) | ternary('get_resource: ses_router', 'get_param: router') }} }
       subnet: { get_resource: ses_subnet }
 {% endif %}
 

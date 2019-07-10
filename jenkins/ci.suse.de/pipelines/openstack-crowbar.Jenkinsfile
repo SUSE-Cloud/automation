@@ -160,7 +160,7 @@ pipeline {
               cloud_lib.trigger_build('openstack-ses', [
                 string(name: 'ses_id', value: "$cloud_env"),
                 string(name: 'os_cloud', value: "$os_cloud"),
-                string(name: 'network', value: "${cloud_env}-cloud_management_net"),
+                string(name: 'router', value: "${cloud_env}-cloud_router_ext"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
                 string(name: 'os_project_name', value: "$os_project_name")

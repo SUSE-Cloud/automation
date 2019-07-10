@@ -80,6 +80,14 @@
             If empty a new network will be created.
 
       - string:
+          name: router
+          default: ""
+          description: >-
+            An existing router to connect the SES network to.
+            If empty a new router will be created.
+            Only takes effect when the network parameter is also empty.
+
+      - string:
           name: subnet_cidr
           default: "192.168.200.0/24"
           description: >-

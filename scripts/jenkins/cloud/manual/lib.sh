@@ -202,8 +202,14 @@ function deploy_ses_vcloud {
         os_cloud=$(get_from_input os_cloud)
         os_project_name=$(get_from_input os_project_name)
         [[ -n $os_project_name ]] && os_project_option="os_project_name=$os_project_name"
-        network="${ses_id}-cloud_management_net"
-        ansible_playbook_ses ses-heat-stack.yml -e "ses_id=$ses_id network=$network os_cloud=$os_cloud $os_project_option"
+        deploy_ses_using="network="${ses_id}-cloud_management_net""
+        # For crowbar SES is deployed on its own network and crowbar accesses it through the
+        # external router. This is required to prevent the crowbar DHCP from affecting the SES
+        # cluster.
+        if [[ "$(get_cloud_product)" == "crowbar" ]]; then
+            deploy_ses_using="router=${ses_id}-cloud_router_ext"
+        fi
+        ansible_playbook_ses ses-heat-stack.yml -e "ses_id=$ses_id $deploy_ses_using os_cloud=$os_cloud $os_project_option"
         ansible_playbook_ses bootstrap-ses-node.yml -e ses_id=$ses_id
         for i in {1..3}; do
             ansible_playbook_ses ses-deploy.yml -e ses_id=$ses_id && break || sleep 5
