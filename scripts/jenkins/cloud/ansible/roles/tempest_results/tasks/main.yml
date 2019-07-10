@@ -32,13 +32,16 @@
 - name: Generate xml subunit results
   shell: "subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
   changed_when: false
+  failed_when: false
 
 - name: Generate html subunit results
   shell: "subunit2html {{ tempest_results_subunit }} {{ subunit_html_results }}"
   changed_when: false
+  failed_when: false
 
 - name: Get results from subunit
   command: "subunit-stats {{ tempest_results_subunit }}"
+  failed_when: false
   register: _test_results
 
 - name: Process test results from subunit
