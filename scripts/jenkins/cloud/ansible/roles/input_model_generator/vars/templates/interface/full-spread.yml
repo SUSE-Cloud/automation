@@ -53,7 +53,7 @@ interface_models:
 
   - name: COMPUTE
     service_groups:
-      - sles-compute
+      - compute
       - rhel-compute
     network_interfaces:
       - network_groups:

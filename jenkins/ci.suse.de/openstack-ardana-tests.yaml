@@ -130,7 +130,7 @@
       - choice:
           name: type_of_compute
           choices:
-            - SLES-COMPUTE
+            - COMPUTE
             - RHEL-COMPUTE
           description: >-
             QA Type of Compute node to be removed for Operation Test

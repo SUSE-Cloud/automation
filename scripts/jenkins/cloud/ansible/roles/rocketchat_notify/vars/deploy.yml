@@ -92,19 +92,19 @@ _field_clm:
 _field_nodes_values:
   default: |
     Controllers: {{ controllers }}
-    Computes: {{ sles_computes}} (SLES) / {{ rhel_computes }} (RHEL)
+    Computes: {{ computes}} (SLES) / {{ rhel_computes }} (RHEL)
   mid-scale-kvm: |
     Core: {{ core_nodes }}
     LMM: {{ lmm_nodes }}
     DBMQ: {{ dbmq_nodes }}
     SWIFT: {{ swift_nodes }}
     NEUTRON: {{ neutron_nodes }}
-    Computes: {{ sles_computes}} (SLES) / {{ rhel_computes }} (RHEL)
+    Computes: {{ computes}} (SLES) / {{ rhel_computes }} (RHEL)
   entry-scale-kvm-mml: |
     Core: {{ core_nodes }}
     LMM: {{ lmm_nodes }}
     DBMQ: {{ dbmq_nodes }}
-    Computes: {{ sles_computes}} (SLES) / {{ rhel_computes }} (RHEL)
+    Computes: {{ computes}} (SLES) / {{ rhel_computes }} (RHEL)
 
 _field_nodes:
   - title: Nodes

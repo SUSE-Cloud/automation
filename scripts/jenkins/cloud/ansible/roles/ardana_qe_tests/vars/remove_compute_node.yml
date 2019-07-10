@@ -13,4 +13,4 @@ ardana_qe_test_venv_requires:
  #passed: "cat {{ ardana_qe_test_log }} | grep 'PASS' | wc -l"
 ardana_qe_test_get_failed_cmd: "grep -A 6 'FAIL' {{ ardana_qe_test_log }} || echo 'None'"
 
-type_of_compute: SLES-COMPUTE
+type_of_compute: COMPUTE

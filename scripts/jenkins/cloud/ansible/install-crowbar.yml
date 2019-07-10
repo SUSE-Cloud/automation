@@ -36,6 +36,11 @@
             src: "{{ mkcloud_config_file }}"
             dest: "{{ admin_mkcloud_config_file }}"
 
+        - name: Copy generated scenario to admin node
+          copy:
+            src: "{{ crowbar_batch_file }}"
+            dest: "{{ admin_crowbar_batch_file }}"
+
         - include_role:
             name: crowbar_setup
           vars:
@@ -76,6 +81,7 @@
           vars:
             jenkins_artifacts_to_collect:
               - src: "{{ admin_mkcloud_config_file }}"
+              - src: "{{ admin_crowbar_batch_file }}"
               - src: "{{ qa_crowbarsetup_log }}"
 
   post_tasks:

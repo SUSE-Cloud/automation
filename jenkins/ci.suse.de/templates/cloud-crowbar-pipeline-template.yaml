@@ -112,22 +112,43 @@
       - choice:
           name: scenario_name
           choices:
-            - '{scenario_name|crowbar}'
-            - crowbar
+            - '{scenario_name|standard}'
+            - standard
+            - entry-scale-kvm
+            - mid-scale-kvm
+            - std-lmm
+            - std-split
           description: >-
             The name of one of the available scenarios that can be used to generate input models.
             If this parameter is set, the following parameters may also be set to different values, to control
-            various aspects of the generated input model: controllers, computes.
-
+            various aspects of the generated input model: controllers, computes, core_nodes, dbmq_nodes,
+            neutron_nodes and disabled_services.
 
             NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
             leave this field empty and use the 'model' parameter instead.
 
-      - string:
-          name: scenario_file
-          default: '{scenario_file|cloud9/cloud9-2nodes-default.yml}'
+      - extended-choice:
+          name: enabled_services
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          # NOTE: keeping designate and octavia disabled by default, until their
+          # implementation is complete
+          default-value: '{enabled_services|database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,horizon,ceilometer,heat,manila,trove,barbican,magnum,sahara,aodh,tempest}'
+          value: >-
+            database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,
+            horizon,ceilometer,heat,manila,trove,designate,barbican,octavia,
+            magnum,sahara,aodh,tempest
           description: >-
-            Crowbar batch scenario yaml file path (relative to scripts/scenarios)
+            The list of services (barclamps) that are enabled in the generated cloud
+            configuration. Leave empty to include everything.
+
+            NOTE: this list may not reflect what is actually added to the generated
+            cloud configuration. Some services may be filtered out because they are
+            only available in certain cloud versions or because they depend on other
+            disabled services. Other services may not be deployed because they are not
+            included in the scenario or because the number of nodes where they are
+            deployed is set to 0 using the other scenario parameters.
 
       - validating-string:
           name: controllers
@@ -151,6 +172,54 @@
             The number of SLES compute nodes in the generated input model.
 
             Input model generator scenarios using this parameter: all
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: core_nodes
+          default: '{core_nodes|2}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of OpenStack core services nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: dbmq_nodes
+          default: '{dbmq_nodes|3}'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of database & rabbitmq service nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - validating-string:
+          name: neutron_nodes
+          default: '3'
+          regex: '[0-3]'
+          msg: The entered value failed validation
+          description: |
+            The number of neutron network nodes in the generated input model (0-3).
+
+            Input model generator scenarios using this parameter: mid-scale-kvm.
+
+            NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
+            using one of the available input model generator scenarios.
+
+      - string:
+          name: disabled_services
+          default: '{disabled_services|}'
+          description: |
+            Regex matching service components and component groups to exclude from the generated input model.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.

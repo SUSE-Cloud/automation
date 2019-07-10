@@ -159,7 +159,7 @@
             The name of one of the available scenarios that can be used to generate input models.
             If this parameter is set, the following parameters may also be set to different values, to control
             various aspects of the generated input model: clm_model, controllers, core_nodes, lmm_nodes, dbmq_nodes,
-            neutron_nodes, swift_nodes, sles_computes, rhel_computes and disabled_services.
+            neutron_nodes, swift_nodes, computes, rhel_computes and disabled_services.
 
 
             NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
@@ -261,8 +261,8 @@
             using one of the available input model generator scenarios.
 
       - validating-string:
-          name: sles_computes
-          default: '{sles_computes|2}'
+          name: computes
+          default: '{computes|2}'
           regex: '[0-9]+'
           msg: The entered value failed validation
           description: |

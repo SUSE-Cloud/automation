@@ -28,7 +28,7 @@
 #   dbmq_nodes: number of database/rabbitmq nodes (default: 3)
 #   swift_nodes: number of swift proxy/account/container nodes (default: 3)
 #   neutron_nodes: number of neutron network nodes (default: 2)
-#   sles_computes: maximum number of SLES compute nodes (default: 1)
+#   computes: maximum number of SLES compute nodes (default: 1)
 #   rhel_computes: maximum number of RHEL compute nodes (default: 1)
 #
 ---
@@ -49,6 +49,7 @@ service_groups:
     service_components:
       - '{{ (clm_model == "integrated") | ternary("CLM", '') }}'
       - CORE
+      - '{{ (cloud_product == "crowbar") | ternary("SWPAC", '') }}'
   - name: lmm
     type: cluster
     prefix: lmm
@@ -69,7 +70,7 @@ service_groups:
     heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
     member_count: '{{ swift_nodes|default(3) }}'
     service_components:
-      - SWPAC
+      - '{{ (cloud_product == "ardana") | ternary("SWPAC", '') }}'
       - SWOBJ
   - name: neutron
     type: cluster
@@ -78,11 +79,11 @@ service_groups:
     member_count: '{{ neutron_nodes|default(3) }}'
     service_components:
       - NEUTRON
-  - name: sles-compute
+  - name: compute
     type: resource
     prefix: sles-comp
     heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
-    member_count: '{{ sles_computes|default(1) }}'
+    member_count: '{{ computes|default(1) }}'
     min_count: 0
     service_components:
       - COMPUTE

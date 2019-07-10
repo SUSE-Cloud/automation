@@ -18,8 +18,6 @@
 qe_ardana_bm_info_git_url: "https://gitlab.suse.de/cloud-qe/ardana-bm-info.git"
 qe_ardana_bm_info_dir: "{{ workspace_path }}/ardana-bm-info"
 
-template_file_name: "{{ scenario[item ~ '_template'] }}.yml"
-
 clm_model: standalone
 availability_zones: 3
 
@@ -32,17 +30,15 @@ designate_backend: bind
 # (i.e. values in service_component_groups)
 disabled_services: ""
 
+# Comma separated values list of Crowbar barclamps to be deployed. If empty,
+# all applicable barclamps will be deployed.
+enabled_services: ""
+
 # Disable extra volume groups in the generated disk models when LVM is
 # disabled in the base image, since these have no effect anyway as long as
 # `skip_disk_config` is also used to skip LVM disk configuration
 # in deployed clouds
 enable_extra_volume_groups: "{{ want_lvm }}"
-
-# Disable cinder LVM device group in Crowbar
-cinder_disk_enabled: "{{ cinder_lvm_enabled and cloud_product == 'ardana' }}"
-
-# Disable swiftpac device group in Crowbar
-swiftpac_disk_enabled: "{{ cloud_product == 'ardana' }}"
 
 swiftobj_disk_enabled: True
 
@@ -63,14 +59,6 @@ subnet_prefix:
 neutron_subnet_prefix:
   ipv4: 172
   ipv6: fd00:1:0
-
-# Start value for the third octet for the generated subnet prefixes and also
-# start of generated VLAN IDs for Ardana networks
-gen_subnet_start: 100
-# Start value for the fourth octet for the generated server IP addresses
-gen_ip_start: 100
-# Gap to be left between the generated IP for the admin node and the rest of the nodes
-gen_ip_gap: 1
 
 service_component_groups:
   COMMON:
@@ -348,3 +336,155 @@ firewall_rule_groups:
       port-range-min: 11382
       port-range-max: 11382
       protocol: tcp
+
+barclamps:
+  CORE:
+    aodh:
+      - aodh-server
+    barbican:
+      - barbican-controller
+    ceilometer:
+      - ceilometer-server
+      - ceilometer-central
+    cinder:
+      - cinder-controller
+      - cinder-volume
+    designate:
+      - designate-server
+      - designate-worker
+    glance:
+      - glance-server
+    heat:
+      - heat-server
+    horizon:
+      - horizon-server
+    ironic:
+      - ironic-server
+    keystone:
+      - keystone-server
+    magnum:
+      - magnum-server
+    manila:
+      - manila-server
+      - manila-share
+    monasca:
+      - monasca-agent
+      - monasca-log-agent
+    neutron:
+      - neutron-server
+    nova:
+      - nova-controller
+      - ec2-api
+    octavia:
+      - octavia-api
+    sahara:
+      - sahara-server
+    tempest:
+      - tempest
+    trove:
+      - trove-server
+
+  DBMQ:
+    database:
+      - database-server
+      - mysql-server
+    rabbitmq:
+      - rabbitmq-server
+  NEUTRON:
+    monasca:
+      - monasca-agent
+      - monasca-log-agent
+    neutron:
+      - neutron-network
+  LMM:
+    monasca:
+      - monasca-server
+      - monasca-agent
+  SWPAC:
+    ceilometer:
+      - ceilometer-swift-proxy-middleware
+    monasca:
+      - monasca-agent
+      - monasca-log-agent
+    swift:
+      - swift-proxy
+      - swift-ring-compute
+      - swift-dispersion
+  SWOBJ:
+    ceilometer:
+      - ceilometer-agent
+    monasca:
+      - monasca-agent
+      - monasca-log-agent
+    swift:
+      - swift-storage
+  COMPUTE:
+    ceilometer:
+      - ceilometer-agent
+    monasca:
+      - monasca-agent
+      - monasca-log-agent
+    nova:
+      - nova-compute-kvm
+
+# barclamp roles that cannot be clustered, even when associated with a cluster
+# service group
+non_clustered_roles:
+  ceilometer-agent:
+  ceilometer-swift-proxy-middleware:
+  cinder-volume:
+  designate-worker:
+    max: 1
+  designate-server:
+    max: 1
+  manila-share:
+  monasca-server:
+    max: 1
+  monasca-master:
+    max: 1
+  monasca-agent:
+  monasca-log-agent:
+  nova-compute-kvm:
+  swift-storage:
+  swift-dispersion:
+    max: 1
+  swift-ring-compute:
+    max: 1
+  tempest:
+    max: 1
+
+# list of available Crowbar barclamps, in the order they must appear in a
+# Crowbar batch scenario file.
+# note: pacemaker and nfs_client are not in this list because they are handled
+# separately
+ordered_barclamps:
+  - database
+  - rabbitmq
+  - keystone
+  - swift
+#  - ceph
+  - monasca
+  - glance
+  - cinder
+  - neutron
+#  - ironic
+  - nova
+  - horizon
+  - ceilometer
+  - heat
+  - manila
+  - trove
+  - designate
+  - barbican
+  - octavia
+  - magnum
+  - sahara
+  - aodh
+  - tempest
+
+neutron_networkingplugin: openvswitch
+neutron_networkingmode: vxlan
+neutron_use_dvr: false
+neutron_use_l3_ha: false
+
+api_protocol: "{{ ssl_enabled|ternary('https', 'http') }}"

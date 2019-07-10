@@ -39,6 +39,16 @@ Example:
       -e virt_config_file=/path/to/virt-config.yml
 ```
 
+NOTE: optionally, provide a `cloudsource` value (defaults to `stagingcloud9`) to control which version specific services
+and features are activated and an `cloud_env` value (defaults to `localhost`) to change how the generated items are named:
+
+    ansible-playbook generate-input-model.yml \
+      -e scenario_name=standard \
+      -e input_model_dir=/path/to/input-model
+      -e virt_config_file=/path/to/virt-config.yml
+      -e cloudsource=GM8+up \
+      -e cloud_env=my_dev_env
+
 The input model described by the `roles/ardana_input_model_generator/vars/templates/standard.yml` scenario template will
 be generated in the `/path/to/input-model` output path.
 
@@ -68,7 +78,7 @@ to generate the `standard`, `std-3cp`, `std-3cm`, `std-min`, `dac-3cp` and `dac-
 ```
 # Scenario parameters and default values
 controllers: 3
-sles_computes: 3
+computes: 3
 rhel_computes: 0
 swobj_devices: 3
 
@@ -77,7 +87,7 @@ scenario:
   cloud_name: standard
   description: >
     Standard scenario with all services enabled, {{ clm_model }} CLM node, {{ controllers }} controller nodes,
-    {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
+    {{ computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: False
   use_cinder_volume_disk: False
   use_glance_cache_disk: False
@@ -107,7 +117,7 @@ following parameters:
       -e scenario_name=standard \
       -e input_model_dir=/path/to/input-model \
       -e controllers=2 \
-      -e sles_computes=1 \
+      -e computes=1 \
       -e clm_model=standalone
 ```
 
@@ -156,11 +166,11 @@ service_groups:
       - SWPAC
       - NEUTRON
       - SWOBJ
-  - name: sles-compute
+  - name: compute
     type: resource
     prefix: sles-comp
     heat_flavor_id: cloud-ardana-job-compute
-    member_count: '{{ sles_computes|default(1) }}'
+    member_count: '{{ computes|default(1) }}'
     min_count: 0
     service_components:
       - COMPUTE

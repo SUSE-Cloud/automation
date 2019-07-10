@@ -4,8 +4,16 @@ interface_models:
   - name: ALL
     service_groups:
       - admin
+      - clm
       - controller
       - compute
+      - core
+      - lmm
+      - dbmq
+      - neutron
+      - swpac
+      - swobj
+      - swift
     network_interfaces:
       - network_groups:
           - MANAGEMENT

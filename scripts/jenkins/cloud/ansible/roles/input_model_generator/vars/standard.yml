@@ -17,7 +17,7 @@
 
 # Scenario parameters and default values
 controllers: 3
-sles_computes: 3
+computes: 3
 rhel_computes: 0
 swobj_devices: 3
 
@@ -26,13 +26,13 @@ scenario:
   cloud_name: standard
   description: >
     Standard scenario with all services enabled, {{ clm_model }} CLM node, {{ controllers }} controller nodes,
-    {{ sles_computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
+    {{ computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
   audit_enabled: False
   use_cinder_volume_disk: False
   use_glance_cache_disk: False
   availability_zones: "{{ availability_zones }}"
 
   service_template: standard
-  network_template: standard
+  network_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
   disk_template: compact
-  interface_template: standard
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"

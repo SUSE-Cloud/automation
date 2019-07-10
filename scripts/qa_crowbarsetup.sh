@@ -5968,7 +5968,7 @@ function onadmin_batch
                 for node in $cluster ; do
                     nodealias=$(get_node_alias $node)
                     sbd_device=$(ssh $node echo '/dev/disk/by-id/scsi-$(lsscsi -i |grep LIO|head -n 1| tr -s " " |cut -d " " -f7)')
-                    sed -i "s|##sbd_device_${clustername}_${nodealias}##|${sbd_device}|g" ${scenario}
+                    sed -i "s|##sbd_device_${nodealias}##|${sbd_device}|g" ${scenario}
                 done
             done
         fi

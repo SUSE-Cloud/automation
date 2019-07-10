@@ -17,6 +17,7 @@
 
 when_staging: "{{ cloudsource is match('.*staging.*') }}"
 when_staging_or_devel: "{{ cloudsource is match('.*(staging|devel).*') }}"
+when_cloud7: "{{ cloudsource is match('.*(cloud|GM)7.*') }}"
 when_cloud8: "{{ cloudsource is match('.*(cloud|GM)8.*') }}"
 when_cloud9: "{{ cloudsource is match('.*(cloud|GM)9.*') }}"
 when_gm8: "{{ cloudsource is match('(hosGM|GM)8$') }}"
@@ -58,3 +59,13 @@ input_model_versioned_features:
   - manila-share
   - neutron-lbaasv2-agent
   - octavia-client
+
+versioned_barclamps:
+  trove:
+    enabled: "{{ not when_cloud9 }}"
+  aodh:
+    enabled: "{{ not when_cloud9 }}"
+  designate:
+    enabled: "{{ when_cloud9 }}"
+  octavia:
+    enabled: "{{ when_cloud9 }}"

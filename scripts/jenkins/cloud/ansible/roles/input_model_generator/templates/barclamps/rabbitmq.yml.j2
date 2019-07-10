@@ -1,0 +1,21 @@
+  - barclamp: rabbitmq
+    attributes:
+{% set service_group = ((deployment.values() | list)[0].values() | list)[0] %}
+{% if service_group.type == 'cluster' and service_group.member_count|int > 1 %}
+      cluster: true
+{% endif %}
+{% if ssl_enabled %}
+      ssl:
+        enabled: true
+        generate_certs: true
+        insecure: true
+{% endif %}
+{% if 'trove' in deployments %}
+      trove:
+        enabled: true
+{% endif %}
+{% if 'ceilometer' in deployments %}
+      client:
+        enable_notifications: true
+{% endif %}
+{% include 'barclamps/lib/deployment.yml.j2' %}

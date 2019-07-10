@@ -83,38 +83,18 @@ homeproject: ''
 # The name of one of the available scenarios that can be used to generate input models.
 # If this parameter is set, the following parameters may also be set to different values,
 # to control various aspects of the generated input model: clm_model, controllers, core_nodes,
-# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, sles_computes (or computes), rhel_computes
-# and disabled_services.
+# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, computes, rhel_computes, disabled_services
+# and enabled_services.
 #
 # NOTE: use this parameter only if you want to use a generated input model. To use an existing
 # input model instead, leave this field empty and use the 'model' parameter instead.
 # Possible values:
-#   - entry-scale-kvm
-#   - mid-scale-kvm
-#   - standard
+#   - standard (recommended for most use-cases)
 #   - std-lmm
 #   - std-split
-#   - crowbar (for crowbar deployment)
-scenario_name: 'entry-scale-kvm'
-
-# Crowbar batch scenario yaml file path (relative to scripts/scenarios)
-# Available scenarios that are known to work:
-#    - cloud7/cloud7-2nodes-default.yml
-#    - cloud7/cloud7-5nodes-default.yml
-#    - cloud8/cloud8-2nodes-default.yml
-#    - cloud8/cloud8-5nodes-default.yml
-#    - cloud9/cloud9-2nodes-default.yml
-#    - cloud9/cloud9-5nodes-default.yml
-#    - cloud9/cloud9-2nodes-ses.yml
-#    - cloud9/cloud9-5nodes-ses.yml
-#
-# Warning: the chosen scenario file must be correctly aligned with the configured
-# 'cloudsource' value, as well as the number of configured 'controller' and 'compute'
-# nodes and also whether 'ses_enabled' is used to enable the SES storage back-end.
-#
-# NOTE: this parameter will only be required until the toolchain has the ability to
-# generate crowbar batch scenarios
-scenario_file: ''
+#   - entry-scale-kvm
+#   - mid-scale-kvm
+scenario_name: 'standard'
 
 # The name of the one of the available 'ardana-ci' input models to use from
 # the ardana-input-model git repository.
@@ -136,18 +116,14 @@ model: ''
 # Input model generator scenarios using this parameter : all
 # NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter
 # about using one of the available input model generator scenarios.
-clm_model: 'integrated'
+clm_model: 'standalone'
 
 # The number of controller nodes in the generated input model (0-3).
-# Input model generator scenarios using this parameter: crowbar, standard, entry-scale-kvm.
+# Input model generator scenarios using this parameter: standard, entry-scale-kvm.
 controllers: '3'
 
 # The number of SLES compute nodes in the generated input model.
 # Input model generator scenarios using this parameter: all
-#
-# NOTE: Currently all scenarios except crowbar use 'sles_computes'. When deploying crowbar
-# please use the 'computes' variable instead.
-sles_computes: '2'
 computes: '1'
 
 # The number of RHEL (CentOS) compute nodes in the generated input model.
@@ -182,6 +158,25 @@ neutron_nodes: ''
 # The number of swift proxy/account/container/object service nodes in the generated input model (0-3).
 # Input model generator scenarios using this parameter: mid-scale-kvm.
 swift_nodes: ''
+
+# The list of services (barclamps) that are enabled in the generated cloud
+# configuration (applicable only for Crowbar). Leave empty to include everything.
+#
+# Possible values are: database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,
+# horizon,ceilometer,heat,manila,trove,designate,barbican,octavia,magnum,sahara,aodh,tempest
+#
+# NOTE: this list may not reflect what is actually added to the generated
+# cloud configuration. Some services may be filtered out because they are
+# only available in certain cloud versions or because they depend on other
+# disabled services. Other services may not be deployed because they are not
+# included in the scenario or because the number of nodes where they are
+# deployed is set to 0 using the other scenario parameters.
+#
+# Input model generator scenarios using this parameter: all
+# Example for deploying a minimalistic cloud deployment, with only infrastructure
+# and keystone services, set:
+# enabled_services: 'database,rabbitmq,keystone,tempest'
+enabled_services: ''
 
 # Regex matching service components and component groups to exclude from the generated input model.
 # Input model generator scenarios using this parameter: all
