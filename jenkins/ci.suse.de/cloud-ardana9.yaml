@@ -209,26 +209,6 @@
         - '{ardana_job}'
 
 - project:
-    name: cloud-ardana9-job-entry-scale-kvm-maintenance-update-x86_64
-    ardana_job: '{name}'
-    disabled: false
-    reserve_env: false
-    cloudsource: GM9+up
-    updates_test_enabled: false
-    scenario_name: entry-scale-kvm
-    clm_model: standalone
-    controllers: '3'
-    computes: '2'
-    ses_enabled: true
-    ses_rgw_enabled: false
-    tempest_filter_list: "\
-      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-      designate,heat,magnum,monasca"
-    triggers: []
-    jobs:
-        - '{ardana_job}'
-
-- project:
     name: cloud-ardana9-job-std-min-suse-x86_64
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot

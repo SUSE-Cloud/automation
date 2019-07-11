@@ -52,8 +52,9 @@
           default-value: ''
           value: >-
             ardana8-deploy,ardana8-update,ardana9-deploy,ardana9-update,
-            crowbar7-deploy,crowbar7-ha-deploy,crowbar8-deploy,crowbar8-ha-deploy,
-            crowbar9-deploy,crowbar9-ha-deploy
+            crowbar7-no-ha-deploy,crowbar7-ha-deploy,crowbar7-no-ha-update,crowbar7-ha-update,
+            crowbar8-no-ha-deploy,crowbar8-ha-deploy,crowbar8-no-ha-update,crowbar8-ha-update,
+            crowbar9-no-ha-deploy,crowbar9-ha-deploy,crowbar9-no-ha-update,crowbar9-ha-update
           description: >-
             Use this parameter to filter the list of jobs that are triggered to test the maintenance
             updates. This is useful e.g. when re-running only the subset of jobs that have failed
