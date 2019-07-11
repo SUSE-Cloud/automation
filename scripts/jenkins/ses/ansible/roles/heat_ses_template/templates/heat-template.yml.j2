@@ -97,6 +97,9 @@ resources:
 
   ses_floating_ip_assoc:
     type: OS::Neutron::FloatingIPAssociation
+{% if network is not defined or network|length == 0 %}
+    depends_on: ses_router_interface
+{% endif %}
     properties:
       floatingip_id: { get_resource: ses_floating_ip }
       port_id: { get_resource: ses_port }
