@@ -212,9 +212,7 @@
 
               timeout --signal=ALRM 240m bash -x -c "\
               source scripts/qa_crowbarsetup.sh ;    \
-              onadmin_runlist $commands;             \
-              get_novacontroller;                    \
-              oncontroller magnum_service_setup     "
+              onadmin_runlist $commands;             "
           EOF
           ret=$?
 
