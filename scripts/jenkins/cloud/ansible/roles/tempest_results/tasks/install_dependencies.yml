@@ -1,0 +1,25 @@
+---
+
+- name: Install SLE package dependencies
+  zypper:
+    name: "{{ sle_packages }}"
+    state: present
+
+- name: Ensure Leap repo is in place
+  zypper_repository:
+    repo: "{{ leap_repo_url }}"
+    name: leap
+    state: present
+    disable_gpg_check: yes
+    runrefresh: yes
+
+- name: Install Leap package dependencies
+  zypper:
+    name: "{{ leap_packages }}"
+    state: present
+
+- name: Remove Leap repo
+  zypper_repository:
+    name: leap
+    state: absent
+    runrefresh: yes

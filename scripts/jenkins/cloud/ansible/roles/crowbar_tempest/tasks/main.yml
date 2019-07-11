@@ -1,0 +1,54 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Ensure logs directory exists
+  file:
+    path: "{{ tempest_work_dir }}/logs"
+    state: directory
+
+- name: Run tempest "{{ tempest_run_filter }}"
+  shell: |
+    set -o pipefail
+    filter_regex=$(bin/tests2skip.py run_filters/{{ tempest_run_filter }}.txt)
+    tempest run -r $filter_regex | tee {{ tempest_results_log }}
+  args:
+    chdir: "{{ tempest_work_dir }}"
+  changed_when: false
+  failed_when: false
+
+- name: Generate subunit output
+  shell: |
+    testdriver=testr
+    [ -f ".stestr.conf" ] && testdriver=stestr
+    $testdriver last --subunit > {{ tempest_results_subunit }}
+  register: _subunit_result
+  args:
+    chdir: "{{ tempest_work_dir }}"
+  changed_when: _subunit_result.rc == 0
+
+- name: Get list of failed tempest tests
+  shell: |
+    set -o pipefail
+    grep -B1 -- '------' {{ tempest_results_log }} | awk -F '\n' 'ln ~ /^$/ { ln = "matched"; print $1 } $1 ~ /^--$/ { ln = "" }'
+  register: tempest_failed_tests
+  changed_when: false
+  failed_when: tempest_failed_tests.rc == 2
+
+- include_tasks: retry_failed.yml
+  when:
+    - tempest_retry_failed
+    - tempest_failed_tests.stdout_lines | length > 0
