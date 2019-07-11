@@ -21,8 +21,10 @@
       ml2_type_drivers_default_provider_network: {{ neutron_networkingmode }}
       ml2_type_drivers_default_tenant_network: {{ neutron_networkingmode }}
       use_lbaas: true
+{% if neutron_use_l3_ha %}
       l3_ha:
-        use_l3_ha: {{ neutron_use_l3_ha }}
+        use_l3_ha: true
+{% endif %}
       api:
         protocol: {{ api_protocol }}
 {% include 'barclamps/lib/ssl.yml.j2' %}
