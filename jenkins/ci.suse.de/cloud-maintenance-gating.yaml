@@ -95,5 +95,5 @@
               - ${git_automation_branch}
             browser: auto
             wipe-workspace: false
-      script-path: jenkins/ci.suse.de/pipelines/openstack-maintenance-gating.Jenkinsfile
+      script-path: jenkins/ci.suse.de/pipelines/cloud-maintenance-gating.Jenkinsfile
       lightweight-checkout: false
