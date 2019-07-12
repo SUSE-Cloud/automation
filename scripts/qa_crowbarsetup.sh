@@ -6008,6 +6008,10 @@ function onadmin_batch
                 ${scenario}
         safely crowbar batch --include manila --timeout 2400 build ${scenario}
     fi
+    if grep -q "barclamp: magnum" ${scenario}; then
+        get_novacontroller
+        safely oncontroller magnum_service_setup
+    fi
     return $?
 }
 
