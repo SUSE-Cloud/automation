@@ -1,12 +1,15 @@
 ---
 
 network_groups:
-{% if ipv6 %}
+{% if bootstrap_network %}
   - name: BOOTSTRAP
     hostname_suffix: bootstrap
     tagged_vlan: false
     component_endpoints: []
+    routes:
+      - default
 {% endif %}
+
   - name: MANAGEMENT
     hostname_suffix: mgmt
     tagged_vlan: false
@@ -20,8 +23,10 @@ network_groups:
     hostname_suffix: public
     tagged_vlan: true
     component_endpoints: []
+{% if not bootstrap_network %}
     routes:
       - default
+{% endif %}
 
   - name: OS_SDN
     hostname_suffix: os_sdn

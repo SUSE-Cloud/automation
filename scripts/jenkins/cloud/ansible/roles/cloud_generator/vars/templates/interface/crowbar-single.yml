@@ -15,7 +15,7 @@ interface_models:
       - swobj
       - swift
     network_interfaces:
-{% if ipv6 %}
+{% if bootstrap_network %}
       - network_groups:
           - BOOTSTRAP
 {% endif %}

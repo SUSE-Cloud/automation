@@ -34,14 +34,14 @@
         - rabbitmq
 {%   endif %}
       component-endpoints:
-{%   if 'MANAGEMENT' in network_group['component_endpoints'] %}
+{%   if 'MANAGEMENT' in network_group['component_endpoints'] and not bootstrap_network %}
 
         #
         # Management
         #
-        # This is the network group that will be used to for
-        # management traffic within the cloud. It is used
-        # as a default by all component-endpoints.
+        # This is the network group that will be used for management
+        # traffic within the cloud. It is used as a default by all
+        # component-endpoints.
         - default
 
 {%   elif 'CLM' in network_group['component_endpoints'] %}

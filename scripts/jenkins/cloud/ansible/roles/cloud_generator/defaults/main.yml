@@ -51,6 +51,10 @@ cp_prefix: cp1
 max_host_prefix_len: "{{ 33-(cp_prefix|length) }}"
 host_prefix: "{{ ('ardana-' ~ cloud_env)[:max_host_prefix_len|int-1] if cloud_env is defined else 'ardana' }}"
 
+# Whether to use a separate bootstrap network for communication in and
+# out of the deployment. This network is IPv4.
+bootstrap_network: False
+
 # First octets of the generated subnet prefixes for Ardana networks
 subnet_prefix:
   ipv4: 192.168

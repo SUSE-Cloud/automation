@@ -189,9 +189,12 @@ enabled_services: ''
 # disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
 disabled_services: ''
 
+# Whether to use a separate bootstrap network for communication in and
+# out of the deployment. This network is IPv4.
+bootstrap_network: false
+
 # Use ipv6 networks in the cloud input model.
 ipv6: false
-
 
 #============= SES =============#
 # Configure SES backend for glance, cinder, cinder-backup and nova
