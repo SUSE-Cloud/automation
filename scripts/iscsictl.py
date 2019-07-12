@@ -319,10 +319,6 @@ class Target(ISCSI):
         self.ssh.lio_node('--disableauth', iqn, '1')
         self.ssh.lio_node('--enabletpg', iqn, '1')
 
-        # Persist configuration
-        print("Persisting configuration ...")
-        self.ssh.tcm_dump('--b=OVERWRITE')
-
         # Add in /etc/rc.d/boot.local
         if self.device.startswith('/dev/loop'):
             print("Adding loopback to boot.local ...")
@@ -391,7 +387,6 @@ class Initiator(ISCSI):
         finally:
             self.target_ssh.lio_node('--addlunacl', iqn, '1',
                                      initiator, '0', '0')
-            self.target_ssh.tcm_dump('--b=OVERWRITE')
 
         # Discovery and login
         print("Initiator discovery and login ...")
