@@ -1,6 +1,12 @@
 ---
 
 network_groups:
+{% if ipv6 %}
+  - name: BOOTSTRAP
+    hostname_suffix: bootstrap
+    tagged_vlan: false
+    component_endpoints: []
+{% endif %}
   - name: MANAGEMENT
     hostname_suffix: mgmt
     tagged_vlan: false

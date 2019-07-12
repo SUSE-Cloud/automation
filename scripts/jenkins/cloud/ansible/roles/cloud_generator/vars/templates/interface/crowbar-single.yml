@@ -15,6 +15,10 @@ interface_models:
       - swobj
       - swift
     network_interfaces:
+{% if ipv6 %}
+      - network_groups:
+          - BOOTSTRAP
+{% endif %}
       - network_groups:
           - MANAGEMENT
           - PUBLIC
