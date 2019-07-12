@@ -23,6 +23,12 @@
       use_migration: true
       kvm:
         ksm_enabled: true
+{% if not is_physical_deploy %}
+      compute:
+        kvm-x86_64:
+          cpu_mode: custom
+          cpu_model: Westmere
+{% endif %}
       metadata:
         vendordata:
           json: '{"custom-key": "custom-value"}'
