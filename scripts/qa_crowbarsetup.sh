@@ -1771,6 +1771,8 @@ function onadmin_post_allocate
                     ssh $node "zypper --non-interactive install sbd; sbd -d $sbd_device create"
                 done
             done
+            # Restart the target service to persist the configuration
+            systemctl restart target.service
         fi
     fi
 }

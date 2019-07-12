@@ -59,9 +59,8 @@
           vars:
             reboot_target: deployer
           when:
+            - reboot_after_deploy
             - not update_after_deploy
-            - maint_updates_list | length
-
 
       rescue:
         - include_role:
