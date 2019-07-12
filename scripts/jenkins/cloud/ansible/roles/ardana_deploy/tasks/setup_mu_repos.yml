@@ -15,6 +15,10 @@
 #
 ---
 
+- name: Set cloud MU repo path based on product (HOS/SOC)
+  set_fact:
+    cloud_repo_path: "{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'OpenStack-Cloud') }}"
+
 - name: Generate maintenance update playbook
   template:
     src: "maint_updates.yml.j2"

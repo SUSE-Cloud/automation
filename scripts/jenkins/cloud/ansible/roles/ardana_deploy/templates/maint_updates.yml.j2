@@ -23,9 +23,7 @@
     sles_sp: {{ ansible_distribution_release }}
     cloud_release: {{ cloud_release }}
     maintenance_updates_server: {{ maintenance_updates_server }}
-    maintenance_updates_path:
-      Cloud: "SUSE_Updates_{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'OpenStack-Cloud') }}_{{ sles_cloud_version[ansible_distribution_version] }}_x86_64"
-      SLES: "SUSE_Updates_SLE-SERVER_{{ ansible_distribution_major_version }}-SP{{ ansible_distribution_release }}_x86_64"
+    maintenance_updates_path: {{ maintenance_updates_path }}
 {% raw %}
     deployer_ip: "{{ hostvars[groups['ARD-SVC--first-member'].0].ansible_ssh_host }}"
 
