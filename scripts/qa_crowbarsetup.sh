@@ -3127,6 +3127,10 @@ function prepare_proposals
 # for now.
 function set_dashboard_alias
 {
+    if [[ $want_horizon_proposal = 0 ]] ; then
+        echo "Not setting dashboard alias because \$want_horizon_proposal was set to 0"
+        return 0
+    fi
     get_horizon
     set_node_alias_and_role `echo "$horizonserver" | cut -d . -f 1` dashboard controller
 }
