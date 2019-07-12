@@ -18,9 +18,9 @@
     version: 2
 
   networks:
-
-{% set ns = namespace(net_id=gen_subnet_start) %}
+{% set ns = namespace(net_id=gen_subnet_start, bootstrap=false) %}
 {% for network_group in scenario['network_groups'] %}
+{%   set ns.bootstrap = network_group.name == 'BOOTSTRAP' %}
 {%   if network_group.rack_network|default(False) %}
 {%     for az in range(scenario.availability_zones) %}
     - name: {{ network_group.name|upper }}-NET-RACK{{ az + 1 }}
@@ -30,23 +30,24 @@
 {%     endfor %}
 {%   else %}
     - name: {{ network_group.name|upper }}-NET
-{%  if bm_info is defined %}
+{%     if bm_info is defined %}
 {{ bm_info.networks[network_group.name|replace('-', '_')|lower] | to_nice_yaml(indent=2) | indent(6, True) }}
-{%-  else -%}
-{%   if network_group['tagged_vlan']|default(True) %}
-      vlanid: {{ ns.net_id }}
-{%   endif %}
+{%-    else -%}
+{%       if network_group['tagged_vlan']|default(True) %}
+      vlanid: {{ ns.bootstrap | ternary(bootstrap_subnet, ns.net_id) }}
+{%       endif %}
       tagged-vlan: {{ network_group['tagged_vlan']|default('False')|lower }}
-{%     if ipv6 and ns.net_id != gen_subnet_start %}
+{%       if ipv6 and not ns.bootstrap %}
       cidr: {{ subnet_prefix.ipv6 }}:{{ ns.net_id }}::/64
       gateway-ip: {{ subnet_prefix.ipv6 }}:{{ ns.net_id }}::1
-{%     else  %}
-      cidr: {{ subnet_prefix.ipv4 }}.{{ ns.net_id }}.0/24
-      gateway-ip: {{ subnet_prefix.ipv4 }}.{{ ns.net_id }}.1
+{%       else  %}
+      cidr: {{ subnet_prefix.ipv4 }}.{{ ns.bootstrap | ternary(bootstrap_subnet, ns.net_id) }}.0/24
+      gateway-ip: {{ subnet_prefix.ipv4 }}.{{ ns.bootstrap | ternary(bootstrap_subnet, ns.net_id) }}.1
+{%       endif %}
 {%     endif %}
-{%   endif %}
       network-group: {{ network_group.name|upper }}
-
-{%   set ns.net_id = ns.net_id+1 %}
+{%     if not ns.bootstrap %}
+{%       set ns.net_id = ns.net_id+1 %}
+{%     endif %}
 {%   endif %}
 {% endfor %}
