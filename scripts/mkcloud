@@ -1027,6 +1027,14 @@ function rebootcrowbar
     return $?
 }
 
+# Need to run rebootcloud step to enable iommu (e.g., plain rebootcloud
+# testpcipassthru)
+function testpcipassthru
+{
+    onadmin verify_pci_passthru
+    return $?
+}
+
 function rebootcloud
 {
     # reboot compute nodes
@@ -1453,6 +1461,8 @@ Optional
         If set, does not use the --insecure flag in openstack CLI commands.
     want_monasca_tsdb (Cloud9+ only)
         Allows setting time-series DB used for Monasca [influxdb|cassandra].
+    want_pci_passthrough (default=0)
+        Deploy node with an extra disk to test pci passthrough. Cloud9+ only.
     want_ipv6 (Currently in development)
         Prepare crowbar to use a full IPv6 single stack control plane. Enabling will also set
         the firmware_type to UEFI as it's required to netboot nodes over IPv6.
@@ -1617,7 +1627,7 @@ allcmds="$step_aliases _test_setuphost \
     lonelynode_nfs_server setupironicnodes\
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
     cct steps batch setup_aliases onadmin onhost devsetup plain_with_upgrade_test \
-    testpreupgrade testpostupgrade deployexternalceph"
+    testpreupgrade testpostupgrade deployexternalceph testpcipassthru"
 wantedcmds=$@
 
 function expand_steps

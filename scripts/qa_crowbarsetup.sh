@@ -57,10 +57,12 @@ fi
 
 # global variables that are set within this script
 novacontroller=
+novacompute_kvm=
 horizonserver=
 horizonservice=
 manila_service_vm_uuid=
 manila_tenant_vm_ip=
+pci_passthru_vm_name="pci-passthru-instance"
 clusternodesdrbd=
 clusternodesdata=
 clusternodesnetwork=
@@ -3332,6 +3334,50 @@ function onadmin_proposal
     done
 
     set_dashboard_alias
+
+    # prepare env to test pci_passthrough if condition met
+    prepare_pci_passthru_env
+}
+
+function prepare_pci_passthru_env
+{
+    if iscloudver 9plus && [[ $want_pci_passthrough = 1 ]] ; then
+        # Place nova configuration to verify pci_passthru
+        get_novacontroller
+        safely oncontroller create_pci_passthru_conf
+        append_pci_passthru_filter
+        get_novacompute_kvm
+        safely oncompute create_pci_passthru_conf
+        safely oncompute load_vfio_module_onboot
+        safely oncompute bind_vfio_module_onboot
+        # TODO: need support for amd param
+        safely oncompute add_intel_iommu_param
+    fi
+}
+
+function onadmin_verify_pci_passthru
+{
+    if iscloudver 9plus && [[ $want_pci_passthrough = 1 ]] ; then
+        # spin up vm and pass device from compute host to vm to verify pci
+        # passthru functionality.
+        local cirros_image_name=cirros-0.4.0-x86_64-disk.img
+        local cirros_image_url=$imageserver_url/$arch/openstack/$cirros_image_name
+        get_novacontroller
+        safely oncontroller retrieve_image $cirros_image_name $cirros_image_url
+        safely oncontroller upload_image_to_glance "cirros-0.4.0-x86_64-disk" $cirros_image_name
+        safely oncontroller setup_pci_passthru_vm "cirros-0.4.0-x86_64-disk"
+
+        # Get instance name (e.g.,instance-00000001)
+        pci_passthru_instance_name=$(ssh "$novacontroller" "source /root/.openrc;
+            openstack server show -c OS-EXT-SRV-ATTR:instance_name -f value $pci_passthru_vm_name")
+        get_novacompute_kvm
+        # configure vm to bypass the boot up failure due to the passthru device
+        safely oncompute unload_pci_device $pci_passthru_instance_name
+        # wait until vm is pingable before re-attaching the device
+        safely oncontroller waitforinstance $pci_passthru_vm_name
+        safely oncompute reload_pci_device $pci_passthru_instance_name
+        safely oncompute parse_vm_xml $pci_passthru_instance_name
+    fi
 }
 
 function set_node_alias
@@ -3432,6 +3478,15 @@ function get_novacontroller
                     puts j['deployment']['nova']\
                         ['elements']['nova-controller']"`
     novacontroller=`resolve_element_to_hostname "$element"`
+}
+
+function get_novacompute_kvm
+{
+    local element=`crowbar nova proposal show default | \
+        rubyjsonparse "
+                    puts j['deployment']['nova']\
+                        ['elements']['nova-compute-kvm']"`
+    novacompute_kvm=`resolve_element_to_hostname "$element"`
 }
 
 function get_horizon
@@ -3873,6 +3928,140 @@ function oncontroller_heat_image_setup()
                     $image_name | tee glance.out
         fi
     fi
+}
+
+function oncompute_parse_vm_xml
+{
+    local instance_name=$1
+    echo $instance_name
+    virsh list --all | grep $instance_name
+    [ $? != 0 ] && complain 53 "failed to find pci-passthru-instance"
+
+    # verify node xml to see if it has pci passthru section which has the
+    # specific address passing from compute host
+    virsh dumpxml $instance_name | grep -E "<hostdev" -A 7 | grep "0x1d"
+    [ $? != 0 ] && complain 63 "failed to find pci-passthru block in node xml"
+
+    return 0
+}
+
+function oncontroller_retrieve_image
+{
+    local image_name=$1
+    local image_url=$2
+
+    if [ -n "${localreposdir_target}" ] ; then
+        local_image_path=$localreposdir_target/images/$arch/openstack/$image_name
+    fi
+
+    if [ -n "${local_image_path}" -a -f "${local_image_path}" ] ; then
+        image_name=$local_image_path
+    else
+        local ret=$(wget -N --progress=dot:mega "$image_url" 2>&1 >/dev/null)
+        if [[ $ret =~ "200 OK" ]]; then
+            echo $ret
+        elif [[ $ret =~ "Not Found" ]]; then
+            complain 73 "$image_name image not found: $ret"
+        else
+            complain 74 "failed to retrieve $image_name image: $ret"
+        fi
+    fi
+}
+
+function oncontroller_upload_image_to_glance
+{
+    local image_name=$1
+    local image_path=$2
+    shift ; shift
+    local image_params=$@
+
+    if [ -z "$image_params" ]; then
+        image_params="--disk-format qcow2 --property hypervisor_type=kvm"
+    fi
+
+    . .openrc
+
+    # using list subcommand because show requires an ID
+    if ! openstack image list --format value -c Name | grep -q "$image_name"; then
+        openstack image create --file $image_path \
+            $image_params --container-format bare --public \
+            $image_name
+    fi
+}
+
+function oncontroller_setup_pci_passthru_vm
+{
+    local image_name=$1
+    local sec_group="pci-passthru"
+
+    . .openrc
+
+    # create flavor with pci-passthru property so that the vm using this flavor
+    # will aquire the pci device passing from the host (compute)
+    openstack flavor create --id 200 --ram 512 --ephemeral 0 \
+        --vcpus 1 --property "pci_passthrough:alias"="a1:1" \
+        pci-passthru-flavor
+
+    if iscloudver 9plus && ! openstack security group show $sec_group 2>/dev/null ; then
+        openstack security group create --description "$sec_group description" $sec_group
+        openstack security group rule create --protocol icmp $sec_group
+        openstack security group rule create --protocol tcp --dst-port 22 $sec_group
+    fi
+
+    fixed_net_id=`neutron net-show fixed -f value -c id`
+    timeout 10m openstack server create --flavor 200 \
+        --image $image_name \
+        --security-group $sec_group \
+        --nic net-id=$fixed_net_id $pci_passthru_vm_name
+
+    [ $? != 0 ] && complain 43 "nova boot $pci_passthru_vm_name failed"
+
+    # Check status of the vm
+    wait_for 60 1 "openstack server show -c status -f value $pci_passthru_vm_name | grep '^ACTIVE$'" \
+        "pci passthru VM booted and is in ACTIVE state" \
+        "echo \"ERROR: pci passthru VM is not in ACTIVE state.\""
+}
+
+function oncompute_unload_pci_device
+{
+    local vm_domain=$1
+    cat > pcip_device.xml <<EOF
+<hostdev mode='subsystem' type='pci' managed='yes'>                                                                                                                                                            
+  <source>                                                                                                                                                                                                     
+    <address domain='0x0000' bus='0x00' slot='0x1d' function='0x0'/>                                                                                                                                           
+  </source>                                                                                                                                                                                                    
+</hostdev>
+EOF
+    if [[ -n $(virsh dumpxml $vm_domain|grep hostdev) ]]; then
+        # avoid nova to revert vm state for the change on pci device
+        systemctl stop openstack-nova-compute
+
+        virsh destroy $vm_domain
+
+        virsh detach-device $vm_domain --file pcip_device.xml --current
+        [[ -n $(virsh dumpxml $vm_domain|grep hostdev) ]] && \
+            complain 64 "failed to detach pci device"
+    fi
+    virsh start $vm_domain
+}
+
+function oncompute_reload_pci_device
+{
+    local vm_domain=$1
+    if [ ! -f "pcip_device.xml" ]; then
+    cat > pcip_device.xml <<EOF
+<hostdev mode='subsystem' type='pci' managed='yes'>                                                                                                                                                            
+  <source>                                                                                                                                                                                                     
+    <address domain='0x0000' bus='0x00' slot='0x1d' function='0x0'/>                                                                                                                                           
+  </source>                                                                                                                                                                                                    
+</hostdev>
+EOF
+    fi
+    virsh attach-device $vm_domain --file pcip_device.xml --current
+    [[ $? != 0 ]] && complain 65 "failed to attach pci device"
+
+    systemctl start openstack-nova-compute
+    # $vm_domain shall be pingable from now on
 }
 
 function oncontroller_manila_generic_driver_setup()
@@ -4487,6 +4676,120 @@ function oncontroller
 {
     local func=$1 ; shift
     run_on "$novacontroller" "oncontroller_$func $@"
+}
+
+function oncompute
+{
+    local func=$1 ; shift
+    cd /root
+    scp -r $SCRIPTS_DIR $mkcconf "$novacompute_kvm:"
+    ssh "$novacompute_kvm" "export deployswift=$deployswift ; export deployceph=$deployceph ;
+        export tempestoptions=\"$tempestoptions\" ;
+        export cephmons=\"$cephmons\" ; export cephosds=\"$cephosds\" ;
+        export cephmons_names=\"$cephmons_names\" ;
+        export cephradosgws=\"$cephradosgws\" ; export wantcephtestsuite=\"$wantcephtestsuite\" ;
+        export wantradosgwtest=\"$wantradosgwtest\" ; export cloudsource=\"$cloudsource\" ;
+        export libvirt_type=\"$libvirt_type\" ;
+        export cloud=$cloud ; export TESTHEAD=$TESTHEAD ;
+        export is_oncontroller=yes ; export want_ceph_ssl=$want_ceph_ssl ;
+        export want_all_ssl=$want_all_ssl ;
+        . ./$(basename $SCRIPTS_DIR)/qa_crowbarsetup.sh ; onadmin_set_source_variables ;
+        oncompute_$func $@"
+}
+
+function oncompute_add_intel_iommu_param
+{
+    cat /etc/default/grub | grep iommu >/dev/null 2>&1
+    if [ $? != 0 ]; then
+        # enabled intel_iommu in kernel param
+        sed -in "s/\(^GRUB_CMDLINE_LINUX_DEFAULT=.*\)\"$/\1 intel_iommu=on\"/g" /etc/default/grub
+        update-bootloader
+    fi
+}
+
+function oncompute_load_vfio_module_onboot
+{
+    if [ ! -e "/etc/modules-load.d/pci-passthru.conf" ]; then
+        # vfio-pci module is not loaded by default, however, we need it to bind to
+        # our candidate device to verify pci passthru
+        cat > /etc/modules-load.d/pci-passthru.conf <<EOF
+vfio_pci
+EOF
+        modprobe vfio-pci
+    fi
+}
+
+function oncompute_bind_vfio_module_onboot
+{
+    if [ ! -e "/etc/udev/rules.d/99-pci-passthru.rules" ]; then
+            # We need to bind vfio-pci to our candidate device to verify pci passthru
+            cat > /etc/udev/rules.d/99-pci-passthru.rules <<EOF
+KERNELS=="0000:00:1d.0", SUBSYSTEMS=="pci", ATTRS{device}=="0x1001", ATTRS{vendor}=="0x1af4", \
+RUN+="/bin/bash -c 'echo  0000:00:1d.0 > /sys/bus/pci/devices/0000:00:1d.0/driver/unbind'", \
+RUN+="/bin/bash -c 'echo 1af4 1001 > /sys/bus/pci/drivers/vfio-pci/new_id'"
+EOF
+    fi
+}
+
+function oncompute_create_pci_passthru_conf
+{
+    if [ ! -e "/etc/nova/nova.conf.d/200-nova-pci-passthru.conf" ]; then
+        # drop new configuration file under /etc/nova/nova.conf.d/ on compute
+        # [pci]
+        # passthrough_whitelist = { "address": "0000:41:00.0" }
+        # alias = { "vendor_id":"1af4", "product_id":"1001", "device_type":"type-PCI", "name":"a1" }
+        cat > /etc/nova/nova.conf.d/200-nova-pci-passthru.conf <<EOF
+[pci]
+passthrough_whitelist = { "address": "0000:00:1d.0" }
+alias = { "vendor_id":"1af4", "product_id":"1001", "device_type":"type-PCI", "name":"a1" }
+EOF
+        # Make the changes effective
+        systemctl restart openstack-nova-compute.service
+    fi
+}
+
+function oncontroller_create_pci_passthru_conf
+{
+    if [ ! -e "/etc/nova/nova.conf.d/200-nova-pci-passthru.conf" ]; then
+        # drop new configuration file under /etc/nova/nova.conf.d/ on controller
+        # [pci]
+        # alias = { "vendor_id":"1af4", "product_id":"1001", "device_type":"type-PCI", "name":"a1" }
+        cat > /etc/nova/nova.conf.d/200-nova-pci-passthru.conf <<EOF
+[pci]
+alias = { "vendor_id":"1af4", "product_id":"1001", "device_type":"type-PCI", "name":"a1" }
+EOF
+        # Make the changes effective
+        systemctl restart openstack-nova-api.service
+    fi
+}
+
+function append_pci_passthru_filter
+{
+    set -x
+    prepare_proposal_for_modification nova
+    local pfile=$(get_proposal_filename nova default)
+    local nova_conf="/etc/nova/nova.conf.d/100-nova.conf"
+    local enabled_filters=
+    enabled_filters=$(ssh "$novacontroller" "grep enabled_filters $nova_conf | cut -d' ' -f3")
+
+    echo $enabled_filters | grep "PciPassthroughFilter" >/dev/null 2>&1
+    if [ $? != 0 ]; then
+        enabled_filters="${enabled_filters},PciPassthroughFilter"
+
+        # append PciPassthroughFilter to enabled_filters
+        proposal_set_value nova default \
+            "['attributes']['nova']['scheduler']['enabled_filters']" \
+            "'$enabled_filters'"
+
+        crowbar nova proposal --file=$pfile edit default ||\
+            complain 88 "'crowbar nova proposal --file=$pfile edit default' failed with exit code: $?"
+
+        crowbar_proposal_commit nova
+
+        # Make the changes effective right away
+        run_on "$novacontroller" 'sed -in "s/\(enabled_filters = .*\)$/\1,PciPassthroughFilter/g"' $nova_conf
+        run_on "$novacontroller" "systemctl restart openstack-nova-scheduler.service"
+    fi
 }
 
 function install_suse_ca
@@ -5261,11 +5564,12 @@ function onadmin_rebootcloud
     exit $ret
 }
 
-# make sure that testvm and manila-service VMs are up and reachable
-# if VMs were shutdown, VMs are started
+# make sure that testvm and manila-service VMs or a given VM are up and
+# reachable. If VMs were shutdown, VMs are started
 # adds a floating IP to VM
 function oncontroller_waitforinstance
 {
+    local vm_name=$1
     . .openrc
     safely openstack server list
     if [[ -n $(openstack server show testvm -f value -c id) ]]; then
@@ -5274,6 +5578,12 @@ function oncontroller_waitforinstance
         local floatingip=$(addfloatingip testvm)
         [[ $floatingip ]] || complain 12 "no IP found for instance"
         wait_for 100 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "testvm to boot up"
+    fi
+    if [[ -n "$vm_name" ]] && [[ -n $(openstack server show $vm_name -f value -c id) ]]; then
+        local floatingip=$(addfloatingip $vm_name)
+        [[ $floatingip ]] || complain 12 "no IP found for instance"
+        wait_for 1000 1 "ping -q -c 1 -w 1 $floatingip >/dev/null" "$vm_name booted and ping returned"
+        wait_for 500  1 "netcat -z $floatingip 22" "ssh daemon on $vm_name is accessible"
     fi
     export OS_TENANT_NAME='manila-service'
     export OS_PROJECT_NAME=$OS_TENANT_NAME
