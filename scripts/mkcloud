@@ -1145,6 +1145,13 @@ function cloudupgrade
     fi
 }
 
+function prepareupgraderepos
+{
+    export cloudsource=$upgrade_cloudsource
+    onadmin prepare_cloudupgrade_nodes_repos
+    onadmin prepare_cloudupgrade_admin_repos
+}
+
 function cct
 {
     onadmin run_cct "$@"
@@ -1595,7 +1602,7 @@ allcmds="$step_aliases _test_setuphost \
     setupcompute instnodes instcompute proposal testsetup rebootcrowbar \
     rebootcloud addupdaterepo runupdate testupdate \
     crowbarbackup crowbarrestore shutdowncloud restartcloud qa_test help \
-    rebootneutron cloudupgrade \
+    rebootneutron cloudupgrade prepareupgraderepos \
     setuplonelynodes crowbar_register createadminsnapshot \
     lonelynode_nfs_server setupironicnodes\
     restoreadminfromsnapshot createcloudsnapshot restorecloudfromsnapshot \
