@@ -37,8 +37,8 @@ from sh import Command
 def pymodule2pkg(spectemplate):
     specname = os.path.splitext(spectemplate)[0]
     modulename = os.path.splitext(os.path.basename(specname))[0]
-    pkgname = pymod2pkg.module2package(modulename,
-                                       platform.linux_distribution()[0])
+    pkgname = pymod2pkg.module2package(
+        modulename, platform.linux_distribution()[0] or 'suse')
     if modulename == 'openstack-macros':
         pkgname = modulename
 
