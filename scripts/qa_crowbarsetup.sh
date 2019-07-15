@@ -4125,7 +4125,7 @@ function oncontroller_testsetup
         theport=$(openstack port create --network fixed --dns-name iamgroot thanos -f value -c id)
         openstack floating ip create floating --port $theport
         wait_for 30 5 "nslookup iamgroot.openstack.local >> /dev/null" "thanos port is nslookup-able"
-        [ $want_tempest = 1 ] && openstack tld create --name com # needed by designate-template-plugin smoke test
+        [[ $want_tempest = 1 ]] && openstack tld create --name com # needed by designate-template-plugin smoke test
     fi
 
     # Run Tempest Smoketests if configured to do so
