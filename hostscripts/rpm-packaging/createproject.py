@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # vim: sw=4 et
 
 # Copyright (c) 2016 SUSE LINUX GmbH, Nuernberg, Germany.
@@ -87,7 +87,7 @@ Project used: %(ZUUL_PROJECT)s
                   'build_repository': build_repository})
 
     with tempfile.NamedTemporaryFile() as meta:
-        meta.write(templ)
+        meta.write(templ.encode('UTF-8'))
         meta.flush()
         print('Updating meta for ', project)
 
