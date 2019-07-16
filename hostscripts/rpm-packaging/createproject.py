@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # vim: sw=4 et
 
 # Copyright (c) 2016 SUSE LINUX GmbH, Nuernberg, Germany.
@@ -37,8 +37,8 @@ from sh import Command
 def pymodule2pkg(spectemplate):
     specname = os.path.splitext(spectemplate)[0]
     modulename = os.path.splitext(os.path.basename(specname))[0]
-    pkgname = pymod2pkg.module2package(modulename,
-                                       platform.linux_distribution()[0])
+    pkgname = pymod2pkg.module2package(
+        modulename, platform.linux_distribution()[0] or 'suse')
     if modulename == 'openstack-macros':
         pkgname = modulename
 
@@ -87,7 +87,7 @@ Project used: %(ZUUL_PROJECT)s
                   'build_repository': build_repository})
 
     with tempfile.NamedTemporaryFile() as meta:
-        meta.write(templ)
+        meta.write(templ.encode('UTF-8'))
         meta.flush()
         print('Updating meta for ', project)
 
