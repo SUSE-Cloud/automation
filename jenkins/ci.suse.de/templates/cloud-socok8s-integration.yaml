@@ -5,6 +5,20 @@
     number-to-keep: 30
     days-to-keep: 30
     script-path: Jenkinsfile.integration
+    parameters:
+      - choice:
+          name: deployment
+          choices:
+            - 'airship'
+            - 'osh'
+          default: 'airship'
+          description: >-
+            Which deployment mechanism?
+      - string:
+          name: 'context'
+          default: 'continuous-integration/jenkins'
+          description: >-
+            The context to set the github job status
     scm:
       - github:
           repo: '{repo-name}'
@@ -16,7 +30,7 @@
           discover-pr-origin: current
           submodule:
             recursive: true
-          notification-context: continuous-integration/jenkins
+          notification-context: ${{context}}
           filter-head-regex: ^(master|stable\-\d\.\d|PR\-\d+)$
 
 - job-template:
