@@ -14,16 +14,27 @@
 # under the License.
 #
 ---
-{% set ns = namespace(clm_net_id=0, server_idx=0) %}
+{% set ns = namespace(clm_net_id=0, server_idx=0, baremetal_netmask='255.255.255.0', baremetal_subnet=-1) %}
+{% for network_group in scenario['network_groups'] %}
+{%   if 'BOOTSTRAP' in network_group['component_endpoints'] %}
+{%     set ns.baremetal_subnet = bootstrap_subnet %}
+{%   endif %}
+{% endfor %}
 {% for network_group in scenario['network_groups'] %}
 {%   if 'CLM' in network_group['component_endpoints'] %}
 {%     set ns.clm_net_id = loop.index0+gen_subnet_start %}
+{%     if ns.baremetal_subnet < 0 %}
+{%       set ns.baremetal_subnet = ns.clm_net_id %}
+{%     endif %}
 {%   endif %}
 {% endfor %}
 {% if ns.clm_net_id == 0  %}
 {%   for network_group in scenario['network_groups'] %}
 {%     if 'MANAGEMENT' in network_group['component_endpoints'] %}
 {%       set ns.clm_net_id = loop.index0+gen_subnet_start %}
+{%       if ns.baremetal_subnet < 0 %}
+{%         set ns.baremetal_subnet = ns.clm_net_id %}
+{%       endif %}
 {%     endif %}
 {%   endfor  %}
 {% endif %}
@@ -31,17 +42,17 @@
     version: 2
 
   baremetal:
-    netmask: {{ bm_info.networks.bm_netmask if bm_info is defined else '255.255.255.0' }}
-    subnet: {{ subnet_prefix.ipv4 }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.0
+    netmask: {{ bm_info.networks.bm_netmask if bm_info is defined else ns.baremetal_netmask }}
+    subnet: {{ subnet_prefix.ipv4 }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.baremetal_subnet }}.0
 
   servers:
-{% for service_group in scenario['service_groups'] if service_group['member_count']|int %}
-{%   for idx in range(service_group['member_count']|int) %}
-{%     set server_id = "%s-%04d"|format(service_group.name, idx+1) %}
+{% for service_group in scenario['service_groups'] if service_group['member_count'] | int %}
+{%   for idx in range(service_group['member_count'] | int) %}
+{%     set server_id = "%s-%04d" | format(service_group.name, idx + 1) %}
     - id: {{ bm_info.servers[ns.server_idx].id if bm_info is defined else server_id }}
-      ip-addr: {{ subnet_prefix.ipv4 }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.clm_net_id }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + gen_ip_start }}
-      role: {{ service_group.name|upper }}-ROLE
-      server-group: RACK{{ (idx%3)+1 }}
+      ip-addr: {{ subnet_prefix.ipv4 }}.{{ bm_info.networks.bm_subnet if bm_info is defined else ns.baremetal_subnet }}.{{ bm_info.networks.bm_subnet_start + ns.server_idx if bm_info is defined else ns.server_idx + gen_ip_start }}
+      role: {{ service_group.name | upper }}-ROLE
+      server-group: RACK{{ (idx%3) + 1 }}
       nic-mapping: {{ bm_info.servers[ns.server_idx].nic_mapping if bm_info is defined else 'HEAT' }}
 {% if bm_info is defined and 'ilo_user' in bm_info.servers[ns.server_idx] %}
       ilo-user: {{ bm_info.servers[ns.server_idx].ilo_user }}

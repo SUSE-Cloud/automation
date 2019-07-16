@@ -5,7 +5,8 @@ network_groups:
   - name: BOOTSTRAP
     hostname_suffix: bootstrap
     tagged_vlan: false
-    component_endpoints: []
+    component_endpoints:
+      - BOOTSTRAP
     routes:
       - default
 {% endif %}
