@@ -89,7 +89,7 @@ resources:
 {%       endfor %}
 {%     endif  %}
 {%   endif  %}
-{%   if ipv6 %}
+{%   if ipv6 and name != 'bootstrap' %}
       ip_version: 6
 {%     if network.is_conf or network.is_mgmt %}
       ipv6_ra_mode: dhcpv6-stateful

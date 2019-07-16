@@ -20,7 +20,6 @@
   connection: local
   gather_facts: False
 
-
   tasks:
     - block:
         - include_role:
