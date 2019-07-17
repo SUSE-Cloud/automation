@@ -10,7 +10,7 @@
     parameters:
       - validating-string:
           name: cloud_env
-          default: 'cloud-ardana-maintenance-slot'
+          default: 'cloud-maintenance-slot'
           regex: '[A-Za-z0-9-_]+'
           msg: >-
             Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
