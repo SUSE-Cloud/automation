@@ -94,7 +94,11 @@
           default: '{test|true}'
           description: >-
             If left unchecked, the cloud test steps will be skipped.
-
+      - choice:
+           name: tempestoptions
+           choices:
+            - '{tempestoptions|full}'
+            - smoke
       - bool:
           name: updates_test_enabled
           default: '{updates_test_enabled|false}'

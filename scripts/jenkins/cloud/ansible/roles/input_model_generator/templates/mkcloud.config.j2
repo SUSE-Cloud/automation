@@ -39,7 +39,11 @@ export libvirt_type=physical
 # export networkingplugin=
 # export networkingmode=
 # export nosetestparameters=
-# export tempestoptions=
+{% if tempestoptions=='full' %}
+export tempestoptions="--parallel"
+{% else %}
+export tempestoptions="--smoke"
+{% endif %}
 export cephvolumenumber=1
 # export controller_raid_volumes=
 # export drbd_database_size=
