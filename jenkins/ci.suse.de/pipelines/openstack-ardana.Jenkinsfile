@@ -312,10 +312,10 @@ pipeline {
                 """
               } else {
                 def cloud_url_text = "the cloud"
-                if (os_cloud == 'engcloud') {
-                  cloud_url_text="the engineering cloud at https://engcloud.prv.suse.net/project/stacks/"
-                } else if (os_cloud == 'susecloud') {
-                  cloud_url_text="the SUSE cloud at https://cloud.suse.de/project/stacks/"
+                if (os_cloud == 'ecp') {
+                  cloud_url_text="the Provo engineering cloud at https://engcloud.prv.suse.net/project/stacks/"
+                } else if (os_cloud == 'ecn') {
+                  cloud_url_text="the Nuremberg engineering cloud at https://cloud.suse.de/project/stacks/"
                 }
                 echo """
 ******************************************************************************

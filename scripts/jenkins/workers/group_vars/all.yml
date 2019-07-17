@@ -1,6 +1,6 @@
 ---
 
-os_cloud: "engcloud"
+os_cloud: "ecp"
 os_project_name: "cloud-ci"
 
 cloud:

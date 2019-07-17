@@ -17,7 +17,7 @@
 
 heat_stack_name: "{{ cloud_env }}-cloud"
 heat_template_file: "{{ workspace_path }}/heat-stack-{{ scenario_name | default(model) }}.yml"
-os_cloud: "engcloud"
+os_cloud: "ecp"
 os_project_name: "cloud"
 
 want_caasp: False

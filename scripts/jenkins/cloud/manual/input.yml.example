@@ -12,7 +12,7 @@ cloud_product: 'ardana'
 # present in the ~/.config/openstack/clouds.yml file.
 # Note that the OpenStack project name needs to be configured separately
 # via the `os_project_name` configuration option below.
-os_cloud: 'engcloud'
+os_cloud: 'ecp'
 
 # The OpenStack project that will be used to provide the virtual resources
 # required to deploy the virtual environment.

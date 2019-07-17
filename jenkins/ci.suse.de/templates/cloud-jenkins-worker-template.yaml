@@ -23,13 +23,13 @@
       - choice:
           name: os_cloud
           choices:
-            - '{os_cloud|engcloud}'
-            - 'susecloud'
+            - '{os_cloud|ecp}'
+            - 'ecn'
           description: >-
             The target OpenStack cloud platform. Possible values are:
 
-              engcloud - the Provo engineering cloud (engcloud.prv.suse.net)
-              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+              ecp - the Provo engineering cloud (engcloud.prv.suse.net)
+              ecn - the Nuremberg engineering cloud (cloud.suse.de)
 
       - hidden:
           name: os_project_name

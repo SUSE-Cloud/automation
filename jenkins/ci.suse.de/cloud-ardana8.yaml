@@ -238,9 +238,9 @@
     name: cloud-ardana8-job-image-update
     cloud_image_update_job: '{name}'
     os_cloud:
-      - engcloud:
+      - ecp:
           image_visibility: shared
-      - susecloud:
+      - ecn:
           image_visibility: private
     openstack_cloud_job: cloud-ardana8-job-std-min-x86_64
     download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images-SLE_12_SP3/ardana-jeos-lvm-SLE12SP3.x86_64.qcow2.xz

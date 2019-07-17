@@ -48,7 +48,7 @@ will provide more information on the provided options. Here are some best practi
   * use your Rocket/irc nickname as ```cloud_env```. If you need to deploy several Cloud setups,
   use a unique ```cloud_env``` value for each one
   * use the `os_cloud`  parameter to choose between the available OpenStack cloud platforms that can host the 
-  virtual environment. Currently only the engineering cloud (`engcloud`) and the SUSE cloud (`susecloud`) are available
+  virtual environment. Currently, only the engineering clouds from Provo (`ecp`) and Nuremberg (`ecn`) are available
   * by default, the OpenStack virtual resources from the shared `cloud` project will be used. To choose
   another project, use the `os_project_name` parameter
 * For a bare-metal cloud deployment, use one of the ```cloud_env``` values starting with `qe` (e.g `qe101`, `qe102`)
@@ -85,8 +85,8 @@ The IP address allocated to the admin/deployer node will be available in several
 ```
 
 * for virtual cloud deployments, it will also be available as output as the variable ```admin-floating-ip``` in the
-  Heat stack instantiated in the [engineering cloud](https://engcloud.prv.suse.net/project/stacks)
-  or the [SUSE cloud](https://cloud.suse.de/project/stacks) 
+  Heat stack instantiated in the [Provo engineering cloud](https://engcloud.prv.suse.net/project/stacks)
+  or the [Nuremberg engineering cloud](https://cloud.suse.de/project/stacks) 
 
 The environment can then accessed by logging in as `root` or `ardana` and using the floating IP.
 
@@ -109,8 +109,8 @@ The environment can then accessed by logging in as `root` or `ardana` and using 
 13:34:20 **  1. log into the ECP at https://engcloud.prv.suse.net/project/stacks/
 13:34:20 **  and delete the stack manually, or
 13:34:20 **
-13:34:20 **  2. (preferred) trigger a manual build for the openstack-cloud-heat-engcloud
-13:34:20 **  job at https://ci.nue.suse.com/job/openstack-cloud-heat-engcloud/build and
+13:34:20 **  2. (preferred) trigger a manual build for the openstack-cloud-heat-ecp
+13:34:20 **  job at https://ci.nue.suse.com/job/openstack-cloud-heat-ecp/build and
 13:34:20 **  use the same 'alan-turing' cloud_env value and the 'delete' action for the
 13:34:20 **  parameters
 13:34:20 **
@@ -164,10 +164,10 @@ hosted in the engineering cloud or SUSE cloud, or an Ardana QA bare-metal enviro
 
 To be able to deploy a Cloud environment using the toolchain on your host, the following are needed:
 
-* for virtual Cloud deployments, an account for either the [engineering cloud](https://engcloud.prv.suse.net)
-  or [SUSE cloud](https://engcloud.prv.suse.net) with access to the one of the OpenStack projects
+* for virtual Cloud deployments, an account for either the [Provo engineering cloud](https://engcloud.prv.suse.net)
+  or the [Nuremberg engineering cloud](https://engcloud.prv.suse.net) with access to the one of the OpenStack projects
   that are already maintained by the CI automated Jenkins jobs that regularly update SLES images
-  in the ECP and SUSE clouds (currently, only `cloud` and `support`)
+  in the ECP and ECN clouds (currently, only `cloud` and `support`)
 * your public ssh key added to [the list of keys](https://github.com/SUSE-Cloud/automation/blob/master/scripts/jenkins/cloud/ansible/group_vars/all/ssh_pub_keys.yml)
   (via normal github pull requests)
 
@@ -187,7 +187,7 @@ To do that, create an `~/.config/openstack/clouds.yaml` file reflecting your Ope
 
 ```
 clouds:
-  engcloud:
+  ecp:
     region_name: CustomRegion
     auth:
       auth_url: https://engcloud.prv.suse.net:5000/v3
@@ -197,7 +197,7 @@ clouds:
       user_domain_name: ldap_users
     identity_api_version: 3
     cacert: /usr/share/pki/trust/anchors/SUSE_Trust_Root.crt.pem
-  susecloud:
+  ecn:
     region_name: CustomRegion
     auth:
       auth_url: https://cloud.suse.com:5000/v3
@@ -210,7 +210,7 @@ clouds:
 ```
 
 Note the following:
-* the names used for the possible cloud configuration entries (`engcloud` and `susecloud`)
+* the names used for the possible cloud configuration entries (`ecp` and `ecn`)
 is also the list of values that can be configured for the `os_cloud` option in the `input.yml` file
 * the `project_name` option is explicitly left out of the configuration, because it is controlled
 separately, through the `os_project_cloud` option in the `input.yml` file
@@ -220,7 +220,7 @@ To verify that the test environment is properly set up:
 * run an openstack CLI command, e.g.:
 
 ```
-openstack --os-cloud engcloud stack list
+openstack --os-cloud ecp stack list
 ```
 
 ### Manual Cloud deployment
