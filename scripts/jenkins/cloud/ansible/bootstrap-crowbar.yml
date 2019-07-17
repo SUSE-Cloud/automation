@@ -42,6 +42,12 @@
             - maint_updates_list | length
 
         - include_role:
+            name: crowbar_update
+          when:
+            - not update_after_deploy
+            - maint_updates_list | length
+
+        - include_role:
             name: frontail
 
       rescue:

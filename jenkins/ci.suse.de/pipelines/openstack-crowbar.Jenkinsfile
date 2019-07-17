@@ -217,6 +217,17 @@ pipeline {
       }
     }
 
+    stage('Update cloud') {
+      when {
+        expression { deploy_cloud == 'true' && update_after_deploy == 'true' }
+      }
+      steps {
+        script {
+          cloud_lib.ansible_playbook('crowbar-update')
+        }
+      }
+    }
+
     stage('Test cloud') {
       when {
         expression { deploy_cloud == 'true' && test_cloud == 'true' }

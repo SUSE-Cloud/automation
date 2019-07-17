@@ -20,17 +20,16 @@
     url: "http://{{ maintenance_updates_server }}/ibs/SUSE:/Maintenance:/{{ item }}/"
     return_content: yes
   loop: "{{ maint_updates_list }}"
+  delegate_to: "{{ cloud_env }}"
   register: mu_url
 
 
-- name: Add MU zypper repositories - Crowbar on {{ ansible_host }}
+- name: Add MU zypper repositories - Crowbar on {{ inventory_hostname }}
   zypper_repository:
     name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
     repo: "{{ deployer_repo_base_url }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
     runrefresh: yes
     state: present
   loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
-  #  notify:
-  #  - Apply all available patches
   when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
 

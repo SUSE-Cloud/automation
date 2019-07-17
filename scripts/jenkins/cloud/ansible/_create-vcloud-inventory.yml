@@ -17,6 +17,10 @@
         ansible_host: "{{ item.1 }}"
         ansible_password: "linux"
         group: "{{ item.0.group }}, cloud_virt_hosts"
+        ansible_ssh_common_args: >
+          -o ProxyCommand='ssh -o UserKnownHostsFile=/dev/null -o
+          StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[cloud_env].ansible_host }}'
+          -o ControlPath='~/.ansible/cp/{{ cloud_env }}-%r@%h:%p'
       loop: "{{ virtual_hosts | subelements('ips') }}"
       loop_control:
         label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"

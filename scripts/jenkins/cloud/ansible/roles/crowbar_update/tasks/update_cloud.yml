@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#
 # (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,25 +12,16 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+#
+---
 
-set -e
+- name: Refresh repos on {{ inventory_hostname }}
+  zypper_repository:
+    repo: '*'
+    runrefresh: yes
 
-source lib.sh
-
-validate_input
-setup_ansible_venv
-mitogen_enable
-prepare_input_model
-prepare_infra
-
-trap exit_msg EXIT
-
-#build_test_packages
-bootstrap_crowbar
-deploy_ses_vcloud
-bootstrap_nodes
-install_crowbar
-register_crowbar_nodes
-deploy_cloud
-update_cloud
-run_crowbar_tests
+- name: Update packages on {{ inventory_hostname }}
+  zypper:
+    name: '*'
+    state: latest
+    type: "{{ update_method }}"

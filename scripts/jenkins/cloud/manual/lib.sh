@@ -251,7 +251,11 @@ function deploy_ardana_but_dont_run_site_yml {
 
 function update_cloud {
     if $(get_from_input deploy_cloud) && $(get_from_input update_after_deploy); then
-        ansible_playbook ardana-update.yml -e cloudsource=$(get_from_input update_to_cloudsource)
+        if [ "$(get_cloud_product)" == "crowbar" ]; then
+            ansible_playbook crowbar-update.yml -e cloudsource=$(get_from_input update_to_cloudsource)
+        elif $(get_from_input deploy_cloud); then
+            ansible_playbook ardana-update.yml -e cloudsource=$(get_from_input update_to_cloudsource)
+        fi
     fi
 }
 
