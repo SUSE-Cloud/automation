@@ -28,7 +28,7 @@
 
 - name: Set cloud MU repo path based on product - Crowbar
   set_fact:
-    cloud_repo_path: "OpenStack-Cloud-Crowbar"
+    cloud_repo_path: "{{ (sles_cloud_version[ansible_distribution_version] == 7)| ternary ('OpenStack-Cloud', 'OpenStack-Cloud-Crowbar') }}"
   when: cloud_product == 'crowbar'
 
 - name: Check MU URL
