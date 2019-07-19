@@ -36,7 +36,7 @@
           default: ''
           regex: '[A-Za-z0-9-_]+'
           msg: >-
-            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+            Empty or malformed value (only alphanumeric and '-' characters are allowed).
           description: >-
             The virtual environment identifier. This field should be set to a
             value that will uniquely identify the heat stack.

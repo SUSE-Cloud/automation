@@ -3,6 +3,8 @@
 # The cloud product to be deployed. Possible values are:
 # - crowbar
 # - ardana
+#
+# IMPORTANT: only alphanumeric and '-' characters must be used for this value
 cloud_product: 'ardana'
 
 #============= Cloud Platform ===========#
