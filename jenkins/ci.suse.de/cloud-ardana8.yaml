@@ -14,7 +14,7 @@
     cloud_gating_job: '{name}'
     concurrent: False
     version: '8'
-    cloud_env: 'cloud-ardana-gate{version}-slot'
+    cloud_env: 'cloud-gate{version}-slot'
     extra_params: |
       tempest_retry_failed=True
     jobs:
