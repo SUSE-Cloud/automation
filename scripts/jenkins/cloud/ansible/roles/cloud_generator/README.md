@@ -26,14 +26,14 @@ be very difficult to cover through individually defined input models
 ## Usage
 
 To generate an input model, choose one of the scenario templates already defined under `roles/ardana_input_model_generator/vars/templates`,
-or define a new one. The scenario template needs to be passed as a parameter to the `generate-input-model.yml` playbook. If the target
+or define a new one. The scenario template needs to be passed as a parameter to the `generate-cloud.yml` playbook. If the target
 is a virtual deployment, the optional `virt_config_file` parameter also needs to be supplied to point to the generated virtual
 configuration file accepted as input by the heat generator.
 
 Example:
 
 ```
-    ansible-playbook generate-input-model.yml \
+    ansible-playbook generate-cloud.yml \
       -e scenario_name=standard \
       -e input_model_path=/path/to/input-model
       -e virt_config_file=/path/to/virt-config.yml
@@ -42,7 +42,7 @@ Example:
 NOTE: optionally, provide a `cloudsource` value (defaults to `stagingcloud9`) to control which version specific services
 and features are activated and an `cloud_env` value (defaults to `localhost`) to change how the generated items are named:
 
-    ansible-playbook generate-input-model.yml \
+    ansible-playbook generate-cloud.yml \
       -e scenario_name=standard \
       -e input_model_dir=/path/to/input-model
       -e virt_config_file=/path/to/virt-config.yml
@@ -103,17 +103,17 @@ The last section of this template shows how the scenario includes the `standard`
 the `standard` network template, the `compact` disk template and the `standard` interface template. The parameters
 defined at the beginning of the scenario template can be used to fine-tune various aspects of the input model, such
 as the number of controller and compute nodes, by overriding then with group variables, host variables, or by passing
-their values directly to the `generate-input-model.yml` playbook.
+their values directly to the `generate-cloud.yml` playbook.
 
 The input model generator uses the global information in the service template to generate the `cloud` input model
 element configuration and the `cloudConfig.yml` file:
 
 
-To generate the `std-min` input model, for example, the `generate-input-model.yml` playbook may be called with the
+To generate the `std-min` input model, for example, the `generate-cloud.yml` playbook may be called with the
 following parameters:
 
 ```
-    ansible-playbook generate-input-model.yml \
+    ansible-playbook generate-cloud.yml \
       -e scenario_name=standard \
       -e input_model_dir=/path/to/input-model \
       -e controllers=2 \
