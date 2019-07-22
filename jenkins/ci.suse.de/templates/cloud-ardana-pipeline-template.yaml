@@ -236,7 +236,7 @@
 
       - validating-string:
           name: neutron_nodes
-          default: '2'
+          default: '{neutron_nodes|2}'
           regex: '[0-3]'
           msg: The entered value failed validation
           description: |
@@ -249,7 +249,7 @@
 
       - validating-string:
           name: swift_nodes
-          default: '3'
+          default: '{swift_nodes|3}'
           regex: '[0-3]'
           msg: The entered value failed validation
           description: |
@@ -363,7 +363,7 @@
 
       - validating-string:
           name: extra_repos
-          default: ''
+          default: '{extra_repos|}'
           regex: '((http(s)?:\/\/[^ ,]+)(,http(s)?:\/\/[^ ,]+)*)*'
           msg: The entered value failed validation
           description: >-
@@ -438,7 +438,7 @@
 
       - string:
           name: os_project_name
-          default: ''
+          default: '{os_project_name|}'
           description: >-
             The name of the OpenStack project that hosts the virtual cloud deployment
             in the 'os_cloud' OpenStack cloud platform (leave empty to use the
@@ -457,7 +457,7 @@
 
       - text:
           name: extra_params
-          default:
+          default: '{extra_params|}'
           description: >-
             This field may be used to define additional parameters, one per line, in the form:
 
