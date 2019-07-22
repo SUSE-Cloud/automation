@@ -52,6 +52,10 @@
     name: openstack-cleanvm-Master
     disabled: false
     release: Master
+
+    triggers:
+      - timed: 'H 4 * * *'
+
     image:
       - SLE_15
       - openSUSE-Leap-15.1
