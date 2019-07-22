@@ -222,7 +222,7 @@
 
       - validating-string:
           name: neutron_nodes
-          default: '3'
+          default: '{neutron_nodes|3}'
           regex: '[0-3]'
           msg: The entered value failed validation
           description: |
@@ -296,7 +296,7 @@
 
       - string:
           name: os_project_name
-          default: ''
+          default: '{os_project_name|}'
           description: >-
             The name of the OpenStack project that hosts the virtual cloud deployment
             in the 'os_cloud' OpenStack cloud platform (leave empty to use the
@@ -309,7 +309,7 @@
 
       - text:
           name: extra_params
-          default:
+          default: '{extra_params|}'
           description: >-
             This field may be used to define additional parameters, one per line, in the form:
 
