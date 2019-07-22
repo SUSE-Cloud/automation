@@ -3,4 +3,6 @@
       trustee:
         domain_name: magnum
         domain_admin_name: magnum_domain_admin
+      cert:
+        cert_manager_type: {{ ('barbican' in deployments) | ternary('barbican', 'x509keypair') }}
 {% include 'barclamps/lib/deployment.yml.j2' %}
