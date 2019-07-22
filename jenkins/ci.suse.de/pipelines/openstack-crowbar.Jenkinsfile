@@ -2,8 +2,6 @@
  * The openstack-crowbar Jenkins Pipeline
  */
 
-def ardana_lib = null
-
 pipeline {
   options {
     // skip the default checkout, because we want to use a custom path
@@ -44,6 +42,12 @@ pipeline {
           currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env}"
           if ( cloud_env.startsWith("qe") || cloud_env.startsWith("pcloud") ) {
               env.cloud_type = "physical"
+          }
+          // Parameters of the type 'extended-choice' are set to null when the job
+          // is automatically triggered and its value is set to ''. So, we need to set
+          // it to '' to be able to pass it as a parameter to downstream jobs.
+          if (env.tempest_filter_list == null) {
+            env.tempest_filter_list = ''
           }
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
@@ -237,6 +241,20 @@ pipeline {
           // This step does the following on the non-admin nodes:
           //  - runs tempest and other tests on the deployed cloud
           cloud_lib.ansible_playbook('run-crowbar-tests')
+          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+          junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+        }
+      }
+    }
+
+    stage ('Prepare tempest tests') {
+      when {
+        expression { tempest_filter_list != '' }
+      }
+      steps {
+        script {
+          // Generate stages for Tempest tests
+          cloud_lib.generate_tempest_stages(env.tempest_filter_list, 'crowbar')
         }
       }
     }
@@ -256,7 +274,6 @@ pipeline {
             --filter 'Crowbar & SES' > .artifacts/pipeline-report.txt || :
         ''')
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-        junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: true
       }
       script{
         if (env.DEPLOYER_IP != null) {
