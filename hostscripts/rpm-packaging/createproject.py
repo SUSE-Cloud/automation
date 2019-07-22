@@ -228,7 +228,7 @@ def osc_commit_all(workdir, packagename):
         sh.osc('addremove')
         for o in sh.osc('service', 'localrun', 'source_validator'):
             if o.startswith('###ASK'):
-                sh.osc('rm', o.strip().split()[1])
+                sh.osc('rm', '--force', o.strip().split()[1])
         sh.osc('commit', '--noservice', '-n')
     finally:
         os.chdir(olddir)
