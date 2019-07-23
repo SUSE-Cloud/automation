@@ -28,7 +28,7 @@
             label={label}
             job_name=cloud-mkcloud{version}-job-ha-ironic-{arch}
             want_ironic=1
-            nodenumberironicnode=2
+            nodenumberironicnode=1
             want_monasca_proposal=0
             want_ceilometer_proposal=0
             want_aodh_proposal=0
