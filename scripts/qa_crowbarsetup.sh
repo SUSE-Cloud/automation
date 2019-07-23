@@ -4775,6 +4775,10 @@ function oncontroller_delete_ironic_node
         export OS_BAREMETAL_API_VERSION=latest
     fi
 
+    # List ironic nodes just before deleting for easier troubleshooting
+    echo "ironic nodes:"
+    openstack baremetal node list
+
     # Maintenance mode enables delete if node is in error state
     openstack baremetal node maintenance set "$1" || true
     openstack baremetal node delete "$1" || true
