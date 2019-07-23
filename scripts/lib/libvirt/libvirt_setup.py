@@ -28,19 +28,26 @@ def remove_files(files):
         os.remove(f)
 
 
-def cpuflags():
+def cpuflags(pcipassthrough=False):
     cpu_template = "cpu-default.xml"
     cpu_info = readfile("/proc/cpuinfo")
     if re.search("^CPU architecture.* 8", cpu_info, re.MULTILINE):
         cpu_template = "cpu-arm64.xml"
     elif re.search("^vendor_id.*GenuineIntel", cpu_info, re.MULTILINE):
-        cpu_template = "cpu-intel.xml"
+        cpu_template = get_intel_cputemplate(pcipassthrough)
     elif re.search("^vendor_id.*AuthenticAMD", cpu_info, re.MULTILINE):
         cpu_template = "cpu-amd.xml"
     elif re.search("^vendor_id.*IBM/S390", cpu_info, re.MULTILINE):
         cpu_template = "cpu-s390x.xml"
 
     return readfile(os.path.join(TEMPLATE_DIR, cpu_template))
+
+
+def get_intel_cputemplate(pcipassthrough=False):
+    cpu_template = "cpu-intel.xml"
+    if pcipassthrough:
+        cpu_template = "cpu-intel-pcipassthrough.xml"
+    return cpu_template
 
 
 def hypervisor_has_virtio(libvirt_type):
@@ -257,7 +264,7 @@ def compute_config(args, cpu_flags=cpuflags()):
             "bus='{0}' target='0' unit='0'/>"
 
     # override nic model for ironic setups
-    if args.ironicnic >= 0:
+    if args.ironicnic >= 0 and not args.pcipassthrough:
         configopts['nicmodel'] = 'e1000'
 
     controller_raid_volumes = args.controller_raid_volumes
@@ -320,7 +327,32 @@ def compute_config(args, cpu_flags=cpuflags()):
             'target_address': target_address.format('0x1f')},
             configopts))
 
-    if args.ipmi:
+    machine = ""
+    machine = get_default_machine(args.emulator)
+    pciecontrollers = ""
+    iommudevice = ""
+    extravolume = ""
+    if args.pcipassthrough and not args.drbdserial:
+        volume_template = string.Template(
+            readfile(os.path.join(TEMPLATE_DIR, "extra-volume.xml")))
+        extravolume = volume_template.substitute(merge_dicts({
+            'volume_serial': "{0}-node{1}-extra".format(
+                args.cloud,
+                args.nodecounter),
+            'source_dev': "{0}/{1}.node{2}-extra".format(
+                args.vdiskdir,
+                args.cloud,
+                args.nodecounter),
+            'target_dev': targetdevprefix + ''.join(next(alldevices)),
+            'target_address': target_address.format('0x1d')},
+            configopts))
+        iommudevice = readfile(os.path.join(
+            TEMPLATE_DIR, 'iommu-device-default.xml'))
+        machine = "q35"
+        pciecontrollers = readfile(os.path.join(
+            TEMPLATE_DIR, 'pcie-root-bridge-default.xml'))
+
+    if args.ipmi and not args.pcipassthrough:
         values = dict(
           nodecounter=args.nodecounter
         )
@@ -329,7 +361,7 @@ def compute_config(args, cpu_flags=cpuflags()):
     else:
         ipmi_config = ''
 
-    if not hypervisor_has_virtio(libvirt_type):
+    if not hypervisor_has_virtio(libvirt_type) and not args.pcipassthrough:
         target_address = target_address.format('0')
         # map virtio addr to ide:
         raidvolume = raidvolume.replace("bus='0x17'", "bus='1'")
@@ -342,13 +374,16 @@ def compute_config(args, cpu_flags=cpuflags()):
         nodememory=nodememory,
         vcpus=args.vcpus,
         march=get_machine_arch(),
-        machine=get_default_machine(args.emulator),
+        machine=machine,
         osloader=get_os_loader(firmware_type=args.firmwaretype),
         cpuflags=cpu_flags,
         consoletype=get_console_type(),
         raidvolume=raidvolume,
         cephvolume=cephvolume,
         drbdvolume=drbdvolume,
+        pciecontrollers=pciecontrollers,
+        extravolume=extravolume,
+        iommudevice=iommudevice,
         nics=net_interfaces_config(args, configopts["nicmodel"]),
         maindiskaddress=get_maindisk_address(),
         videodevices=get_video_devices(),

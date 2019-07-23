@@ -285,6 +285,17 @@ function libvirt_do_create_cloud_lvm()
         done
     fi
 
+    # create an extra volume to test pci passthrough
+    if [ $extravolumenumber -gt 0 ] ; then
+        for i in $(nodes ids all) ; do
+            for n in $(seq 1 $extravolumenumber) ; do
+                onhost_get_next_pv_device
+                hdd_size=${extravolume_hdd_size}
+                _lvcreate $cloud.node$i-extra $hdd_size $cloudvg $next_pv_device
+            done
+        done
+    fi
+
     # create volumes for drbd
     if [ $drbd_hdd_size != 0 ] ; then
         for i in `seq 1 2`; do

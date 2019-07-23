@@ -25,6 +25,9 @@ $cpuflags
 $raidvolume
 $cephvolume
 $drbdvolume
+$extravolume
+$pciecontrollers
+$iommudevice
 $nics
 $serialdevice
     <console type='pty'>

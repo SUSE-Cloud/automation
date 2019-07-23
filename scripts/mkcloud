@@ -112,6 +112,12 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${controller_ceph_hdd_size:=25}
 : ${lonelynode_hdd_size:=20}
 : ${ironicnode_hdd_size:=20}
+: ${want_pci_passthrough:=0}
+if [[ $want_pci_passthrough = 1 ]]; then
+    # Create extra volume to test pci passthrough
+    : ${extravolumenumber:=1}
+    : ${extravolume_hdd_size:=1}
+fi
 
 if [[ $hacloud = 1 ]] && ( [[ "$want_database_sql_engine" == "postgresql" ]] || iscloudver 6minus ) ; then
     : ${drbd_hdd_size:=15}
@@ -739,6 +745,11 @@ function setupnodes
             localrepos_params="--localreposrc ${localreposdir_src} --localrepotgt ${localreposdir_target}"
         fi
 
+        local pcipassthrough_params=""
+        if [[ $want_pci_passthrough = 1 ]]; then
+            pcipassthrough_params="--pcipassthrough"
+        fi
+
         local ipmi_params=""
         if [[ $want_ipmi = 1 ]] ; then
             ipmi_params="--ipmi"
@@ -757,6 +768,7 @@ function setupnodes
                         $mac_params \
                         $ironic_params \
                         $ipmi_params \
+                        $pcipassthrough_params \
                         --cephvolumenumber $cephvolumenumber \
                         --drbdserial "$drbd_serial"\
                         --computenodememory $compute_node_memory \
