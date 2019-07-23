@@ -864,8 +864,6 @@ function setup_ironic_test_env
 
     local host_admin_ip=${net_admin}${ip_sep}1
 
-    local deploy_interface=direct
-
     install_vbmc
 
     local i
@@ -889,7 +887,6 @@ function setup_ironic_test_env
         # create node in ironic
         onadmin create_ironic_node $cloud-node$i \
             $vcpus $ram_mb $ironicnode_hdd_size $(macfunc $i 1) \
-            $deploy_interface \
             $host_admin_ip $ipmi_port $ipmi_user $ipmi_password
     done
 
