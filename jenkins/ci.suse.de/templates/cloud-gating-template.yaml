@@ -8,9 +8,6 @@
       numToKeep: -1
       daysToKeep: 30
 
-    triggers:
-      - timed: 'H H */2 * *'
-
     parameters:
       - validating-string:
           name: cloud_env
@@ -20,18 +17,6 @@
             Empty or malformed value (only alphanumeric and '-' characters are allowed).
           description: >-
             The Lockable Resource label representing the resource pool to used by this job.
-
-      - bool:
-          name: deploy
-          default: '{deploy|true}'
-          description: >-
-            Run Ardana deploy validation step
-
-      - bool:
-          name: deploy_and_update
-          default: '{deploy_and_update|true}'
-          description: >-
-            Run Ardana deploy and update validation step
 
       - string:
           name: git_automation_repo

@@ -53,57 +53,33 @@ pipeline {
       }
     }
 
-    stage('Trigger validation jobs') {
+    stage('Trigger jobs') {
       // Do not abort all stages if one of them fails
       failFast false
-      parallel {
+      steps {
+        script {
+          parallel cloud_lib.generate_parallel_stages(
+            ["SOC" + version, "SOCC" + version],
+            [],
+            "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/cloud-gating-config.yml") {
+            job_title, job_def ->
 
-        stage('Run cloud deploy job') {
-          when {
-            expression { deploy == 'true' }
-          }
-          steps {
-            script {
-              // reserve a resource here for the integration job, to avoid
-              // keeping a cloud-ci worker busy while waiting for a
-              // resource to become available.
-              cloud_lib.run_with_reserved_env(true, cloud_env, null) {
-                reserved_env ->
-                cloud_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-x86_64", [
-                  string(name: 'cloud_env', value: reserved_env),
-                  string(name: 'reserve_env', value: "false"),
-                  string(name: 'cleanup', value: "never"),
-                  string(name: 'rc_notify', value: "true"),
-                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                  text(name: 'extra_params', value: extra_params)
-                ], false)
-              }
-            }
-          }
-        }
-
-        stage('Run cloud update job') {
-          when {
-            expression { deploy_and_update == 'true' }
-          }
-          steps {
-            script {
-              // reserve a resource here for the integration job, to avoid
-              // keeping a cloud-ci worker busy while waiting for a
-              // resource to become available.
-              cloud_lib.run_with_reserved_env(true, cloud_env, null) {
-                reserved_env ->
-                cloud_lib.trigger_build("cloud-ardana${version}-job-entry-scale-kvm-update-x86_64", [
-                  string(name: 'cloud_env', value: reserved_env),
-                  string(name: 'reserve_env', value: "false"),
-                  string(name: 'cleanup', value: "never"),
-                  string(name: 'rc_notify', value: "true"),
-                  string(name: 'git_automation_repo', value: "$git_automation_repo"),
-                  string(name: 'git_automation_branch', value: "$git_automation_branch"),
-                  text(name: 'extra_params', value: extra_params)
-                ], false)
-              }
+            // reserve a resource here for the integration job, to avoid
+            // keeping a cloud-ci worker busy while waiting for a
+            // resource to become available.
+            cloud_lib.run_with_reserved_env(true, cloud_env, null) {
+              reserved_env ->
+              def job_params = [
+                cloud_env            : reserved_env,
+                reserve_env          : false,
+                rc_notify            : false,
+                cleanup              : "never",
+                git_automation_repo  : git_automation_repo,
+                git_automation_branch: git_automation_branch
+              ]
+              // override default parameters with those loaded from config file
+              job_params.putAll(job_def.job_params)
+              cloud_lib.trigger_build(job_def.job_name, cloud_lib.convert_to_build_params(job_params))
             }
           }
         }

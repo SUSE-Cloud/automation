@@ -1,26 +1,4 @@
 - project:
-    name: cloud-8-gating-trigger
-    cloud_url_trigger_job: '{name}'
-    version: '8'
-    url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
-    projects:
-      - project: 'cloud-{version}-gating'
-        block: false
-    jobs:
-        - '{cloud_url_trigger_job}'
-
-- project:
-    name: cloud-8-gating
-    cloud_gating_job: '{name}'
-    concurrent: False
-    version: '8'
-    cloud_env: 'cloud-gate{version}-slot'
-    extra_params: |
-      tempest_retry_failed=True
-    jobs:
-        - '{cloud_gating_job}'
-
-- project:
     name: cloud-ardana8-job-std-3cp-x86_64
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
