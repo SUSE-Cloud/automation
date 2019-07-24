@@ -24,6 +24,9 @@ include_maint_update: "{{ (task == 'deploy' and not update_after_deploy) or (tas
 
 # Media/repositories mapped by the cloudsource value
 cloudsource_repos:
+  stagingcloud7: "SUSE-OpenStack-Cloud-7-devel-staging"
+  develcloud7: "SUSE-OpenStack-Cloud-7-devel"
+  GM7: "SUSE-OpenStack-Cloud-7-Pool"
   stagingcloud8: "SUSE-OpenStack-Cloud-8-devel-staging"
   develcloud8: "SUSE-OpenStack-Cloud-8-devel"
   GM8: "SUSE-OpenStack-Cloud-8-Pool"
@@ -36,6 +39,12 @@ cloudsource_repos:
 cloud_brand: "{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'SUSE-OpenStack-Cloud') }}"
 
 repository_mnemonics:
+  cloud7:
+    SLES-Pool: "SLES12-SP2-Pool"
+    SLES-Updates: "SLES12-SP2-Updates"
+    SLES-Updates-test: "SLES12-SP2-Updates-test"
+    Cloud-Updates: "{{ cloud_brand }}-7-Updates"
+    Cloud-Updates-test: "SUSE-OpenStack-Cloud-7-Updates-test"
   cloud8:
     SLES-Pool: "SLES12-SP3-Pool"
     SLES-Updates: "SLES12-SP3-Updates"
