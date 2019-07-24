@@ -4213,13 +4213,13 @@ function oncontroller_testsetup
 
     #test for Glance scrubber service, added after bnc#930739
     if iscloudver 6plus || [[ $cloudsource =~ develcloud ]]; then
-        configargs="--config-dir /etc/glance"
-        iscloudver 6plus && configargs=""
+        configargs="--config-dir /etc/glance --log-file /tmp/scrubber.log"
+        iscloudver 6plus && configargs="--log-file /tmp/scrubber.log"
         su - glance -s /bin/sh -c "/usr/bin/glance-scrubber $configargs" \
             || complain 113 "Glance scrubber doesn't work properly"
         # ERROR_FOR_DIVISION_BY_ZERO is part of MySQL server mode
         # this is logged into glance/scrubber.log if DEBUG is enabled
-        grep -v glance_store /var/log/glance/scrubber.log | grep -v ERROR_FOR_DIVISION_BY_ZERO | grep ERROR \
+        grep -v glance_store /tmp/scrubber.log | grep -v ERROR_FOR_DIVISION_BY_ZERO | grep ERROR \
             && complain 114 "Unexpected errors in glance-scrubber logs"
     fi
 
