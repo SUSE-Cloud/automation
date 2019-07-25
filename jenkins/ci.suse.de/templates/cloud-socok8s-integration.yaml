@@ -1,10 +1,32 @@
 - job-template:
-    name: '{name}-integration'
+    name: '{name}-integration-{tempest}'
     project-type: multibranch
     periodic-folder-trigger: 5m
     number-to-keep: 30
     days-to-keep: 30
     script-path: Jenkinsfile.integration
+    parameters:
+      - choice:
+          name: deployment
+          choices:
+            - 'airship'
+            - 'osh'
+          default: 'airship'
+          description: >-
+            Which deployment mechanism?
+      - bool:
+          name: run_tempest
+          default: '{run_tempest|true}'
+          description: >-
+            Run tempest tests?
+      - choice:
+          name: tempest_test_type
+          choices:
+            - 'all'
+            - 'smoke'
+          default: 'all'
+          description: >-
+            Run all or smoke tempest tests?
     scm:
       - github:
           repo: '{repo-name}'
@@ -57,3 +79,55 @@
       # git-scm module with an environment variable (for some odd jenkins
       # reason).
       lightweight-checkout: false
+
+- job-template:
+    name: '{name}-daily-airship-integration'
+    project-type: pipeline
+    concurrent: false
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+    triggers:
+      - timed: '@daily'
+
+    parameters:
+      - choice:
+          name: deployment
+          choices:
+            - 'airship'
+            - 'osh'
+          default: 'airship'
+          description: >-
+            Which deployment mechanism?
+      - bool:
+          name: run_tempest
+          default: '{run_tempest|true}'
+          description: >-
+            Run tempest tests?
+      - choice:
+          name: tempest_test_type
+          choices:
+            - 'all'
+            - 'smoke'
+          default: 'all'
+          description: >-
+            Run all or smoke tempest tests?
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: https://github.com/SUSE-Cloud/socok8s.git
+            repo-owner: '{repo-owner}'
+            credentials-id: '{repo-credentials}'
+            branches:
+              - master
+            browser: auto
+            wipe-workspace: false
+            submodule:
+              recursive: true
+            notification-context: daily-integration/jenkins
+      script-path: Jenkinsfile.integration
+      lightweight-checkout: false
+
