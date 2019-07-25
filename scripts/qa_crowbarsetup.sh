@@ -4728,6 +4728,10 @@ function oncontroller_create_ironic_node
     local deploy_initrd_uuid=$(openstack image list -f value | grep ir-deploy-ramdisk | sort -V -k 2 | tail -n1 | awk '{print $1}')
     local deploy_vmlinux_uuid=$(openstack image list -f value | grep ir-deploy-kernel | sort -V -k 2 | tail -n1 | awk '{print $1}')
 
+    if iscloudver 8; then
+        export OS_BAREMETAL_API_VERSION=latest
+    fi
+
     openstack baremetal node create \
         --driver ipmi \
         --deploy-interface $deploy_interface \
@@ -4767,6 +4771,10 @@ function onadmin_create_ironic_node
 
 function oncontroller_delete_ironic_node
 {
+    if iscloudver 8; then
+        export OS_BAREMETAL_API_VERSION=latest
+    fi
+
     # Maintenance mode enables delete if node is in error state
     openstack baremetal node maintenance set "$1" || true
     openstack baremetal node delete "$1" || true
