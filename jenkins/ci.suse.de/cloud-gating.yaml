@@ -6,9 +6,9 @@
         block: false
     cloud_url_trigger_job:
       - cloud-8-gating-trigger:
-          version: 8
+          version: '8'
       - cloud-9-gating-trigger:
-          version: 9
+          version: '9'
     jobs:
         - '{cloud_url_trigger_job}'
 
@@ -18,9 +18,9 @@
     cloud_env: 'cloud-gate{version}-slot'
     cloud_gating_job:
       - cloud-8-gating:
-          version: 8
+          version: '8'
       - cloud-9-gating:
-          version: 9
+          version: '9'
     jobs:
         - '{cloud_gating_job}'
 
