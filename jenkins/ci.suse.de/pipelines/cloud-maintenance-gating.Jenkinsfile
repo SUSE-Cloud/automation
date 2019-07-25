@@ -29,6 +29,11 @@ pipeline {
             error("Empty 'maint_updates' parameter value.")
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${maint_updates}"
+          def muBuildUrlList = []
+          for (project in maint_updates.split(',')) {
+              muBuildUrlList = muBuildUrlList + "<a href='https://build.suse.de/project/show/SUSE:Maintenance:${project}'>${project}</a>"
+          }
+          currentBuild.description = "Maintenance Updates: " + muBuildUrlList.join(", ") + "<br>Products: " + cloudversion.split(',').join(", ")
 
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
