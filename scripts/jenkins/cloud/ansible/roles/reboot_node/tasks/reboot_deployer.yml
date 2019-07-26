@@ -35,12 +35,6 @@
     msg: "Uptime more then 2 minutes - it looks like node didn't reboot"
   when: _hostuptime.stdout|int > 120
 
-- name: Find cloud product
-  shell: "zypper pd | grep -m 1 'OpenStack Cloud' | cut -d'|' -f4"
-  args:
-    warn: False
-  register: _cloud_product
-
 - name: Check crowbar webui (http status)
   uri:
     url: http://127.0.0.1:3000/
@@ -49,4 +43,4 @@
   delay: 9
   register: _uri_output
   until: "(_uri_output.status == 200)"
-  when: "'Crowbar' in _cloud_product.stdout"
+  when: cloud_product == 'crowbar'
