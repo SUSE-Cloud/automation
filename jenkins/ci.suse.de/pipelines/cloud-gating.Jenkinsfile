@@ -75,7 +75,8 @@ pipeline {
                 rc_notify            : false,
                 cleanup              : "never",
                 git_automation_repo  : git_automation_repo,
-                git_automation_branch: git_automation_branch
+                git_automation_branch: git_automation_branch,
+                extra_params         : extra_params
               ]
               // override default parameters with those loaded from config file
               job_params.putAll(job_def.job_params)
