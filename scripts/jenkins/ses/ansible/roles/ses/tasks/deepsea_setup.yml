@@ -23,6 +23,9 @@
   template:
     src: "{{ item.src }}"
     dest: "{{ item.dest }}"
+    owner: salt
+    group: salt
+    mode: 0644
   with_items:
     - src: "master_minion.sls.j2"
       dest:  "/srv/pillar/ceph/master_minion.sls"
@@ -40,11 +43,21 @@
     group: salt
     mode: 0644
 
+- name: Ensure pillar data available
+  shell: |
+    salt '*' saltutil.refresh_pillar --out=quiet
+    salt '*' pillar.get 'deepsea_minions' --out=yaml
+  register: pillar_data
+  failed_when: not ses_deepsea_minions in pillar_data.stdout
+  changed_when: false
+  until: pillar_data is succeeded
+  retries: 10
+  delay: 1
+
 - name: Run stage 0 - prepare
   command: "salt-run state.orch ceph.stage.prep"
   register: stage0
   changed_when: false
-  ignore_errors: yes
 
 - name: Show stage 0 (salt-run state.orch ceph.stage.prep) results
   debug:
@@ -112,8 +125,9 @@
     var: stage4.stdout_lines
     verbosity: 1
 
-- name: run iscsi workaround
-  command: salt-run state.orch ceph.stage.iscsi
-  when:
-    - stage4.stdout.find('lrbd has been enabled, and is dead') != -1  # Implement workaround of the cosmetic issue https://www.suse.com/support/kb/doc/?id=7018668
-
+- name: Run iscsi workaround
+  command: "salt-run state.orch {{ item }}"
+  when: stage4.stdout.find('lrbd has been enabled, and is dead') != -1  # Implement workaround of the cosmetic issue https://www.suse.com/support/kb/doc/?id=7018668
+  loop:
+    - "ceph.stage.iscsi"
+    - "ceph.stage.services"

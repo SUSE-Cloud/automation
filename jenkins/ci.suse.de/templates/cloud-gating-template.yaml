@@ -1,0 +1,67 @@
+- job-template:
+    name: '{cloud_gating_job}'
+    project-type: pipeline
+    disabled: '{obj:disabled|False}'
+    concurrent: '{concurrent|False}'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 30
+
+    parameters:
+      - validating-string:
+          name: cloud_env
+          default: '{cloud_env|}'
+          regex: '[A-Za-z0-9-]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric and '-' characters are allowed).
+          description: >-
+            The Lockable Resource label representing the resource pool to used by this job.
+
+      - string:
+          name: git_automation_repo
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: '{git_automation_branch|master}'
+          description: >-
+            The git automation branch
+
+      - hidden:
+          name: version
+          default: '{version}'
+          description: >-
+            Cloud version number (8, 9 etc.)
+
+      - text:
+          name: extra_params
+          default: '{extra_params|}'
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${{git_automation_repo}}
+            branches:
+              - ${{git_automation_branch}}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/cloud-gating.Jenkinsfile
+      lightweight-checkout: false

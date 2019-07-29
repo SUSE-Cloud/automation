@@ -1,0 +1,14 @@
+---
+
+- name: Run 'qa_crowbarsetup.sh {{ qa_crowbarsetup_cmd }}' on the admin node
+  shell: |-
+    . {{ admin_scripts_path }}/qa_crowbarsetup.sh
+    {{ qa_crowbarsetup_cmd }} 2>&1 | tee -a {{ qa_crowbarsetup_log }}
+    exit ${PIPESTATUS[0]}
+  args:
+    executable: "/bin/bash"
+    chdir: "/root"
+  delegate_to: "{{ cloud_env }}"
+  register: _qa_crowbarsetup_result
+  run_once: true
+

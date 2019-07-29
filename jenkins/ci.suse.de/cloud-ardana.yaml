@@ -4,10 +4,9 @@
     ardana_job: '{name}'
     concurrent: True
     triggers:
-    ardana_env: ''
+    cloud_env: ''
     reserve_env: false
     tempest_filter_list: ''
     cleanup: never
-    os_cloud: ''
     jobs:
         - '{ardana_job}'

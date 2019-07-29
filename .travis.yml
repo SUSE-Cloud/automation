@@ -1,6 +1,51 @@
-language: bash
-sudo: required
-install:
-  - make install
-script:
-  - make test
+dist: xenial
+
+matrix:
+  include:
+    - name: "Validate Filenames"
+      language: minimal
+      script:
+        - make filecheck
+    - name: "Validate Bash (bashate, roundup)"
+      language: python
+      install:
+        - pip install bashate
+        - git clone https://github.com/SUSE-Cloud/roundup
+        - pushd roundup
+        - ./configure
+        - make
+        - sudo make install
+        - popd
+      script:
+        - make bashate
+        - make rounduptest
+    - name: "Validate Perl (Syntax)"
+      language: minimal
+      addons:
+        apt:
+          packages:
+            - libxml-libxml-perl
+            - libjson-perl
+            - libjson-xs-perl
+            - libwww-perl
+      script:
+        - make perlcheck
+    - name: "Validate Ruby (Syntax)"
+      language: ruby
+      script:
+        - make rubycheck
+    - name: "Validate Python (Syntax, Unit, flake8)"
+      language: python
+      install:
+        - pip install flake8
+        - pip install flake8-import-order
+      script:
+        - make pythoncheck
+        - make python_unittest
+        - make flake8
+    - name: "Validate Jenkins (jjb)"
+      language: python
+      install:
+        - pip install 'jenkins-job-builder!=3.0.0'
+      script:
+        - make jjb_test

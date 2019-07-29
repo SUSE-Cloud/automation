@@ -1,0 +1,43 @@
+- project:
+    name: cloud-crowbar7-job-x86_64
+    crowbar_job: '{name}'
+    cloudsource: stagingcloud7
+    cloud_env: cloud-crowbar-ci-slot
+    scenario_name: standard
+    controllers: '1'
+    computes: '1'
+    ses_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{crowbar_job}'
+
+- project:
+    name: cloud-crowbar7-job-ha-x86_64
+    crowbar_job: '{name}'
+    cloudsource: stagingcloud7
+    cloud_env: cloud-crowbar-ci-slot
+    scenario_name: standard
+    controllers: '3'
+    computes: '2'
+    ses_enabled: false
+    triggers:
+     - timed: 'H H * * *'
+    jobs:
+        - '{crowbar_job}'
+
+- project:
+    name: cloud-crowbar7-job-image-update
+    cloud_image_update_job: '{name}'
+    os_cloud:
+      - engcloud:
+          image_visibility: shared
+      - susecloud:
+          image_visibility: private
+    openstack_cloud_job: cloud-crowbar7-job-x86_64
+    download_image_url: http://download.suse.de/ibs/Devel:/Cloud:/Images/images-SLE_12_SP2/ardana-jeos-SLE12SP2.x86_64.qcow2.xz
+    sles_image: cleanvm-jeos-SLE12SP2
+    triggers:
+     - timed: 'H H * * H(6-7)'
+    jobs:
+        - '{cloud_image_update_job}-{os_cloud}'

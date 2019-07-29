@@ -1,0 +1,58 @@
+---
+
+- import_playbook: _create-vcloud-inventory.yml
+
+- name: Disable DHCP on the cloud infra management network
+  hosts: localhost
+  connection: local
+  tasks:
+    - name: Disable DHCP on the cloud infra management network
+      command: |
+        openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
+          subnet set --no-dhcp \
+          {{ cloud_env }}-cloud_management_subnet
+
+- name: Register crowbar cloud nodes
+  hosts: cloud_virt_hosts
+  any_errors_fatal: true
+  remote_user: root
+  gather_facts: True
+  vars:
+    task: "register"
+
+  tasks:
+    - block:
+        - include_role:
+            name: crowbar_register
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: "onadmin_{{ command }}"
+          loop:
+            - allocate
+            - waitcloud
+            - post_allocate
+            - setup_aliases
+          loop_control:
+            loop_var: command
+
+        - include_role:
+            name: crowbar_update
+          when:
+            - not update_after_deploy
+            - maint_updates_list | length
+
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+            apply:
+              delegate_to: "{{ cloud_env }}"
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."

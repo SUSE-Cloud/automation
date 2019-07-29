@@ -1,0 +1,116 @@
+- job-template:
+    name: '{cloud_image_update_job}-{os_cloud}'
+    project-type: pipeline
+    disabled: '{obj:disabled|False}'
+    concurrent: '{concurrent|False}'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 30
+
+    triggers: '{triggers}'
+
+    parameters:
+
+      - validating-string:
+          name: cloud_env
+          default: '{os_cloud}-ci-slot'
+          regex: '[A-Za-z0-9-]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric and '-' characters are allowed).
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+            WARNING: if a virtual environment associated with the supplied cloud_env already
+            exists, it will be replaced.
+
+      - bool:
+          name: reserve_env
+          default: '{reserve_env|true}'
+          description: >-
+            Reserve the 'cloud_env' lockable resource throughout the execution of this job
+
+      - string:
+          name: sles_image
+          default: '{sles_image|}'
+          description: >-
+            The name of the cloud image that needs to be updated and tested
+
+      - string:
+          name: download_image_url
+          default: '{download_image_url|}'
+          description: >-
+            The URL pointing to the updated image file
+
+      - choice:
+          name: image_visibility
+          choices:
+            - '{image_visibility|shared}'
+            - 'shared'
+            - 'private'
+          description: >-
+            The visibility used for the image. Possible values are:
+              - shared - installs an image shared with all the other projects that the user is associated with
+              - private - installs a private image
+
+      - string:
+          name: openstack_cloud_job
+          default: '{openstack_cloud_job}'
+          description: >-
+            The cloud integration Jenkins job to use to validate the updated image
+
+      - string:
+          name: git_automation_repo
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: '{git_automation_branch|master}'
+          description: >-
+            The git automation branch
+
+      - hidden:
+          name: os_cloud
+          default: '{os_cloud}'
+          description: >-
+            The target OpenStack cloud platform. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+      - hidden:
+          name: os_project_name
+          default: '{os_project_name|cloud-ci}'
+          description: >-
+            The name of the OpenStack project used to update the image and to
+            host the virtual cloud deployment used to run integration tests
+            in the 'os_cloud' OpenStack cloud platform.
+
+      - text:
+          name: extra_params
+          default: '{extra_params|}'
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${{git_automation_repo}}
+            branches:
+              - ${{git_automation_branch}}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/openstack-cloud-image-update.Jenkinsfile
+      lightweight-checkout: false

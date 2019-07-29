@@ -1,0 +1,12 @@
+  - barclamp: tempest
+    attributes:
+{% if 'manila' in deployments %}
+      manila:
+        image_password: linux
+{% endif %}
+{% if 'magnum' in deployments %}
+      magnum:
+        flavor_id: m1.smaller
+        master_flavor_id: m2.smaller
+{% endif %}
+{% include 'barclamps/lib/deployment.yml.j2' %}

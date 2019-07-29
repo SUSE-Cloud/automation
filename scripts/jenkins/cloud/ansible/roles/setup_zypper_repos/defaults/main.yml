@@ -1,0 +1,85 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+clouddata_server: "provo-clouddata.cloud.suse.de"
+repos_url: "http://{{ clouddata_server }}/repos/{{ ansible_architecture }}"
+is_milestone: "{{ cloudsource is match('cloud\\d(M\\d|RC\\d|GMC)') }}"
+built_from: "{{ repos_url}}/{{ base_repos.0 }}"
+media_build_version: "{{ cloud_media_build_version.content | b64decode }}"
+include_maint_update: "{{ (task == 'deploy' and not update_after_deploy) or (task == 'update') }}"
+
+# Media/repositories mapped by the cloudsource value
+cloudsource_repos:
+  stagingcloud7: "SUSE-OpenStack-Cloud-7-devel-staging"
+  develcloud7: "SUSE-OpenStack-Cloud-7-devel"
+  GM7: "SUSE-OpenStack-Cloud-7-Pool"
+  stagingcloud8: "SUSE-OpenStack-Cloud-8-devel-staging"
+  develcloud8: "SUSE-OpenStack-Cloud-8-devel"
+  GM8: "SUSE-OpenStack-Cloud-8-Pool"
+  hosdevelcloud8: "HPE-Helion-OpenStack-8-devel"
+  hosGM8: "HPE-Helion-OpenStack-8-Pool"
+  stagingcloud9: "SUSE-OpenStack-Cloud-9-devel-staging"
+  develcloud9: "SUSE-OpenStack-Cloud-9-devel"
+  GM9: "SUSE-OpenStack-Cloud-9-Pool"
+
+cloud_brand: "{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'SUSE-OpenStack-Cloud') }}"
+
+repository_mnemonics:
+  cloud7:
+    SLES-Pool: "SLES12-SP2-Pool"
+    SLES-Updates: "SLES12-SP2-Updates"
+    SLES-Updates-test: "SLES12-SP2-Updates-test"
+    Cloud-Updates: "{{ cloud_brand }}-7-Updates"
+    Cloud-Updates-test: "SUSE-OpenStack-Cloud-7-Updates-test"
+  cloud8:
+    SLES-Pool: "SLES12-SP3-Pool"
+    SLES-Updates: "SLES12-SP3-Updates"
+    SLES-Updates-test: "SLES12-SP3-Updates-test"
+    Cloud-Updates: "{{ cloud_brand }}-8-Updates"
+    Cloud-Updates-test: "SUSE-OpenStack-Cloud-8-Updates-test"
+  cloud9:
+    SLES-Pool: "SLES12-SP4-Pool"
+    SLES-Updates: "SLES12-SP4-Updates"
+    SLES-Updates-test: "SLES12-SP4-Updates-test"
+    Cloud-Updates: "SUSE-OpenStack-Cloud-9-Updates"
+    Cloud-Updates-test: "SUSE-OpenStack-Cloud-9-Updates-test"
+
+base_repos:
+  - "{{ cloudsource_repos[cloudsource | replace('+up', '')] }}"
+  - "{{ repository_mnemonics[cloud_release]['SLES-Pool'] }}"
+  - "{{ repository_mnemonics[cloud_release]['SLES-Updates'] }}"
+cloud_update_repos:
+  - "{{ repository_mnemonics[cloud_release]['Cloud-Updates'] }}"
+sles_test_repos:
+  - "{{ repository_mnemonics[cloud_release]['SLES-Updates-test'] }}"
+cloud_test_repos:
+  - "{{ repository_mnemonics[cloud_release]['Cloud-Updates-test'] }}"
+
+cloud_update_repos_enabled: "{{ '+up' in cloudsource }}"
+sles_test_repos_enabled: "{{ updates_test_enabled and ((task == 'deploy' and not (update_after_deploy and 'GM' in cloudsource)) or (task == 'update')) }}"
+cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource and ((task == 'deploy' and not update_after_deploy) or (task == 'update')) }}"
+
+repos_to_mount: "{{ repos_to_add | select('search', '.*-Pool$') | list }}"
+repos_to_sync: "{{ repos_to_add | difference(repos_to_mount) }}"
+
+extra_repos_list: "{{ extra_repos.split(',') if extra_repos is defined and extra_repos | length > 0 else [] }}"
+cloudsource_repo: "{{ (task == 'update' and cloudsource is defined and cloudsource != '') | ternary('Updates', 'Pool') }}"
+zypper_repo_name: "{{ item | regex_replace('devel.*', cloudsource_repo) }}"
+
+#media_versions
+ardana_media_version_src_file: "{{ local_repos_base_dir }}/{{ base_repos.0 | regex_replace('devel.*', 'Pool') }}/media.1/build"
+crowbar_media_version_src_file: "/etc/motd"

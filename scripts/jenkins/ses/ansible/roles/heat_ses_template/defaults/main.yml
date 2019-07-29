@@ -16,11 +16,11 @@
 ---
 
 heat_template_file: "./ses-stack-template.yml"
+heat_resource_name_prefix: "{{ ses_id }}-ses"
 
 floating_net: "floating"
 subnet_cidr: "192.168.200.0/24"
 server_image: "cleanvm-jeos-SLE12SP3"
-server_flavor: "m1.large"
-volume_size: "40"
-volume_mountpoint: "/dev/vdb"
+server_flavor: "cloud-ses"
 network: ""
+router: ""

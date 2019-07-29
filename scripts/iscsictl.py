@@ -205,8 +205,8 @@ class ISCSI(object):
 
         # Only append the line if is not there
         for line in lines:
-            if not re.search('^%s$' % line, cfg, re.MULTILINE):
-                self.ssh.echo('-e', line, '>> %s' % fname)
+            if not re.search('^%s$' % re.escape(line), cfg, re.MULTILINE):
+                self.ssh.echo('-e', "'%s'" % line, '>> %s' % fname)
 
     def remove_cfg(self, fname, lines):
         """Remove lines in a configuration file."""
@@ -319,17 +319,14 @@ class Target(ISCSI):
         self.ssh.lio_node('--disableauth', iqn, '1')
         self.ssh.lio_node('--enabletpg', iqn, '1')
 
-        # Persist configuration
-        print("Persisting configuration ...")
-        self.ssh.tcm_dump('--b=OVERWRITE')
-
-        # Add in /etc/rc.d/boot.local
+        # Add in /etc/target/tcm_start.sh
         if self.device.startswith('/dev/loop'):
-            print("Adding loopback to boot.local ...")
+            print("Adding loopback to target service startup ...")
             lines = (
-                'losetup %s %s' % (self.device, self.path),
+                '[[ $(losetup -j %s) == "%s"* ]] || losetup %s %s' % (
+                    self.path, self.device, self.device, self.path),
             )
-            self.append_cfg('/etc/rc.d/boot.local', lines)
+            self.append_cfg('/etc/target/tcm_start.sh', lines)
 
         # Check if the device is exported
         print("Checking that the target is exported ...")
@@ -386,12 +383,11 @@ class Initiator(ISCSI):
         try:
             self.target_ssh.lio_node('--dellunacl', iqn, '1',
                                      initiator, '0')
-        except:
+        except Exception:
             pass
         finally:
             self.target_ssh.lio_node('--addlunacl', iqn, '1',
                                      initiator, '0', '0')
-            self.target_ssh.tcm_dump('--b=OVERWRITE')
 
         # Discovery and login
         print("Initiator discovery and login ...")

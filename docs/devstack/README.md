@@ -70,11 +70,31 @@ To boot `devstack` on SLES 12 SP3 using modified versions of
         -t scripts/heat/devstack-heat-template.yaml \
         --parameter key_name=$KEY_NAME \
         --parameter image_name=SLES12-SP3-JeOS.x86_64 \
-        --parameter qa_devstack_fork=$USER
-        --parameter qa_devstack_branch=devstack-sle
+        --parameter automation_fork=$USER
+        --parameter automation_branch=devstack-sle
         --parameter devstack_fork=$USER
         --parameter devstack_branch=sles-support \
         $USER-devstack-sles12-sp3
+
+You can also set the `devstack_extra_config` parameter to pass extra
+config to be placed in devstack's `local.conf`.  This can be done
+similarly to above via `--parameter devstack_extra_config=...`, but if
+the desired extra config is multi-line, it's slightly cleaner to do it
+by first creating [an environment
+file](https://docs.openstack.org/heat/rocky/template_guide/environment.html),
+e.g.:
+
+    cat <<EOF >devstack-branch-env.yaml
+    parameters:
+      devstack_extra_config: |
+        NOVA_REPO=https://review.opendev.org/p/openstack/nova
+        NOVA_BRANCH=refs/changes/50/5050/1
+    EOF
+
+Then adding `-e devstack-branch-env.yaml` to your `openstack stack
+create` command would cause a particular Gerrit review branch of nova
+to be checked out instead of `master`, as [described in the `devstack`
+documentation](https://docs.openstack.org/devstack/latest/configuration.html#service-repos).
 
 There are more parameters available; details are available inside [the
 heat template](../../scripts/heat/devstack-heat-template.yaml) itself,

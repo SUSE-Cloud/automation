@@ -1,0 +1,35 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Check MU URL
+  uri:
+    url: "http://{{ maintenance_updates_server }}/ibs/SUSE:/Maintenance:/{{ item }}/"
+    return_content: yes
+  loop: "{{ maint_updates_list }}"
+  delegate_to: "{{ cloud_env }}"
+  register: mu_url
+
+
+- name: Add MU zypper repositories - Crowbar on {{ inventory_hostname }}
+  zypper_repository:
+    name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
+    repo: "{{ deployer_repo_base_url }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
+    runrefresh: yes
+    state: present
+  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
+  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+

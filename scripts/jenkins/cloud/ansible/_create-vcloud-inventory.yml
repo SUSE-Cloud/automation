@@ -1,0 +1,27 @@
+---
+
+- name: Create temp inventory with all non-admin virtual nodes
+  hosts: "{{ cloud_env }}"
+  gather_facts: False
+  vars:
+    virtual_hosts:
+      - group: controller
+        ips: "{{ hostvars['localhost'].controller_conf_ips | difference([hostvars['localhost'].admin_conf_ip]) }}"
+      - group: compute
+        ips: "{{ hostvars['localhost'].compute_conf_ips }}"
+
+  tasks:
+    - name: Create temp inventory with all non-admin virtual nodes
+      add_host:
+        name: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }}"
+        ansible_host: "{{ item.1 }}"
+        ansible_password: "linux"
+        group: "{{ item.0.group }}, cloud_virt_hosts"
+        ansible_ssh_common_args: >
+          -o ProxyCommand='ssh -o UserKnownHostsFile=/dev/null -o
+          StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[cloud_env].ansible_host }}'
+          -o ControlPath='~/.ansible/cp/{{ cloud_env }}-%r@%h:%p'
+      loop: "{{ virtual_hosts | subelements('ips') }}"
+      loop_control:
+        label: "{{ item.0.group }}{{ item.0.ips.index(item.1) + 1 }} - {{ item.1 }}"
+

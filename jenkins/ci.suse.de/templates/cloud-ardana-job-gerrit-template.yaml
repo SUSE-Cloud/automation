@@ -2,7 +2,6 @@
     name: '{ardana_gerrit_job}'
     project-type: pipeline
     concurrent: true
-    node: cloud-trigger
     disabled: '{obj:disabled|False}'
 
     logrotate:
@@ -14,8 +13,8 @@
     parameters:
 
       - validating-string:
-          name: ardana_env
-          default: '{ardana_env|}'
+          name: cloud_env
+          default: '{cloud_env|}'
           regex: '[A-Za-z0-9-_]+'
           msg: >-
             Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
@@ -24,14 +23,93 @@
             be set to one of the values associated with the known hardware environments
             (e.g. qe101), or to a value that will identify the created virtual environment.
 
-            WARNING: if a virtual environment associated with the supplied ardana_env already
+            WARNING: if a virtual environment associated with the supplied cloud_env already
             exists, it will be replaced.
 
       - bool:
           name: reserve_env
           default: '{reserve_env|true}'
           description: >-
-            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+            Reserve the 'cloud_env' lockable resource throughout the execution of this job
+
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The target OpenStack cloud platform used as infrastructure for a
+            virtual cloud deployment. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+            If the 'cloud_env' value (or the the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'os_cloud' parameter is overridden to reflect the OpenStack platform associated with it.
+
+      - validating-string:
+          name: GERRIT_CHANGE_NUMBER
+          default: ''
+          regex: '([0-9]+)'
+          msg: The entered value failed validation
+          description: >-
+            A Gerrit change number to test (the latest available patchset number is assumed).
+
+            For jobs triggered by Gerrit, the Gerrit change number and patchset number are
+            extracted from the GERRIT_CHANGE_NUMBER and GERRIT_PATCHSET_NUMBER environment
+            variables set by the trigger, which override this parameter.
+
+      - validating-string:
+          name: gerrit_context
+          default: '{gerrit_context}'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            Unique job identifier. This string label uniquely identifies a job build within
+            the set of builds running against the same Gerrit change.
+
+            This value determines which of the job builds currently running for a Gerrit change
+            are superseded and automatically canceled when a new job build is started.
+            The rule is: there can be at most one job with a given 'gerrit_context' value running
+            at any given time for a Gerrit change, voting or otherwise.
+
+      - bool:
+          name: voting
+          default: '{voting|false}'
+          description: >-
+            Determines if this job posts Verified labels on target Gerrit changes.
+
+            NOTE: there can be at most one voting Gerrit job running for a Gerrit
+            change number. The most recent job will automatically abort those
+            that are already running for the same Gerrit change number.
+
+      - validating-string:
+          name: integration_test_job
+          default: '{integration_test_job}'
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed Jenkins job name (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The Ardana Jenkins integration job triggered to validate the Gerrit change.
+
+            NOTE: there can be at most one non-voting Gerrit job running the same
+            integration test job for a Gerrit change number. The most recent job
+            will automatically abort those that are already running for the same
+            Gerrit change number and integration test job.
+
+      - validating-string:
+          name: extra_repos
+          default: ''
+          regex: '((http(s)?:\/\/[^ ,]+)(,http(s)?:\/\/[^ ,]+)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of repository urls to be added on the deployer node
+
+            NOTE: The packages from those repositories will be available to all cloud nodes
+            through a repository with a higher priority, meaning that those packages will be
+            installed even if there is a newer package available on other repositories.
 
       - string:
           name: git_automation_repo
@@ -45,53 +123,38 @@
           description: >-
             The git automation branch
 
-      - validating-string:
-          name: gerrit_change_ids
-          default: '{gerrit_change_ids}'
-          regex: '([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*'
-          msg: The entered value failed validation
-          description: >-
-            A comma separated list of IDs for changes in gerrit.suse.provo.cloud
-            to test. The patchset may be supplied as part of the change ID in the form:
-
-               <change_number>[/<patchset_number>]
-
       - string:
-          name: cloudsource
-          default: '{cloudsource|develcloud9}'
+          name: os_project_name
+          default: ''
           description: >-
-            The cloud repository (from provo-clouddata) to be used for testing.
-            This value can take the following form:
+            The name of the OpenStack project that hosts the virtual cloud deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
 
-               stagingcloud<X> (Devel:Cloud:X:Staging)
-               develcloud<X> (Devel:Cloud:X)
-               GM<X> (official GM)
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'cloud-ci' OpenStack project used exclusively for the Cloud CI will be used
+            regardless of this parameter.
 
-      - bool:
-          name: ses_enabled
-          default: '{ses_enabled|false}'
-          description: Configure SES backend for glance, cinder, cinder-backup and nova
-
-      - bool:
-          name: ses_rgw_enabled
-          default: '{ses_rgw_enabled|false}'
-          description: |
-            Configure object-store service with RADOS Gateway. This only takes effect
-            if ses_enabled is set to true.
-
-      - string:
-          name: tempest_filter_list
-          default: '{tempest_filter_list|ci}'
+      - text:
+          name: extra_params
+          default:
           description: >-
-            Name of the filter file to use for tempest. Use an empty value to
-            skip running tempest.
+            This field may be used to define additional parameters, one per line, in the form:
 
-      - string:
-          name: os_cloud
-          default: '{os_cloud|engcloud-cloud-ci-private}'
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+      - hidden:
+          name: version
+          default: '{version}'
           description: >-
-            The OpenStack API credentials used to manage virtual clouds (leave
-            empty to use the default shared 'cloud' ECP account).
+            Cloud version number (8, 9 etc.)
 
     pipeline-scm:
       scm:

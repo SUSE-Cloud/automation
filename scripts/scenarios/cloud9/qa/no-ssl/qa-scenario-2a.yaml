@@ -14,20 +14,27 @@ proposals:
           "@@controller2@@":
             devices:
             - "@@sbd_device_services@@"
+          "@@controller3@@":
+            devices:
+            - "@@sbd_device_services@@"
       per_node:
         nodes:
           "@@controller1@@":
             params: ''
           "@@controller2@@":
             params: ''
+          "@@controller3@@":
+            params: ''
   deployment:
     elements:
       pacemaker-cluster-member:
       - "@@controller1@@"
       - "@@controller2@@"
+      - "@@controller3@@"
       hawk-server:
       - "@@controller1@@"
       - "@@controller2@@"
+      - "@@controller3@@"
 
 - barclamp: pacemaker
   name: data
@@ -42,56 +49,30 @@ proposals:
           "@@data2@@":
             devices:
             - "@@sbd_device_data@@"
+          "@@data3@@":
+            devices:
+            - "@@sbd_device_data@@"
       per_node:
         nodes:
           "@@data1@@":
             params: ''
           "@@data2@@":
             params: ''
+          "@@data3@@":
+            params: ''
   deployment:
     elements:
       pacemaker-cluster-member:
       - "@@data1@@"
       - "@@data2@@"
+      - "@@data3@@"
       hawk-server:
       - "@@data1@@"
       - "@@data2@@"
+      - "@@data3@@"
 
-- barclamp: pacemaker
-  name: network
-  attributes:
-    stonith:
-      mode: sbd
-      sbd:
-        nodes:
-          "@@network1@@":
-            devices:
-            - "@@sbd_device_network@@"
-          "@@network2@@":
-            devices:
-            - "@@sbd_device_network@@"
-      per_node:
-        nodes:
-          "@@network1@@":
-            params: ''
-          "@@network2@@":
-            params: ''
-  deployment:
-    elements:
-      pacemaker-cluster-member:
-      - "@@network1@@"
-      - "@@network2@@"
-      hawk-server:
-      - "@@network1@@"
-      - "@@network2@@"
 
 - barclamp: database
-  attributes:
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_database##
-          fstype: nfs
   deployment:
     elements:
       database-server:
@@ -177,7 +158,7 @@ proposals:
       neutron-server:
       - cluster:services
       neutron-network:
-      - cluster:network
+      - cluster:services
 
 - barclamp: nova
   attributes:
@@ -200,12 +181,6 @@ proposals:
       nova-compute-qemu: []
       nova-compute-xen: []
 
-# Because neutron and nova are deployed on different clusters, we need
-# to commit neutron proposal again after nova to pick up the nova authentication
-- barclamp: neutron
-  attributes:
-    use_lbaas: true
-
 - barclamp: horizon
   attributes:
   deployment:
@@ -219,20 +194,7 @@ proposals:
     elements:
       heat-server:
       - cluster:services
-
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
-
+      
 - barclamp: manila
   attributes:
     default_share_type: default
@@ -254,6 +216,7 @@ proposals:
       manila-share:
       - "@@data1@@"
       - "@@data2@@"
+      - "@@data3@@"
 
 - barclamp: tempest
   attributes:

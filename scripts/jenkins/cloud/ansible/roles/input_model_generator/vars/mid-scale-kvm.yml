@@ -1,0 +1,44 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+# Scenario parameters and default values
+core_nodes: 2
+lmm_nodes: "{{ (cloud_product == 'ardana') | ternary(3, 1) }}"
+dbmq_nodes: 3
+swift_nodes: 3
+neutron_nodes: 2
+computes: 2
+rhel_computes: 0
+
+scenario:
+  name: mid-scale-kvm
+  cloud_name: mid-scale-kvm
+  description: >
+    Multi-cluster scenario with all services enabled, {{ clm_model }} CLM node, dedicated
+    clusters with {{ core_nodes }} core nodes, {{ dbmq_nodes }} database/rabbitmq nodes, {{ neutron_nodes }} neutron
+    agent nodes, {{ swift_nodes }} swift nodes, {{ lmm_nodes }} LMM nodes and with {{ computes }} SLES compute nodes
+    and {{ rhel_computes }} RHEL compute nodes.
+  audit_enabled: False
+  use_cinder_volume_disk: False
+  use_glance_cache_disk: False
+  availability_zones: "{{ availability_zones }}"
+  rack_networks_enabled: "{{ is_physical_deploy }}"
+
+  service_template: full-spread
+  network_template: "{{ (cloud_product == 'ardana') | ternary('full-spread', 'crowbar') }}"
+  disk_template: full-spread
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('full-spread', 'crowbar') }}"

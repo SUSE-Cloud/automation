@@ -2,13 +2,6 @@
     name: openstack-ardana-testbuild-gerrit
     project-type: pipeline
     concurrent: true
-    wrappers:
-      - timestamps
-      - timeout:
-          timeout: 20
-          type: no-activity
-          abort: true
-          write-description: "Job aborted due to 20 minutes of inactivity."
 
     logrotate:
       numToKeep:  300
@@ -35,7 +28,7 @@
           name: gerrit_change_ids
           default:
           description: >-
-            A comma separated list of IDs for changes in gerrit.suse.provo.cloud
+            A comma separated list of IDs for changes in gerrit.prv.suse.net
             to test. The patchset may be supplied as part of the change ID in the form:
 
                <change_number>[/<patchset_number>]
@@ -57,6 +50,20 @@
           default: master
           description: The git automation branch
 
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
     pipeline-scm:
       scm:
         - git:
@@ -67,10 +74,3 @@
             wipe-workspace: false
       script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
       lightweight-checkout: false
-
-    publishers:
-      - workspace-cleanup:
-          clean-if:
-            - failure: false
-            - aborted: false
-            - unstable: false

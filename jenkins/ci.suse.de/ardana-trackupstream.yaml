@@ -70,19 +70,17 @@
           name: label
           values:
             - openstack-trackupstream
-    # execution-strategy:
-    #   combination-filter: |
-    #     !(
-    #       (
-    #         [
-    #           "Devel:Cloud:8:Staging"
-    #         ].contains(project) &&
-    #         [
-    #           "XXX"
-    #         ].contains(component)
-    #       )
-
-    #     )
-    #   sequential: true
+    execution-strategy:
+      combination-filter: |
+        !(
+          (
+            [
+              "Devel:Cloud:9:Staging"
+            ].contains(project) &&
+            [
+              "ardana-freezer"
+            ].contains(component)
+          )
+        )
     builders:
       - trackupstream

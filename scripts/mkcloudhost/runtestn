@@ -3,8 +3,8 @@ n=$1
 shift
 [ -z "$n" ] && echo usage: "$0 NUM" && exit 55
 if [ $n -lt 1 -o $n -gt 39 ] ; then
-  echo "$n out of range"
-  exit 56
+    echo "$n out of range"
+    exit 56
 fi
 
 # workaround libvirtd disappearance:

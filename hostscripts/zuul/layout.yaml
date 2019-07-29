@@ -33,12 +33,13 @@ pipelines:
 projects:
   - name: openstack/rpm-packaging
     rpm-packaging:
-      - openstack-rpm-packaging-sles12-Master
+      - openstack-rpm-packaging-sles15-Master
       - openstack-rpm-packaging-sles12-Newton
       - openstack-rpm-packaging-sles12-Ocata
       - openstack-rpm-packaging-sles12-Pike
       - openstack-rpm-packaging-sles12-Queens
       - openstack-rpm-packaging-sles12-Rocky
+      - openstack-rpm-packaging-sles15-Stein
     post-rpm-packaging:
       - openstack-rpm-packaging-update-Master
       - openstack-rpm-packaging-update-Newton
@@ -46,12 +47,13 @@ projects:
       - openstack-rpm-packaging-update-Pike
       - openstack-rpm-packaging-update-Queens
       - openstack-rpm-packaging-update-Rocky
+      - openstack-rpm-packaging-update-Stein
 
 jobs:
-  - name: openstack-rpm-packaging-sles12-Master
+  - name: openstack-rpm-packaging-sles15-Master
     branch: master
-    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Master-{build.build_set.commit}
-    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Master-{build.build_set.commit}
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Master-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Master-{build.build_set.commit}
 
   - name: openstack-rpm-packaging-sles12-Newton
     branch: stable/newton
@@ -78,6 +80,11 @@ jobs:
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Rocky-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles12-Rocky-{build.build_set.commit}
 
+  - name: openstack-rpm-packaging-sles15-Stein
+    branch: stable/stein
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Stein-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Stein-{build.build_set.commit}
+
   - name: openstack-rpm-packaging-update-Master
     branch: master
 
@@ -98,3 +105,6 @@ jobs:
 
   - name: openstack-rpm-packaging-update-Rocky
     branch: stable/rocky
+
+  - name: openstack-rpm-packaging-update-Stein
+    branch: stable/stein

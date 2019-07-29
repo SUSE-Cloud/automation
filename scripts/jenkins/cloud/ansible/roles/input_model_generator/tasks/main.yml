@@ -1,0 +1,83 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Load variables for {{ cloud_product }}
+  include_vars: "product/{{ cloud_product }}.yml"
+
+- name: Gather variables for scenario '{{ scenario_name }}'
+  include_vars: "{{ scenario_name }}.yml"
+
+- set_fact:
+    scenario: "{{ scenario|combine(lookup('template', 'vars/templates/{{ item }}/' ~ scenario[item ~ '_template'] ~ '.yml') | from_yaml) }}"
+  loop:
+    - "service"
+    - "network"
+    - "interface"
+    - "disk"
+  when: "item ~ '_template' in scenario"
+
+- include_tasks: get_qe_bm_info.yml
+  when: is_physical_deploy | bool
+
+- name: Create directories
+  file:
+    path: "{{ input_model_path }}/{{ item.path }}"
+    state: directory
+    mode: "{{ item.mode }}"
+  with_filetree: "templates/input_model/"
+  when: item.state == "directory"
+  loop_control:
+    label: "{{ item.root | relpath }}/{{ item.path }}"
+
+- name: Template files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ input_model_path }}/{{ item.path }}"
+    mode: "{{ item.mode }}"
+  with_filetree: "templates/input_model/"
+  when: item.state == "file"
+  loop_control:
+    label: "{{ item.root | relpath }}/{{ item.path }}"
+
+- name: Generate virtual config
+  template:
+    src: "templates/virtConfig.yml"
+    dest: "{{ virt_config_file }}"
+  when:
+    - not is_physical_deploy
+    - virt_config_file != ''
+    - not want_caasp
+
+- name: Remove versioned features from input model when not enabled
+  replace:
+    path: "{{ input_model_path }}/data/control_plane.yml"
+    regexp: '(.*{{ item }}.*)'
+    replace: '#\1'
+  when: not versioned_features[item].enabled
+  loop: "{{ input_model_versioned_features }}"
+
+- name: Generate mkcloud.config
+  template:
+    src: "mkcloud.config.j2"
+    dest: "{{ mkcloud_config_file }}"
+  when: cloud_product == 'crowbar'
+
+- name: Generate crowbar batch
+  template:
+    src: "scenario.yml.j2"
+    dest: "{{ crowbar_batch_file }}"
+  when: cloud_product == 'crowbar'

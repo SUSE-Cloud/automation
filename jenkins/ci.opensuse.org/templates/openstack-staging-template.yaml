@@ -1,0 +1,28 @@
+- job-template:
+    name: 'openstack-staging-{release}'
+    node: cloud-trigger
+    disabled: '{obj:disabled|False}'
+
+    triggers:
+      - timed: 'H 4 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 10
+
+    builders:
+      - trigger-builds:
+        - project: openstack-prepare-staging
+          block: true
+          predefined-parameters:
+            openstack_project={release}
+      - trigger-builds:
+        - project: openstack-cleanvm-{release}
+          block: true
+
+    publishers:
+      - trigger-parameterized-builds:
+        - project: openstack-submit
+          condition: SUCCESS
+          predefined-parameters:
+            openstack_project={release}

@@ -35,16 +35,20 @@ parameters:
     description: Set to 'True' to run Tempest tests.  Defaults to 'False'.
     default: False
 
-  qa_devstack_fork:
+  automation_fork:
     type: string
     label: qa_devstack.sh fork
-    description: GitHub user/organization from which to fetch qa_devstack.sh
+    description: >-
+      GitHub user/organization from which to fetch the automation repo
+      which contains qa_devstack.sh.
     default: SUSE-Cloud
 
-  qa_devstack_branch:
+  automation_branch:
     type: string
     label: qa_devstack.sh branch
-    description: GitHub branch from which to fetch qa_devstack.sh
+    description: >-
+      GitHub branch from which to fetch the automation repo
+      which contains qa_devstack.sh.
     default: master
 
   devstack_fork:
@@ -58,6 +62,15 @@ parameters:
     label: devstack branch
     description: GitHub branch from which to fetch devstack
     default: master
+
+  devstack_extra_config:
+    type: string
+    label: devstack extra config
+    description: >-
+      Extra configuration to put in local.conf.  Config starts off
+      under the [[local|localrc]] header, but other headers can be
+      specified for text following them.
+    default:
 
 conditions:
   skip_tempest_res:
@@ -174,18 +187,19 @@ resources:
                   https://raw.githubusercontent.com/$fork/automation/$branch/scripts/jenkins/qa_devstack.sh
               params:
                 $fork:
-                  get_param: qa_devstack_fork
+                  get_param: automation_fork
                 $branch:
-                  get_param: qa_devstack_branch
+                  get_param: automation_branch
           - chmod 755 /home/stack/qa_devstack.sh
 
           - chown -R stack:stack /home/stack
           - str_replace:
               template: |
-                HOME=/root \
-                DISABLE_TEMPESTRUN=$tempest \
-                DEVSTACK_FORK=$fork \
-                DEVSTACK_BRANCH=$branch \
+                export HOME=/root
+                export DISABLE_TEMPESTRUN=$tempest
+                export DEVSTACK_FORK=$fork
+                export DEVSTACK_BRANCH=$branch
+                export DEVSTACK_EXTRA_CONFIG="$extra"
                 /home/stack/qa_devstack.sh # ipv6
               params:
                 $fork:
@@ -194,6 +208,8 @@ resources:
                   get_param: devstack_branch
                 $tempest:
                   if: ["skip_tempest_res", "yes", ""]
+                $extra:
+                  get_param: devstack_extra_config
 
 outputs:
   # floating IP address of the admin node

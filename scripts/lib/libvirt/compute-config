@@ -47,9 +47,11 @@ def main():
                         help="Local Repository Directory Target")
     parser.add_argument("--ipmi", action='store_true',
                         help="Whether to simulate IPMI BMC devices")
+    parser.add_argument("--pcipassthrough", action='store_true',
+                        help="Whether to simulate PCI passthrough devices")
     args = parser.parse_args()
 
-    print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags()))
+    print(libvirt_setup.compute_config(args, libvirt_setup.cpuflags(args.pcipassthrough)))
 
 
 if __name__ == "__main__":

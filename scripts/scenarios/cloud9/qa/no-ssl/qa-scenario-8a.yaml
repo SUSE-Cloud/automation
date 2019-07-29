@@ -172,26 +172,10 @@ proposals:
       heat-server:
       - cluster:services
 
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm@@"
-      - "@@monasca-server@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
-
 - barclamp: monasca
   attributes:
   deployment:
     elements:
-      monasca-master:
-      - "@@crowbar@@"
       monasca-server:
       - "@@monasca-server@@"
       monasca-log-agent:
@@ -210,6 +194,20 @@ proposals:
       - "@@storage-swift1@@"
       - "@@storage-swift2@@"
       - "@@monasca-server@@"
+
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@compute-kvm@@"
+      - "@@monasca-server@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-central:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
 
 - barclamp: tempest
   attributes:

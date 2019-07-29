@@ -1,0 +1,70 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- import_playbook: _create-vcloud-inventory.yml
+
+- name: Bootstrap crowbar cloud nodes
+  hosts: cloud_virt_hosts
+  any_errors_fatal: true
+  remote_user: root
+  # NOTE: don't gather facts before nodes become accessible
+  gather_facts: false
+  vars:
+    task: "deploy"
+
+  tasks:
+    - block:
+        - name: Wait for cloud nodes to be accessible
+          wait_for:
+            host: "{{ ansible_ssh_host }}"
+            port: 22
+            search_regex: OpenSSH
+            state: started
+            delay: 10
+          register: _connection
+
+        - name: Fail if one or more hosts are unreacheable
+          fail:
+          when: hostvars[item]['_connection']['failed']
+          loop: "{{ ansible_play_hosts_all }}"
+          run_once: True
+
+        - name: Gather facts
+          setup:
+
+        - include_role:
+            name: setup_root_partition
+
+        # FIXME: remove everything but eth0 ifcfg files from base image
+        # This is needed because crowbar_register fails if there are
+        # ifcfg files configured for non-existing interfaces
+        - name: Remove unused ifcfg files
+          shell: rm --force --verbose /etc/sysconfig/network/ifcfg-eth[1-9]*
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+            apply:
+              delegate_to: "{{ cloud_env }}"
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."

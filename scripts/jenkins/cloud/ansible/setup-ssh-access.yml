@@ -1,0 +1,113 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Prepare first time deployer access
+  hosts: "localhost"
+  gather_facts: false
+  vars:
+    task: "deploy"
+
+  tasks:
+    - block:
+        - name: Get vcloud node(s) IP(s) when heat output not available and virtual deploy
+          command: |
+             openstack --os-cloud "{{ os_cloud }}" --os-project-name {{ os_project_name }} \
+               stack output show {{ heat_stack_name }} {{ item }} -c output_value -f value
+          loop: "{{ cli_stack_queries }}"
+          register: "os_stack_output"
+          when:
+            - not is_physical_deploy
+            - heat_stack_output is not defined
+
+        - name: Store vcloud IP(s) when virtual deploy
+          set_fact:
+            "{{ item.item | replace('-', '_') }}": "{{ (item.stdout == 'None') | ternary([], item.stdout | from_yaml) }}"
+            cacheable: True
+          loop: "{{ (heat_stack_output is defined) | ternary(heat_stack_output_queries, os_stack_output.results) }}"
+          loop_control:
+            label: "{{ item.item | replace('-', '_') }}: {{ ('stdout' in item and item.stdout == 'None') | ternary([], item.stdout | default('') | from_yaml) }}"
+          when: not is_physical_deploy
+
+        - name: Ensure deployer on ansible inventory file when virtual deploy
+          blockinfile:
+            path: "inventory"
+            insertafter: "\\[deployer_virt\\]"
+            marker: "# {mark} ANSIBLE MANAGED BLOCK - ARDANA"
+            block: |
+              {{ cloud_env }}      ansible_host={{ admin_floating_ip }}
+          when: not is_physical_deploy
+
+        - name: Configure first time deployer access
+          add_host:
+            name: "{{ cloud_env }}"
+            ansible_host: "{{ is_physical_deploy | ternary(omit, admin_floating_ip) }}"
+            ansible_password: "linux"
+
+        - name: Remove local ssh host key for admin floating IP
+          known_hosts:
+            name: "{{ admin_floating_ip }}"
+            state: absent
+          failed_when: False
+          when: not is_physical_deploy
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+
+
+- name: Ensure public keys on deployer
+  hosts: "{{ cloud_env }}"
+  remote_user: root
+  # NOTE: don't gather facts before deployer becomes accessible
+  gather_facts: false
+  vars:
+    task: "deploy"
+
+  tasks:
+    - block:
+        - name: Wait for deployer to be accessible
+          wait_for:
+            host: "{{ ansible_ssh_host }}"
+            port: 22
+            search_regex: OpenSSH
+            state: started
+            delay: 10
+
+        - name: Gather facts
+          setup:
+
+        - include_role:
+            name: ssh_keys
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."

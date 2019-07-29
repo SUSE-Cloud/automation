@@ -3,7 +3,7 @@
     concurrent: false
     triggers:
       - gerrit:
-          server-name: 'gerrit.suse.provo.cloud'
+          server-name: 'gerrit.prv.suse.net'
           trigger-on:
             - change-merged-event
             - patchset-created-event:
@@ -16,9 +16,12 @@
           silent: true
           projects:
             - project-compare-type: 'REG_EXP'
-              project-pattern: !include-raw: gerrit-project-regexp.txt
+              project-pattern: !include-raw: gerrit-project-regexp-cloud9.txt
               branches:
                 - branch-pattern: master
+            - project-compare-type: 'REG_EXP'
+              project-pattern: !include-raw: gerrit-project-regexp-cloud8.txt
+              branches:
                 - branch-pattern: stable/pike
     wrappers:
       - workspace-cleanup
@@ -27,7 +30,7 @@
       numToKeep: -1
       daysToKeep: 30
 
-    node: cloud-pipeline
+    node: cloud-ci-trigger
 
     parameters:
       - string:
@@ -54,14 +57,16 @@
 
           git clone $git_automation_repo --branch $git_automation_branch automation-git
 
+          source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
+
           if [[ -n $GERRIT_EVENT_TYPE ]]; then
               if [[ $GERRIT_EVENT_TYPE == 'change-merged' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} merged
+                  run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} merged
               elif [[ $GERRIT_EVENT_TYPE == 'patchset-created' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} updated
+                  run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_handle_event.py ${GERRIT_CHANGE_NUMBER} updated
               elif [[ $GERRIT_EVENT_TYPE == 'comment-added' ]]; then
-                  automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
+                  run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
               fi
           else
-              automation-git/scripts/jenkins/ardana/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
+              run_python_script automation-git/scripts/jenkins/cloud/gerrit/gerrit_merge.py ${GERRIT_CHANGE_NUMBER}
           fi

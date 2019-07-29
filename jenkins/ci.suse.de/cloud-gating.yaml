@@ -1,0 +1,121 @@
+- project:
+    name: cloud-gating-trigger
+    url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
+    projects:
+      - project: 'cloud-{version}-gating'
+        block: false
+    cloud_url_trigger_job:
+      - cloud-8-gating-trigger:
+          version: '8'
+      - cloud-9-gating-trigger:
+          version: '9'
+    jobs:
+        - '{cloud_url_trigger_job}'
+
+- project:
+    name: cloud-gating
+    concurrent: False
+    cloud_env: 'cloud-gate{version}-slot'
+    cloud_gating_job:
+      - cloud-8-gating:
+          version: '8'
+      - cloud-9-gating:
+          version: '9'
+    jobs:
+        - '{cloud_gating_job}'
+
+- project:
+    name: cloud-ardana-job-gate-entry-scale-kvm-x86_64
+    reserve_env: false
+    updates_test_enabled: true
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    computes: '2'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    extra_params: |
+      tempest_retry_failed=True
+      update_services_serial=False
+    triggers: []
+    ardana_job:
+      - cloud-ardana8-job-gate-entry-scale-kvm-deploy-x86_64:
+          cloudsource: stagingcloud8
+          update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
+            designate,heat,ceilometer,magnum,freezer,monasca"
+      - cloud-ardana8-job-gate-entry-scale-kvm-update-x86_64:
+          cloudsource: develcloud8
+          update_cloudsource: stagingcloud8
+          update_after_deploy: true
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
+            designate,heat,ceilometer,magnum,freezer,monasca"
+      - cloud-ardana9-job-gate-entry-scale-kvm-deploy-x86_64:
+          cloudsource: stagingcloud9
+          update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
+            designate,heat,magnum,monasca"
+      - cloud-ardana9-job-gate-entry-scale-kvm-update-x86_64:
+          cloudsource: develcloud9
+          update_cloudsource: stagingcloud9
+          update_after_deploy: true
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
+            designate,heat,magnum,monasca"
+    jobs:
+        - '{ardana_job}'
+
+
+- project:
+    name: cloud-crowbar-job-gate-no-ha-x86_64
+    reserve_env: false
+    updates_test_enabled: true
+    reboot_after_deploy: true
+    scenario_name: standard
+    controllers: '1'
+    computes: '2'
+    triggers: []
+    crowbar_job:
+      - cloud-crowbar7-job-gate-no-ha-deploy-x86_64:
+          cloudsource: stagingcloud7
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar8-job-gate-no-ha-deploy-x86_64:
+          cloudsource: stagingcloud8
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar9-job-gate-no-ha-deploy-x86_64:
+          cloudsource: stagingcloud9
+          ses_enabled: true
+          update_after_deploy: false
+    jobs:
+        - '{crowbar_job}'
+
+
+- project:
+    name: cloud-crowbar-job-gate-ha-x86_64
+    reserve_env: false
+    updates_test_enabled: false
+    reboot_after_deploy: true
+    scenario_name: standard
+    controllers: '3'
+    computes: '2'
+    triggers: []
+    crowbar_job:
+      - cloud-crowbar7-job-gate-ha-deploy-x86_64:
+          cloudsource: stagingcloud7
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar8-job-gate-ha-deploy-x86_64:
+          cloudsource: stagingcloud8
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar9-job-gate-ha-deploy-x86_64:
+          cloudsource: stagingcloud9
+          ses_enabled: true
+          update_after_deploy: false
+    jobs:
+        - '{crowbar_job}'

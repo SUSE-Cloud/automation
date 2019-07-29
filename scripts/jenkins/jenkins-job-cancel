@@ -18,17 +18,12 @@
 # Cancels all running builds with the supplied parameter values except the
 # most recent one, via the API.
 
+import argparse
 import jenkins
 import json
 import os
 import sys
-
-
-def usage():
-    print("Error: No job name defined as first parameter.\n" +
-              "Add parameters as needed:\n" +
-              "  jenkins-job-cancel <job_name> [ para1=val1 [ para2=val2 ]... ]")
-    sys.exit(1)
+import time
 
 
 def get_build_params(build):
@@ -47,15 +42,15 @@ def get_build_params(build):
             if elem.get('_class') == 'hudson.model.ParametersAction':
                 parameters = elem.get('parameters', {})
                 break
-        return set([(str(pair['name']), str(pair.get('value')),) for pair in parameters])
 
+        return set([(pair['name'],
+                     u"{0}".format(pair.get('value')),)
+                    for pair in parameters])
     return set()
 
 
-def jenkins_cancel_job(job_name, job_args=[]):
-    if not job_name:
-        usage()
-
+def jenkins_cancel_job(job_name, job_args=[], older_than=None,
+                       dry_run=False, wait=0):
     config_files = ('/etc/jenkinsapi.conf', './jenkinsapi.conf')
     config = dict()
     job_parameters = set()
@@ -67,7 +62,8 @@ def jenkins_cancel_job(job_name, job_args=[]):
             config.update(json.load(f))
 
     if not config:
-        print('Error: No config file could be loaded. Please create either of: %s' %
+        print('Error: No config file could be loaded. '
+              'Please create either of: %s' %
               ', '.join(config_files))
         sys.exit(1)
 
@@ -80,25 +76,66 @@ def jenkins_cancel_job(job_name, job_args=[]):
                              password=config['jenkins_api_token'])
 
     job_info = server.get_job_info(job_name)
-    skipped_latest_build = False
+    stopped_jobs = []
     for build in job_info['builds']:
         build = server.get_build_info(job_name, build['number'])
-        if build['building']:
-            if job_parameters and \
-               job_parameters.issubset(get_build_params(build)):
-                if not skipped_latest_build:
-                    skipped_latest_build = True
-                    continue
-                server.stop_build(job_name, build['number'])
+        if not build['building']:
+            continue
+        if older_than and build['number'] >= older_than:
+            continue
+        if not job_parameters or \
+           not job_parameters.issubset(get_build_params(build)):
+            continue
+
+        print('Stopping job {}/{}'.format(
+            job_name, build['number']
+        ))
+        if not dry_run:
+            server.stop_build(job_name, build['number'])
+            stopped_jobs.append(build['number'])
+
+    while wait > 0:
+        for stopped_job in stopped_jobs:
+            build = server.get_build_info(job_name, stopped_job)
+            if build['building']:
+                print('Waiting for job {}/{} to stop...'.format(
+                    job_name, stopped_job
+                ))
+                break
+        else:
+            break
+        time.sleep(30)
+        wait -= 10
 
 
 def main():
-    if len(sys.argv) < 2:
-        usage()
-    args = list()
-    if len(sys.argv) > 2:
-        args.extend(sys.argv[2:])
-    jenkins_cancel_job(sys.argv[1], args)
+
+    parser = argparse.ArgumentParser(
+        description='Cancel one or more running Jenkins jobs')
+    parser.add_argument('job', default=os.environ.get('JOB_NAME'), nargs='?',
+                        help='the Jenkins job name. If not supplied, the '
+                             'JOB_NAME environment variable is used.')
+    parser.add_argument('-p', '--with-param', action='append',
+                        required=False, default=[],
+                        help='Parameter name-regexp pair used to filter jobs'
+                             '(e.g. some_param=some-regexp)')
+    parser.add_argument('--older-than-build', type=int,
+                        help="Only cancel builds older than the indicated "
+                             "build number.")
+    parser.add_argument('--wait', type=int, default=0,
+                        help="Number of seconds to wait until jobs are "
+                             "stopped.")
+    parser.add_argument('--dry-run', default=False, action='store_true',
+                        help='do a dry run')
+    args = parser.parse_args()
+
+    if not args.job:
+        print("Error: Job name could not be determined from the JOB_NAME "
+              "environment variable.")
+        sys.exit(1)
+
+    jenkins_cancel_job(args.job, args.with_param,
+                       args.older_than_build, args.dry_run, args.wait)
 
 
 if __name__ == "__main__":

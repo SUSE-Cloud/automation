@@ -10,14 +10,17 @@ fi
 
 : ${MODE:=kvm}
 ARCH=$(uname -i)
-: ${repomirror:=http://download.opensuse.org}
+# Default is one mirror we know is updated fast enough instead of the
+# redirector because some mirrors lag and cause a checksum mismatch for rpms
+# that keep name and size and only change content.
+: ${repomirror:=http://downloadcontent.opensuse.org}
 : ${imagemirror:=http://149.44.161.38/images} # ci1-opensuse
-: ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.3.4/"
+: ${cirros_base_url:="$imagemirror"} # could also be "http://download.cirros-cloud.net/0.4.0/"
 cloudopenstackmirror=$repomirror/repositories/Cloud:/OpenStack:
 # if set to something, skip the base operating system repository setup
 : ${skip_reposetup:""}
 
-ifconfig | grep inet
+ip a
 
 # setup optional extra disk for cinder-volumes
 : ${dev_cinder:=/dev/vdb}
@@ -64,8 +67,19 @@ function get_dist_version() {
 }
 
 function addslesrepos {
-    $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
-    $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+    case "$VERSION" in
+    12.*)
+        $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
+        $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+        ;;
+    *)
+        for prod in SLE-Product-SLES SLE-Module-Basesystem SLE-Module-Legacy SLE-Module-Development-Tools SLE-Module-Server-Applications; do
+            $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/$prod/$REPOVER/x86_64/product/" $prod-$VERSION-Pool
+            $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/$prod/$REPOVER/x86_64/update/" $prod-$VERSION-Updates
+        done
+        ;;
+    esac
+
     case "$VERSION" in
         "12.2")
             $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER-LTSS/x86_64/update/" SLES$VERSION-LTSS-Updates
@@ -89,8 +103,15 @@ if [ -f "/etc/os-release" ]; then
     case "$DIST_NAME" in
         "SLES")
             IFS=. read major minor <<< $VERSION
-            REPO="SLE_${major}_SP${minor}"
-            REPOVER="${major}-SP${minor}"
+            # SLE15 do not have a minor version (SP1 will have then)
+            # /etc/os-release contains: VERSION="15"
+            if [ -z "$minor" ]; then
+                REPO="SLE_${major}"
+                REPOVER="${major}"
+            else
+                REPO="SLE_${major}_SP${minor}"
+                REPOVER="${major}-SP${minor}"
+            fi
             # FIXME for SLE15 to not have SP0
             addrepofunc=addslesrepos
         ;;
@@ -131,7 +152,7 @@ case "$cloudsource" in
         osrelease=${osrelease^}
         $zypper ar -G -f $cloudopenstackmirror/$osrelease/$REPO/ cloud
         if test -n "$OSHEAD" ; then
-            if [ "Rocky" = "$osrelease" ]; then
+            if [[ "$osrelease" =~ (Rocky|Stein) ]]; then
                 $zypper ar -G -f $cloudopenstackmirror/$osrelease:/ToTest/$REPO/ cloudhead
             else
                 $zypper ar -G -f $cloudopenstackmirror/$osrelease:/Staging/$REPO/ cloudhead
@@ -251,9 +272,9 @@ fi
 
 NOVA_FLAVOR="m1.nano"
 nova flavor-delete $NOVA_FLAVOR || :
-nova flavor-create $NOVA_FLAVOR 42 128 0 1
+nova flavor-create $NOVA_FLAVOR 42 128 1 1
 nova flavor-delete m1.micro || :
-nova flavor-create m1.micro 84 256 0 1
+nova flavor-create m1.micro 84 256 1 1
 
 # make sure glance is working
 for i in $(seq 1 5); do
@@ -275,7 +296,7 @@ cinder delete $vol_id
 test "$(lvs | wc -l)" -gt 1 || exit 1
 
 ssh_user="root"
-cirros_base_name="cirros-0.3.4-x86_64"
+cirros_base_name="cirros-0.4.0-x86_64"
 
 GC_IMAGE_CREATE="glance image-create --progress --visibility=public"
 
@@ -357,19 +378,15 @@ outputs:
     value: { get_attr: [ my_floating_ip, floating_ip_address ] }
 EOF
 
-use_openstack_stack=1
-# older versions don't have a fully working openstackclient for Heat
+use_openstack_floating=1
+# older versions don't have a fully working openstackclient for FIPs
 case "$cloudsource" in
-    openstackjuno|openstackliberty)
-        use_openstack_stack=
+    openstacknewton|openstackocata)
+        use_openstack_floating=
     ;;
 esac
 
-if [[ $use_openstack_stack ]]; then
-    openstack stack create -t $(readlink -e $PWD/testvm.stack) teststack
-else
-    heat stack-create -f $(readlink -e $PWD/testvm.stack) teststack
-fi
+openstack stack create -t $(readlink -e $PWD/testvm.stack) teststack
 
 sleep 60
 
@@ -380,46 +397,40 @@ if [ "$with_barbican" = "yes" ] ; then
     openstack secret list
 fi
 
-FLOATING_IP=$(eval echo $(heat output-show teststack server_floating_ip))
+FLOATING_IP=$(openstack stack output show teststack server_floating_ip -f value -c output_value)
 echo "FLOATING IP: $FLOATING_IP"
 if [ -n "$FLOATING_IP" ]; then
     ping -c 2 $FLOATING_IP || true
+
+    # scientifically correct amount of sleeping
+    sleep 60
     ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
-    if [[ $use_openstack_stack ]]; then
-        openstack stack resource show teststack
-    else
-        heat resource-show teststack
-    fi
+    openstack stack resource show teststack
 
     exit 1
 fi
 
-if [[ $use_openstack_stack ]]; then
-    openstack stack delete --yes teststack || openstack stack delete teststack || :
-else
-    heat stack-delete teststack || :
-fi
+openstack stack delete --yes teststack || openstack stack delete teststack || :
 
 sleep 10
 
-# nova floating-ip-delete was removed in Pike
-if nova help floating-ip-delete; then
-    for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
-else
+if [[ $use_openstack_floating = 1 ]]; then
     for fip in $(openstack floating ip list -f value -c 'Floating IP Address'); do openstack floating ip delete $fip; done
+else
+    for i in $(nova floating-ip-list | grep -P -o "172.31\S+"); do nova floating-ip-delete $i; done
 fi
+
+echo "Tempest.."
 
 # run tempest
 if [ -e /etc/tempest/tempest.conf ]; then
-    $crudini --set /etc/tempest/tempest.conf compute image_ssh_user cirros
-    $crudini --set /etc/tempest/tempest.conf compute image_alt_ssh_user cirros
-    $crudini --set /etc/tempest/tempest.conf compute ssh_user cirros
     $crudini --set /etc/tempest/tempest.conf compute image_ref $imgid
     $crudini --set /etc/tempest/tempest.conf compute image_ref_alt $imgid
     $crudini --set /etc/tempest/tempest.conf compute flavor_ref 42
     $crudini --set /etc/tempest/tempest.conf compute flavor_ref_alt 84
+    $crudini --set /etc/tempest/tempest.conf validation image_ssh_user cirros
 
     verbose="-- -v"
     if [ -x "$(type -p testr)" ]; then
@@ -427,6 +438,32 @@ if [ -e /etc/tempest/tempest.conf ]; then
     fi
 
     pushd /var/lib/openstack-tempest-test/
+
+    blacklistoptions=
+
+    # Handle OpenStack release specific blacklisting of known to fail tests
+    # NOTE: Currently blacklisting only required for OpenStack Rocky which
+    # is stestr based, so only add blacklisting options to stestr and tempest
+    # command runs below.
+    case "${cloudsource}" in
+    openstackrocky)
+        # TODO(fmccarthy): Remove once we have addressed issues causing
+        # failures for the neutron_tempest_plugin tests (SCRD-8681)
+        tee -a tempest-blacklist.txt << __EOF__
+# Blacklist the tests matching the pattern: neutron_tempest_plugin\.api\.admin\.test_tag\.Tag(Filter|)(QosPolicy|Trunk)TestJSON
+#neutron_tempest_plugin.api.admin.test_tag.TagFilterQosPolicyTestJSON.test_filter_qos_policy_tags
+id-c2f9a6ae-2529-4cb9-a44b-b16f8ba27832
+#neutron_tempest_plugin.api.admin.test_tag.TagQosPolicyTestJSON.test_qos_policy_tags
+id-e9bac15e-c8bc-4317-8295-4bf1d8d522b8
+#neutron_tempest_plugin.api.admin.test_tag.TagTrunkTestJSON.test_trunk_tags
+id-4c63708b-c4c3-407c-8101-7a9593882f5f
+#neutron_tempest_plugin.api.admin.test_tag.TagFilterTrunkTestJSON.test_filter_trunk_tags
+id-3fb3ca3a-8e3a-4565-ba73-16413d445e25
+__EOF__
+        blacklistoptions="--blacklist-file tempest-blacklist.txt"
+        ;;
+    esac
+
     # check that test listing works - otherwise we run 0 tests and everything seems to be fine
     # because run_tempest.sh doesn't catch the error
     if [ -f ".testr.conf" ]; then
@@ -451,7 +488,7 @@ if [ -e /etc/tempest/tempest.conf ]; then
     fi
 
     if tempest help run; then
-        tempest run -t -s 2>&1 | tee console.log
+        tempest run -t -s $blacklistoptions 2>&1 | tee console.log
     else
         # run_tempest.sh is no longer available since tempest 16 (~ since Pike)
         ./run_tempest.sh -N -t -s $verbose 2>&1 | tee console.log
@@ -463,3 +500,5 @@ if [ -e /etc/tempest/tempest.conf ]; then
     [ $ret == 0 ] || exit 4
     popd
 fi
+
+echo "SUCCESS."

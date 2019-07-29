@@ -12,6 +12,7 @@
     previous_version: 6
     arch: x86_64
     tempestoptions: --smoke
+    magnumoptions: --regex '^magnum.tests.functional.api'
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: postgresql
     jobs:
@@ -26,7 +27,6 @@
         - 'cloud-mkcloud{version}-job-monasca-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-ssl-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
         - 'cloud-mkcloud{version}-job-xen-{arch}'
 - project:
     name: cloud-mkcloud7-ha-x86_64
@@ -50,13 +50,6 @@
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
         - 'cloud-mkcloud{version}-job-ha-vproduction-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-ceph-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-ceph-compute_ha-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-dvr-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-lbaasv2-{arch}'
-        - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
 - project:
     name: cloud-mkcloud7-tempestfull-x86_64
     disabled: false

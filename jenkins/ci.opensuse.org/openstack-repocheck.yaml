@@ -22,6 +22,8 @@
             - Cloud:OpenStack:Queens:Staging
             - Cloud:OpenStack:Rocky
             - Cloud:OpenStack:Rocky:Staging
+            - Cloud:OpenStack:Stein
+            - Cloud:OpenStack:Stein:Staging
             - Cloud:OpenStack:Master
             - Cloud:Tools
       - axis:
@@ -31,6 +33,7 @@
             - SLE_12_SP2
             - SLE_12_SP3
             - SLE_12_SP4
+            - SLE_15
             - openSUSE_Leap_42.3
             - openSUSE_Leap_15.0
       - axis:
@@ -43,10 +46,11 @@
       # to a branch here only if you want to "exclude" it for the given branch.
       combination-filter: |
        !(["Cloud:OpenStack:Master"].contains(project) && ["SLE_12_SP2"].contains(repository) ||
-         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
-         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["SLE_12_SP2", "openSUSE_Leap_15.0", "SLE_12_SP4"].contains(repository) ||
-         ["Cloud:OpenStack:Queens", "Cloud:OpenStack:Queens:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP4"].contains(repository) ||
-         ["Cloud:OpenStack:Rocky", "Cloud:OpenStack:Rocky:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3" ].contains(repository)
+         ["Cloud:OpenStack:Newton", "Cloud:OpenStack:Newton:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.0", "SLE_12_SP4", "SLE_15"].contains(repository) ||
+         ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["openSUSE_Leap_15.0", "SLE_12_SP2", "SLE_12_SP4", "SLE_15"].contains(repository) ||
+         ["Cloud:OpenStack:Queens", "Cloud:OpenStack:Queens:Staging"].contains(project) && ["openSUSE_Leap_15.0", "SLE_12_SP2", "SLE_12_SP4", "SLE_15"].contains(repository) ||
+         ["Cloud:OpenStack:Rocky", "Cloud:OpenStack:Rocky:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3", "SLE_15"].contains(repository) ||
+         ["Cloud:OpenStack:Stein", "Cloud:OpenStack:Stein:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3", "SLE_12_SP4", "openSUSE_Leap_42.3"].contains(repository)
        )
       sequential: true
     builders:
@@ -61,8 +65,7 @@
           [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
           export automationrepo=~/github.com/SUSE-Cloud/automation
-          export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
-          
+
           # Workaround to get only the name of the job:
           # https://issues.jenkins-ci.org/browse/JENKINS-39189
           # When the JOB_BASE_NAME contains only in ex. "openstack-repocheck", this
@@ -70,17 +73,8 @@
           echo "$JOB_BASE_NAME"
           main_job_name=${JOB_NAME%%/*}
 
-          function jtsync_trap() {
-            $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1
-          }
-
-          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-            trap jtsync_trap EXIT ERR
-          fi
-
           DIST_NAME=$(echo $repository|cut -d "_" -f 1)
           DIST_VERSION=$(echo $repository|cut -d "_" -f 2-)
-
 
           OBS_TYPE=${PROJECTSOURCE%%/*}
           OBS_PROJECT=${PROJECTSOURCE##*/}
@@ -127,11 +121,4 @@
 
           test -e ~/repo || { echo "~/repo needs to have a copy of pre-generated .solv files from internal media" ; exit 55; }
           installcheck $ARCH --withobsoletes --exclude "-kmp-" tmp/repo/primary.xml.gz  --nocheck $EXTRA_NOCHECK ~/repo/${repository}-${ARCH}.solv
-          ret=$?
-
-          # only enable jtsync when build is not manually triggered
-          if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-            trap - EXIT ERR
-            $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} $ret || :
-          fi
-          exit $ret
+          exit $?

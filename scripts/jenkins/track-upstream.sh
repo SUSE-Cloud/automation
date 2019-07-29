@@ -10,7 +10,6 @@ zypper -n in osc obs-service-tar_scm obs-service-github_tarballs obs-service-rec
 [ -z "$PROJECTSOURCE" ] && ( echo "Error: no PROJECTSOURCE defined." ; exit 1 )
 
 export automationrepo=~/github.com/SUSE-Cloud/automation
-export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 
 # Workaround to get only the name of the job:
 # https://issues.jenkins-ci.org/browse/JENKINS-39189
@@ -19,14 +18,6 @@ export jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 echo "$JOB_BASE_NAME"
 main_job_name=${JOB_NAME%%/*}
 
-function jtsync_trap() {
-    $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} 1
-}
-
-if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-    trap jtsync_trap EXIT ERR
-fi
-
 OBS_TYPE=${PROJECTSOURCE%%/*}
 OBS_PROJECT=${PROJECTSOURCE##*/}
 
@@ -34,11 +25,17 @@ case $OBS_TYPE in
     OBS) OSCAPI="https://api.opensuse.org"
         OSC_BUILD_ARCH=x86_64
         case $OBS_PROJECT in
-            Cloud:OpenStack:Master|Cloud:OpenStack:Pike*|Cloud:OpenStack:Queens*)
+            Cloud:OpenStack:Pike*|Cloud:OpenStack:Queens*)
                 OSC_BUILD_DIST=SLE_12_SP3
                 ;;
             Cloud:OpenStack:Rocky*)
                 OSC_BUILD_DIST=SLE_12_SP4
+                ;;
+            Cloud:OpenStack:Stein*)
+                OSC_BUILD_DIST=SLE_15
+                ;;
+            Cloud:OpenStack:Master)
+                OSC_BUILD_DIST=SLE_15
                 ;;
             *)
                 echo "Support missing"
@@ -83,11 +80,4 @@ if [ ${OBS_PROJECT} != "Cloud:OpenStack:Master" ] ; then
     grep -q "<linkinfo" .osc/_files || exit 2
 fi
 timeout 1h ~/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
-ret=$?
-
-# only enable jtsync when build is not manually triggered
-if [[ ${ROOT_BUILD_CAUSE} != "MANUALTRIGGER" ]]; then
-    trap - EXIT ERR
-    $jtsync --ci opensuse --matrix ${main_job_name},${project},${BUILD_NUMBER} $ret || :
-fi
-exit $ret
+exit $?

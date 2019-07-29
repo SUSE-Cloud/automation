@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # vim: sw=4 et
 
 # Copyright (c) 2016 SUSE LINUX GmbH, Nuernberg, Germany.
@@ -37,8 +37,8 @@ from sh import Command
 def pymodule2pkg(spectemplate):
     specname = os.path.splitext(spectemplate)[0]
     modulename = os.path.splitext(os.path.basename(specname))[0]
-    pkgname = pymod2pkg.module2package(modulename,
-                                       platform.linux_distribution()[0])
+    pkgname = pymod2pkg.module2package(
+        modulename, platform.linux_distribution()[0] or 'suse')
     if modulename == 'openstack-macros':
         pkgname = modulename
 
@@ -87,20 +87,31 @@ Project used: %(ZUUL_PROJECT)s
                   'build_repository': build_repository})
 
     with tempfile.NamedTemporaryFile() as meta:
-        meta.write(templ)
+        meta.write(templ.encode('UTF-8'))
         meta.flush()
         print('Updating meta for ', project)
 
-        # work around build service bug that triggers a database deadlock
-        for fail_counter in range(1, 5):
-            try:
-                sh.osc('api', '-T', meta.name, '/source/%s/_meta' % project)
-                break
-            except sh.ErrorReturnCode_1:
+        # work around build service bug that forgets the publish flag
+        # https://github.com/openSUSE/open-build-service/issues/7126
+        for success_counter in range(2):
+            # work around build service bug that triggers a database deadlock
+            for fail_counter in range(1, 5):
+                try:
+                    sh.osc('api', '-T', meta.name,
+                           '/source/%s/_meta' % project)
+                    break
+                except sh.ErrorReturnCode_1:
+                    # Sleep a bit and try again. This has not been
+                    # scientifically proven to be the correct sleep factor,
+                    # but it seems to work
+                    time.sleep(2)
+                    continue
+
+            # wait for the source service to catch up with creation
+            if success_counter == 0:
                 # Sleep a bit and try again. This has not been scientifically
                 # proven to be the correct sleep factor, but it seems to work
-                time.sleep(2)
-                continue
+                time.sleep(3)
 
 
 def upload_meta_enable_repository(project, linkproject):
@@ -217,7 +228,7 @@ def osc_commit_all(workdir, packagename):
         sh.osc('addremove')
         for o in sh.osc('service', 'localrun', 'source_validator'):
             if o.startswith('###ASK'):
-                sh.osc('rm', o.strip().split()[1])
+                sh.osc('rm', '--force', o.strip().split()[1])
         sh.osc('commit', '--noservice', '-n')
     finally:
         os.chdir(olddir)
@@ -237,7 +248,7 @@ def create_project(worktree, project, linkproject):
     try:
         existing_pkgs = [x.strip() for x in
                          sh.osc('ls', '-e', project, _iter=True)]
-    except:
+    except Exception:
         existing_pkgs = []
 
     alive_pkgs = set()

@@ -1,0 +1,53 @@
+SOC8:
+  ardana8-deploy:
+    job_name: cloud-ardana8-job-mu-entry-scale-kvm-deploy-x86_64
+    job_params: []
+  ardana8-update:
+    job_name: cloud-ardana8-job-mu-entry-scale-kvm-update-x86_64
+    job_params: []
+SOC9:
+  ardana9-deploy:
+    job_name: cloud-ardana9-job-mu-entry-scale-kvm-deploy-x86_64
+    job_params: []
+  ardana9-update:
+    job_name: cloud-ardana9-job-mu-entry-scale-kvm-update-x86_64
+    job_params: []
+SOCC7:
+  crowbar7-no-ha-deploy:
+    job_name: cloud-crowbar7-job-mu-no-ha-deploy-x86_64
+    job_params: []
+  crowbar7-ha-deploy:
+    job_name: cloud-crowbar7-job-mu-ha-deploy-x86_64
+    job_params: []
+  crowbar7-no-ha-update:
+    job_name: cloud-crowbar7-job-mu-no-ha-update-x86_64
+    job_params: []
+  crowbar7-ha-update:
+    job_name: cloud-crowbar7-job-mu-ha-update-x86_64
+    job_params: []
+SOCC8:
+  crowbar8-no-ha-deploy:
+    job_name: cloud-crowbar8-job-mu-no-ha-deploy-x86_64
+    job_params: []
+  crowbar8-ha-deploy:
+    job_name: cloud-crowbar8-job-mu-ha-deploy-x86_64
+    job_params: []
+  crowbar8-no-ha-update:
+    job_name: cloud-crowbar8-job-mu-no-ha-update-x86_64
+    job_params: []
+  crowbar8-ha-update:
+    job_name: cloud-crowbar8-job-mu-ha-update-x86_64
+    job_params: []
+SOCC9:
+  crowbar9-no-ha-deploy:
+    job_name: cloud-crowbar9-job-mu-no-ha-deploy-x86_64
+    job_params: []
+  crowbar9-ha-deploy:
+    job_name: cloud-crowbar9-job-mu-ha-deploy-x86_64
+    job_params: []
+  crowbar9-no-ha-update:
+    job_name: cloud-crowbar9-job-mu-no-ha-update-x86_64
+    job_params: []
+  crowbar9-ha-update:
+    job_name: cloud-crowbar9-job-mu-ha-update-x86_64
+    job_params: []

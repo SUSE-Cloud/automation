@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash -xue
 
 #
 # small helper to run tox on a PR with github_pr
@@ -24,9 +24,9 @@ pushd "$pr_dir"
 ### copied from openstack-mkcloud job
 ghremote=origin
 git config --get-all remote.${ghremote}.fetch | grep -q pull || \
-    git config --add remote.${ghremote}.fetch "+refs/pull/*/head:refs/remotes/${ghremote}/pr/*"
+    git config --add remote.${ghremote}.fetch "+refs/pull/*/head:refs/remotes/${ghremote}-pr/*"
 git fetch $ghremote 2>&1 | grep -v '\[new ref\]' || :
-git checkout -t $ghremote/pr/$pr_id
+git checkout -t $ghremote-pr/$pr_id
 git config user.email cloud-devel+jenkins@suse.de
 git config user.name "Jenkins User"
 echo "we merge to always test what will end up in master"

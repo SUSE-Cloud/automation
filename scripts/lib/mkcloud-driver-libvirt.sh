@@ -3,7 +3,8 @@ function libvirt_modprobe_kvm()
     if [[ $(uname -m) = x86_64 ]]; then
         $sudo modprobe kvm-amd
         if [ ! -e /etc/modprobe.d/80-kvm-intel.conf ] ; then
-            echo "options kvm-intel nested=1" | $sudo dd of=/etc/modprobe.d/80-kvm-intel.conf
+            echo "options kvm-intel nested=1 emulate_invalid_guest_state=0" | \
+                $sudo dd of=/etc/modprobe.d/80-kvm-intel.conf
             $sudo rmmod kvm-intel
         fi
         $sudo modprobe kvm-intel
@@ -124,11 +125,21 @@ function libvirt_do_setuphost()
             echo 1 > /proc/sys/vm/allocate_pgste
         }
     fi
+    # For IPv6 setups in CI, we have a proxy address automatically configured
+    # on the virtual bridge device, which doesn't exist yet, so unset
+    # http_proxy
+    if (( $want_ipv6 > 0 )); then
+        saved_proxy=$http_proxy
+        http_proxy=
+    fi
     zypper_override_params="--non-interactive" extra_zypper_install_params="--no-recommends" ensure_packages_installed \
         libvirt libvirt-python $kvmpkg $extra_packages \
         lvm2 curl wget iputils bridge-utils \
         dnsmasq netcat-openbsd ebtables iproute2 sudo kpartx rsync
 
+    if [[ -n "$saved_proxy" ]]; then
+        http_proxy=$saved_proxy
+    fi
     sed -i 's/net.ipv4.ip_forward = 0/net.ipv4.ip_forward = 1/' /etc/sysctl.conf
     echo "net.ipv4.conf.all.rp_filter = 0" > /etc/sysctl.d/90-cloudrpfilter.conf
     echo "net.ipv6.conf.all.forwarding = 1" > /etc/sysctl.d/90-cloudipv6.conf
@@ -274,6 +285,17 @@ function libvirt_do_create_cloud_lvm()
         done
     fi
 
+    # create an extra volume to test pci passthrough
+    if [ $extravolumenumber -gt 0 ] ; then
+        for i in $(nodes ids all) ; do
+            for n in $(seq 1 $extravolumenumber) ; do
+                onhost_get_next_pv_device
+                hdd_size=${extravolume_hdd_size}
+                _lvcreate $cloud.node$i-extra $hdd_size $cloudvg $next_pv_device
+            done
+        done
+    fi
+
     # create volumes for drbd
     if [ $drbd_hdd_size != 0 ] ; then
         for i in `seq 1 2`; do
@@ -361,6 +383,7 @@ function libvirt_do_prepare()
     onhost_add_etchosts_entries
     libvirt_prepare
     onhost_prepareadmin
+    libvirt_start_radvd
 }
 
 function libvirt_do_onhost_deploy_image()
@@ -371,6 +394,8 @@ function libvirt_do_onhost_deploy_image()
     local image_path=$cache_dir/$image
 
     if [[ ! $want_cached_images = 1 ]] ; then
+        [ -n $rsyncserver_fqdn ] || complain 95 "Missing RSYNC Server FQDN!"
+
         safely rsync --compress --progress --inplace --archive --verbose \
             rsync://$rsyncserver_fqdn/$rsyncserver_images_dir/$image $cache_dir/
     else
@@ -505,4 +530,21 @@ function libvirt_do_macfunc
     local nodenumber=$1
     local nicnumber=${2:-"1"}
     printf "$macprefix:77:%02x:%02x" $nicnumber $nodenumber
+}
+
+function libvirt_start_radvd
+{
+    if (( $want_ipv6 > 0 )); then
+        if ! pidof radvd >/dev/null; then
+            if ! grep -q $cloudbr /etc/radvd.conf; then
+                snippet=$($scripts_lib_dir/ipv6/radvd-conf-template)
+                radvd_conf=$(mktemp)
+                cat /etc/radvd.conf > $radvd_conf
+                sed -e "s/<INTERFACE>/$cloudbr/" -e "s/<PREFIX>/$net_admin/" < $snippet >> $radvd_conf
+                mv $radvd_conf /etc/radvd.conf
+                rm $snippet
+            fi
+            systemctl start radvd.service || complain 94 "can't start radvd"
+        fi
+    fi
 }

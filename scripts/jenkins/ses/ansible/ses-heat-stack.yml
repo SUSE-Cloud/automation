@@ -23,8 +23,7 @@
     - role: heat_ses_template
     - role: heat_stack
       vars:
-        os_cloud: "engcloud-cloud-ci"
-        heat_stack_name: "openstack-ses-{{ ses_id }}"
+        heat_stack_name: "{{ ses_id }}-ses"
 
   tasks:
     - name: Ensure SES node on ansible inventory
@@ -32,7 +31,7 @@
         path: "inventory"
         insertafter: "\\[ses\\]"
         block: |
-          openstack-ses-{{ ses_id }}      ansible_host={{ heat_stack_create.stack.outputs.0.output_value }}
+          {{ ses_id }}-ses      ansible_host={{ heat_stack_create.stack.outputs.0.output_value }}
 
     - include_role:
         name: jenkins_artifacts

@@ -37,7 +37,7 @@
 
       - string:
           name: admin_os
-          default: sles12sp3
+          default: sles12sp4
           description: Mandatory, admin node operating system version
 
       - string:
@@ -100,7 +100,7 @@
 
       - string:
           name: cloud_version
-          default: "8"
+          default: "9"
           description: Mandatory, version of the cloud to be installed as integer
 
       - string:
@@ -125,7 +125,7 @@
 
       - string:
           name: clusterconfig
-          default: services=2,data=2,network=2
+          default: services=3,data=3
           description: HA configuration for clusters. Make sense only if hacloud=1
 
       - string:
@@ -232,8 +232,8 @@
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
           export shared_storage_ip=$shared_storage_ip ;
-          export want_node_aliases=controller=2,data=2,network=2,compute-kvm=$compute_nodes_number ;
-          export want_node_roles=controller=2,storage=2,network=2,compute=$compute_nodes_number ;
+          export want_node_aliases=controller=3,data=3,compute-kvm=$compute_nodes_number ;
+          export want_node_roles=controller=3,storage=3,compute=$compute_nodes_number ;
           export scenario=\"/root/scenario.yml\" ;
           export netapp_password=$netapp_password ;
           export netapp_server=$netapp_server ;
@@ -272,14 +272,15 @@
 
               ./scripts/iscsictl.py --service target --host \$(hostname) --no-key
 
-              for node in {controller1,controller2,data1,data2,network1,network2} ; do
-                ./scripts/iscsictl.py --service initiator --target_host $sbd_ip --host \$node --no-key
+              for node in {controller1,controller2,controller3,data1,data2,data3} ; do
+                ./scripts/iscsictl.py --service initiator --target_host \$(hostname) --host \$node --no-key
               done
 
               # preparation of SBD for services nodes
               SBD_DEV_SERVICES=\$(ssh controller1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
               ssh controller1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_SERVICES create -4 20 -1 10"
               ssh controller2 "zypper --non-interactive install sbd"
+              ssh controller3 "zypper --non-interactive install sbd"
               # take scenario yaml file and replace placeholders
               sed -i "s|@@sbd_device_services@@|\${SBD_DEV_SERVICES}|g" scenario.yml
 
@@ -287,25 +288,19 @@
               SBD_DEV_DATA=\$(ssh data1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
               ssh data1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_DATA create -4 20 -1 10"
               ssh data2 "zypper --non-interactive install sbd"
+              ssh data3 "zypper --non-interactive install sbd"
               # take scenario yaml file and replace placeholders
               sed -i "s|@@sbd_device_data@@|\${SBD_DEV_DATA}|g" scenario.yml
 
-              # preparation of SBD for network nodes
-              SBD_DEV_NETWORK=\$(ssh network1 echo '/dev/disk/by-id/scsi-\$(lsscsi -i | grep LIO | tr -s " " |cut -d " " -f7)')
-              ssh network1 "zypper --non-interactive install sbd; sbd -d \$SBD_DEV_NETWORK create -4 20 -1 10"
-              ssh network2 "zypper --non-interactive install sbd"
-              # take scenario yaml file and replace placeholders
-              sed -i "s|@@sbd_device_network@@|\${SBD_DEV_NETWORK}|g" scenario.yml
 
               # watchdog configuration
               ssh controller1 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
               ssh controller2 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
+              ssh controller3 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
 
               ssh data1 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
               ssh data2 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
-
-              ssh network1 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
-              ssh network2 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
+              ssh data3 "modprobe softdog; echo softdog > /etc/modules-load.d/watchdog.conf"
 
               # ----- End of SBD
           EOSCRIPT
@@ -323,7 +318,7 @@
             # Check if zypper is used by other application
             ssh root@$admin '
               source scripts/qa_crowbarsetup.sh;
-              for node in $(crowbar machines aliases | grep -E "controller|data|network" | grep -oE "^.*[[:space:]]"); do
+              for node in $(crowbar machines aliases | grep -E "controller|data" | grep -oE "^.*[[:space:]]"); do
                 wait_for 20 10 "ssh $node \"zypper refresh\" "
               done
             '

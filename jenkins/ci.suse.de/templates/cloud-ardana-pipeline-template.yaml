@@ -12,8 +12,8 @@
 
     parameters:
       - validating-string:
-          name: ardana_env
-          default: '{ardana_env|}'
+          name: cloud_env
+          default: '{cloud_env|}'
           regex: '[A-Za-z0-9-_]+'
           msg: >-
             Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
@@ -22,14 +22,30 @@
             be set to one of the values associated with the known hardware environments
             (e.g. qe101), or to a value that will identify the created virtual environment.
 
-            WARNING: if a virtual environment associated with the supplied ardana_env already
+            WARNING: if a virtual environment associated with the supplied cloud_env already
             exists, it will be replaced.
 
       - bool:
           name: reserve_env
           default: '{reserve_env|true}'
           description: >-
-            Reserve the 'ardana_env' lockable resource throughout the execution of this job
+            Reserve the 'cloud_env' lockable resource throughout the execution of this job.
+
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The target OpenStack cloud platform used as infrastructure for a
+            virtual cloud deployment. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'os_cloud' parameter is overridden to reflect the OpenStack platform associated with it.
 
       - choice:
           name: cloudsource
@@ -44,18 +60,8 @@
             - hosGM8+up
             - stagingcloud9
             - develcloud9
-            - cloud9M3
-            - cloud9M4
-            - cloud9M5
-            - cloud9M6
-            - cloud9M7
-            - cloud9M8
-            - cloud9M9
-            - cloud9M10
-            - cloud9RC1
-            - cloud9RC2
-            - cloud9RC3
-            - cloud9GMC
+            - GM9
+            - GM9+up
           description: >-
             The cloud repository (from provo-clouddata) to be used for testing.
             This value can take the following form:
@@ -76,7 +82,7 @@
 
       - bool:
           name: updates_test_enabled
-          default: '{updates_test_enabled|false}'
+          default: '{updates_test_enabled|true}'
           description: >-
             Enable SLES/Cloud test update repos (the Cloud test update repos will
             be enabled only when cloudsource is GM based)
@@ -87,6 +93,8 @@
           description: >-
             Run ardana update after the cloud is deployed. If true the MU's will
             be applied only after the cloud is deployed.
+            If `updates_test_enabled` is true, the test updates will be
+            applied post-deployment only if the cloudsource is GM based.
 
       - choice:
           name: update_to_cloudsource
@@ -101,18 +109,8 @@
             - hosGM8+up
             - stagingcloud9
             - develcloud9
-            - cloud9M3
-            - cloud9M4
-            - cloud9M5
-            - cloud9M6
-            - cloud9M7
-            - cloud9M8
-            - cloud9M9
-            - cloud9M10
-            - cloud9RC1
-            - cloud9RC2
-            - cloud9RC3
-            - cloud9GMC
+            - GM9
+            - GM9+up
           description: >-
             Only valid if update_after_deploy is true. The cloud repository
             (from provo-clouddata) to be used to update.
@@ -155,13 +153,14 @@
             - entry-scale-kvm
             - mid-scale-kvm
             - standard
+            - std-lmm
             - std-split
             - entry-scale-ironic-flat-network
           description: >-
             The name of one of the available scenarios that can be used to generate input models.
             If this parameter is set, the following parameters may also be set to different values, to control
             various aspects of the generated input model: clm_model, controllers, core_nodes, lmm_nodes, dbmq_nodes,
-            neutron_nodes, swift_nodes, sles_computes, rhel_computes and disabled_services.
+            neutron_nodes, swift_nodes, computes, rhel_computes and disabled_services.
 
 
             NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
@@ -218,7 +217,7 @@
           description: |
             The number of LMM services nodes in the generated input model (0-3).
 
-            Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+            Input model generator scenarios using this parameter: mid-scale-kvm, std-split, std-lmm.
 
             NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter about
             using one of the available input model generator scenarios.
@@ -238,7 +237,7 @@
 
       - validating-string:
           name: neutron_nodes
-          default: '2'
+          default: '{neutron_nodes|2}'
           regex: '[0-3]'
           msg: The entered value failed validation
           description: |
@@ -251,7 +250,7 @@
 
       - validating-string:
           name: swift_nodes
-          default: '3'
+          default: '{swift_nodes|3}'
           regex: '[0-3]'
           msg: The entered value failed validation
           description: |
@@ -263,8 +262,8 @@
             using one of the available input model generator scenarios.
 
       - validating-string:
-          name: sles_computes
-          default: '{sles_computes|2}'
+          name: computes
+          default: '{computes|2}'
           regex: '[0-9]+'
           msg: The entered value failed validation
           description: |
@@ -349,9 +348,8 @@
           multi-select-delimiter: ','
           default-value: '{tempest_filter_list|ci}'
           value: >-
-            ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,
-            identity,lbaas,magnum,manila,monasca,network,neutron-api,periodic,
-            periodic-virtual,refstack,swift,tests2skip,tests-ci,upgrade-ci,upgrade
+            ci,smoke,keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,
+            fwaas,vpnaas,designate,heat,ceilometer,magnum,manila,freezer,monasca
           description: >-
             Name of the filter file to use for tempest. Selecting multiple values
             will run tempest for each selected value.
@@ -379,12 +377,15 @@
 
       - validating-string:
           name: extra_repos
-          default: ''
-          regex: '((http(s)?:\/\/[^ ,]+\.repo)(,http(s)?:\/\/[^ ,]+\.repo)*)*'
+          default: '{extra_repos|}'
+          regex: '((http(s)?:\/\/[^ ,]+)(,http(s)?:\/\/[^ ,]+)*)*'
           msg: The entered value failed validation
           description: >-
-            A comma separated list of repository urls (ending with .repo) to be
-            added on the deployer node
+            A comma separated list of repository urls to be added on the deployer node
+
+            NOTE: The packages from those repositories will be available to all cloud nodes
+            through a repository with a higher priority, meaning that those packages will be
+            installed even if there is a newer package available on other repositories
 
       - bool:
           name: rc_notify
@@ -405,7 +406,7 @@
           msg: The entered value failed validation
           description: >-
             A comma separated list of IDs for changes in
-            gerrit.suse.provo.cloud to test. The patchset may be supplied as part
+            gerrit.prv.suse.net to test. The patchset may be supplied as part
             of the change ID in the form:
 
                <change_number>[/<patchset_number>]
@@ -450,24 +451,43 @@
             Configurable external name for your public endpoints
 
       - string:
-          name: os_cloud
-          default: '{os_cloud|engcloud-cloud-ci-private}'
+          name: os_project_name
+          default: '{os_project_name|}'
           description: >-
-            The OpenStack API credentials used to manage virtual clouds (leave
-            empty to use the default shared 'cloud' ECP account).
+            The name of the OpenStack project that hosts the virtual cloud deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
+
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'cloud-ci' OpenStack project used exclusively for the Cloud CI will be used
+            regardless of this parameter.
 
       - bool:
           name: ipv6
-          default: false
+          default: '{ipv6|false}'
           description: >-
-            Use ipv6 networks in the cloud input model.
+            Enable ipv6 support in the cloud configuration
 
-      - string:
-          name: sles_image
-          default: ''
+      - text:
+          name: extra_params
+          default: '{extra_params|}'
           description: >-
-            Use this parameter to override the default SLES OpenStack image used for SLES
-            virtual cloud nodes.
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+      - hidden:
+          name: cloud_product
+          default: 'ardana'
+          description: >-
+            Cloud product (ardana or crowbar)
 
     pipeline-scm:
       scm:

@@ -1,5 +1,15 @@
 #!/bin/bash
 
+# provide a constant path for mounting as non-root user
+tmpiso=/srv/nfs/repos/.tmp.iso
+if [[ $UID == 0 ]] ; then
+    grep -q /mnt/cloud /etc/fstab ||
+        echo "$tmpiso /mnt/cloud iso9660 loop,ro,user" >> /etc/fstab
+
+    grep -q ^jenkins: /etc/passwd &&
+        exec sudo -u jenkins "$0" "$@"
+fi
+
 SITE_DEFAULT="nue"
 [[ $(hostname) =~ provo ]] && SITE_DEFAULT="prv"
 
@@ -75,9 +85,11 @@ mount_and_rsync()
     local to=$2
     local oneiso=`ls $from | tail -1`
     if [ -e "$oneiso" ] ; then
-        $M mount -o loop,ro "$oneiso" /mnt/cloud
+        ln -f "$oneiso" "$tmpiso"
+        $M mount /mnt/cloud
         [ $? == 0 ] && $rsync /mnt/cloud/ $to
         $M umount /mnt/cloud
+        rm -f "$tmpiso"
     fi
 }
 
@@ -99,7 +111,7 @@ rsync_and_unpack_iso()
 for version in 9 8 7 6; do
     # fetch latest code from version in development (not just latest beta)
     sync_from_ibs=
-    [ "$version" == "9" ] && sync_from_ibs=1
+    [ "$version" == "10" ] && sync_from_ibs=1
     servicepack=1
     [ "$version" == "7" ] && servicepack=2
     [ "$version" == "8" ] && servicepack=3
@@ -121,13 +133,8 @@ for version in 9 8 7 6; do
 
         # Ardana flavor
         if [ "$version" != "8" ] || [ "$arch" = "x86_64" ]; then
-            if [ -z "$sync_from_ibs" ]; then
-                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
-                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
-            else
-                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
-                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
-            fi
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-devel-staging
             rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Pool/
             rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates/
             rsync_with_create $ibsmaint/OpenStack-Cloud\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-$version-Updates-test/
@@ -135,23 +142,25 @@ for version in 9 8 7 6; do
 
         # Cloud8-HOS flavor
         if [ "$version" = "8" -a "$arch" = "x86_64" ]; then
-            rsync_and_unpack_iso ${ibs_source_nue}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
+            rsync_and_unpack_iso ${ibs_source}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
             rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Pool/
             rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Updates/
         fi
 
         # SOC-Crowbar flavor
         if [ "$version" = "8" -o "$version" = "9" ]; then
-            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
-            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
             rsync_with_create ${ibs_source}/SUSE/Products/OpenStack-Cloud-Crowbar/$version/$arch/product/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Pool/
             rsync_with_create ${ibs_source}/SUSE/Updates/OpenStack-Cloud-Crowbar/$version/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates/
             rsync_with_create $ibsmaint/OpenStack-Cloud-Crowbar\:/$version\:/$arch/update/ /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-Updates-test/
 
             if [ -z "$sync_from_ibs" ]; then
                 rsync_and_unpack_iso $install_source/SLE-12-SP$servicepack-Cloud$version-GM/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-GM-DVD1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-official
+                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
+                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
             else
                 rsync_and_unpack_iso ${ibs_source_nue}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-official
+                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
+                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
             fi
         fi
     done
@@ -249,6 +258,10 @@ for servicepack in 3 2 1; do
         destdir_sles_updates=/srv/nfs/repos/$arch/SLES$repo_version-Updates/
         mkdir -p $destdir_sles_updates
         $rsync ${ibs_source}/SUSE/Updates/SLE-SERVER/$version/$arch/update/ $destdir_sles_updates
+
+        destdir_sles_updates_test=/srv/nfs/repos/$arch/SLES$repo_version-Updates-test/
+        mkdir -p $destdir_sles_updates_test
+        $rsync $ibsmaint/SLE-SERVER\:/$version\:/$arch/update/ $destdir_sles_updates_test
     done
 done
 
@@ -268,7 +281,7 @@ for version in 6 5 4 2.1; do
         # sync version 6 from ibs while in development
         poolsource=
         if [[ $version == 6 ]]; then
-            poolsource=${ibs_source}/SUSE\:/SLE-15\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
+            poolsource=${ibs_source}/SUSE\:/SLE-15-SP1\:/Update\:/Products\:/SES${version}/images/repo/SUSE-Enterprise-Storage-${version}-POOL-${arch}-Media1/
         else
             poolsource=${ibs_source}/SUSE/Products/Storage/$version/$arch/product/
         fi

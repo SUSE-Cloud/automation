@@ -1,0 +1,93 @@
+- project:
+    name: cloud-ardana8-job-std-min-gerrit-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-gerrit-slot
+    cloudsource: develcloud8
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-std-min-centos-gerrit-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-gerrit-slot
+    cloudsource: develcloud8
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '2'
+    computes: '0'
+    rhel_computes: '2'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-entry-scale-kvm-gerrit-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-ci-slot
+    cloudsource: develcloud8
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    computes: '2'
+    rhel_computes: '0'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: cloud-ardana8-job-std-3cp-update-gerrit-x86_64
+    ardana_job: '{name}'
+    cloud_env: cloud-ardana-gerrit-slot
+    cloudsource: develcloud8
+    update_after_deploy: true
+    scenario_name: standard
+    clm_model: standalone
+    controllers: '3'
+    computes: '1'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    triggers:
+    jobs:
+        - '{ardana_job}'
+
+- project:
+    name: openstack-ardana-gerrit-cloud8
+    ardana_gerrit_job: '{name}'
+    cloud_env: cloud-ardana-gerrit-slot
+    reserve_env: true
+    voting: true
+    gerrit_context: std-min
+    integration_test_job: cloud-ardana8-job-std-min-gerrit-x86_64
+    version: '8'
+    triggers:
+      - gerrit:
+          server-name: 'gerrit.prv.suse.net'
+          trigger-on:
+            - patchset-created-event:
+                exclude-drafts: true
+                exclude-no-code-change: false
+            - draft-published-event
+            - comment-added-contains-event:
+                comment-contains-value: '^suse_recheck$'
+            - comment-added-contains-event:
+                comment-contains-value: '^recheck$'
+          silent: true
+          projects:
+            - project-compare-type: 'REG_EXP'
+              project-pattern: !include-raw: gerrit-project-regexp-cloud8.txt
+              branches:
+                - branch-compare-type: 'PLAIN'
+                  branch-pattern: 'stable/pike'
+    jobs:
+        - '{ardana_gerrit_job}'

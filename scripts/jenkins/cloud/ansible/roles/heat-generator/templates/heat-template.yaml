@@ -1,0 +1,330 @@
+heat_template_version: 2016-10-14
+
+description: >
+  {{ heat_template.description }}
+
+parameters:
+{% if os_key_name is defined %}
+  key_name:
+    type: string
+    label: Key Name
+    description: Name of key-pair to be used for compute instance
+    default: {{ os_key_name }}
+{% endif %}
+  floating_network:
+    type: string
+    label: Floating IP Network
+    description: Name of network to be used for NAT and floating IP addresses
+    default: floating
+
+  default_subnet_cidr:
+    type: string
+    label: Default CIDR
+    description: Default CIDR value to use for networks which do not have CIDR specified
+    default: {{ ipv6 | ternary("2001::/64", "1.1.1.0/24") }}
+
+resources:
+
+  # routers
+  router_ext:
+    type: OS::Neutron::Router
+    properties:
+      name: {{ heat_resource_name_prefix }}_router_ext
+      external_gateway_info:
+        network: { get_param: floating_network }
+
+  # a dummy network/subnet to which to connect ports which are not associated with
+  # a network
+  default_network:
+    type: OS::Neutron::Net
+    properties:
+      name: {{ heat_resource_name_prefix }}_dummy_net
+      port_security_enabled: True
+
+  default_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: {{ heat_resource_name_prefix }}_dummy_subnet
+      network_id: { get_resource: default_network }
+      cidr: { get_param: default_subnet_cidr }
+      ip_version: {{ ipv6 | ternary(6, 4) }}
+      enable_dhcp: False
+
+  # networks and subnets
+{% set global_ns = namespace(conf_network_name='', conf_ports=[]) %}
+{% for network_rec in heat_template.networks|dictsort %}
+{%   set network = network_rec[1] %}
+{%   set name = network.name|lower|replace('-','_')|regex_replace('_net$', '') %}
+
+  # network: {{ network.name }}
+  {{ name }}_network:
+    type: OS::Neutron::Net
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ name }}_net
+      port_security_enabled: False
+
+  # subnet for network: {{ network.name }}
+  {{ name }}_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ name }}_subnet
+      network_id: { get_resource: {{ name }}_network }
+{%   if network.cidr is defined %}
+      cidr: "{{ network.cidr }}"
+{%   elif network.allocation_pools is not defined %}
+      cidr: { get_param: default_subnet_cidr }
+{%   endif %}
+{%   if network.allocation_pools is defined %}
+      allocation_pools:
+{%     for pool in network.allocation_pools %}
+        - start: "{{ pool[0] }}"
+          end: "{{ pool[1] }}"
+{%     endfor %}
+{%   endif  %}
+{%   if network.external and dns_servers is defined %}
+{%     if not ipv6 %}
+      dns_nameservers:
+{%       for dns_server in dns_servers %}
+        - {{ dns_server }}
+{%       endfor %}
+{%     endif  %}
+{%   endif  %}
+{%   if ipv6 %}
+      ip_version: 6
+{%     if network.is_conf or network.is_mgmt %}
+      ipv6_ra_mode: dhcpv6-stateful
+      ipv6_address_mode: dhcpv6-stateful
+{%     endif %}
+{%   else %}
+      ip_version: 4
+{%   endif  %}
+      enable_dhcp: {{ network.is_conf or network.is_mgmt }}
+{%   if network.gateway is defined %}
+      gateway_ip: "{{ network.gateway }}"
+{%   endif   %}
+
+
+{%   if network.external %}
+  router_ext_{{ name }}_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router_ext }
+      subnet_id: { get_resource: {{ name }}_subnet }
+{%   endif %}
+
+{%   if network.is_conf %}
+{%     set global_ns.conf_network_name = name %}
+{%   endif %}
+
+{% endfor %}
+
+{% for router in heat_template.routers %}
+{%   set net1_name = router[0]|lower|replace('-','_')|regex_replace('_net$', '') %}
+{%   set net2_name = router[1]|lower|replace('-','_')|regex_replace('_net$', '') %}
+  router_{{ net1_name }}_{{ net2_name }}:
+    type: OS::Neutron::Router
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ net1_name }}_{{ net2_name }}_router
+
+  router_{{ net1_name }}_{{ net2_name }}_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router_{{ net1_name }}_{{ net2_name }} }
+      subnet_id: { get_resource: {{ net1_name }}_subnet }
+
+  router_{{ net2_name }}_{{ net1_name }}_interface1:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: router_{{ net1_name }}_{{ net2_name }} }
+      subnet_id: { get_resource: {{ net2_name }}_subnet }
+
+{% endfor %}
+
+
+{% for server in heat_template.servers %}
+{%   set interface_model = heat_template.interface_models[server.interface_model] %}
+{%   set disk_model = heat_template.disk_models[server.disk_model] %}
+{%   set server_ns = namespace(ports=[], trunk_port_names=[], volume_names=[]) %}
+
+{%   set server_name = server.name|lower|replace('-','_') %}
+{%   for port in interface_model.ports %}
+{%     set port_name = "%s_%s"|format(server_name, port.name|lower|replace('-','_')) %}
+{%     set ns = namespace(is_trunk_port=False, has_native_vlan=False) %}
+{%     set _ = server_ns.ports.append((port_name, port,)) %}
+{%     for network_id in port.networks %}
+{%       set network = heat_template.networks[network_id] %}
+{%       set network_name = network.name|lower|replace('-','_')|regex_replace('_net$', '') %}
+{%       set port_name = port_name+("_vlan%s"|format(network.vlan) if network.vlan is defined else '') %}
+{%       if network.vlan is defined %}
+{%         set ns.is_trunk_port = True %}
+{%       else %}
+{%         set ns.has_native_vlan = True %}
+{%       endif %}
+
+  # port: {{ port.name }}{% if network.vlan is defined %}.{{ network.vlan }}{% endif %}
+
+{%       if port.bond is defined %}
+  # bond: {{ port.bond }}
+  # primary: {{ port.primary }}
+{%       endif %}
+{%       if network.is_conf and not port.primary|default(True) %}
+  # attached to network: <not attached>
+{%       else %}
+  # attached to network: {{ network.name }}
+{%       endif %}
+  # attached to server: {{ server.name }}
+  # interface model: {{ server.interface_model }}
+  {{ port_name }}_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ port_name }}_port
+{%       if network.is_mgmt and not port.primary|default(true) %}
+      network: { get_resource: default_network }
+
+{%       else %}
+      network: { get_resource: {{ network_name }}_network }
+      fixed_ips:
+        - subnet_id: { get_resource: {{ network_name }}_subnet }
+{%         if network.is_conf %}
+{%           set _ = global_ns.conf_ports.append((server, port_name,)) %}
+          ip_address: "{{ server.ip_addr }}"
+
+{%           if server.is_admin %}
+  # floating IP for the admin node
+  admin_floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: floating
+
+  admin_floating_ip_assoc:
+    type: OS::Neutron::FloatingIPAssociation
+    properties:
+      floatingip_id: { get_resource: admin_floating_ip }
+      port_id: { get_resource: {{ port_name }}_port }
+{%           endif %}
+{%         endif %}
+
+{%       endif %}
+{%     endfor %}
+
+{%     if not ns.has_native_vlan %}
+  # port: {{ port.name }}
+{%       if port.bond is defined %}
+  # bond: {{ port.bond }}
+  # primary: {{ port.primary }}
+{%       endif %}
+  # attached to network: <not attached>
+  # attached to server: {{ server.name }}
+  # interface model: {{ server.interface_model }}
+  {{ port_name }}_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ port_name }}_port
+      network: { get_resource: default_network }
+
+{%     endif %}
+
+{%     if ns.is_trunk_port %}
+{%       set _ = server_ns.trunk_port_names.append(port_name+'_trunk') %}
+
+  # trunk port: {{ port.name }}
+  # attached to server: {{ server.name }}
+  {{ port_name }}_trunk:
+    type: OS::Neutron::Trunk
+    properties:
+      port: { get_resource: {{ port_name }}_port }
+      sub_ports:
+{%       for network_id in port.networks if heat_template.networks[network_id].vlan is defined %}
+{%         set network = heat_template.networks[network_id] %}
+        - port: { get_resource: {{ port_name }}_vlan{{ network.vlan }}_port }
+          segmentation_type: vlan
+          segmentation_id: {{ network.vlan }}
+{%       endfor %}
+{%     endif %}
+
+{%   endfor %}
+{%   set ns = namespace(volume_att_deps="%s_server_wait"|format(server_name)) %}
+{%   for volume in disk_model.volumes %}
+{%     set volume_name = "%s_%s"|format(server_name, volume.name) %}
+{%     set _ = server_ns.volume_names.append(volume_name+'_vol') %}
+
+  # disk: {{ volume.mountpoint }}
+  # attached to server: {{ server.name }}
+  # disk model: {{ server.disk_model }}
+  {{ volume_name }}_vol:
+    type: OS::Cinder::Volume
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ volume_name }}_vol
+      size: {{ volume.size }}
+
+  {{ volume_name }}_vol_att:
+    type: OS::Cinder::VolumeAttachment
+    depends_on: {{ ns.volume_att_deps }}
+    properties:
+      instance_uuid: { get_resource: {{ server_name }}_server }
+      volume_id: { get_resource: {{ volume_name }}_vol }
+      mountpoint: {{ volume.mountpoint }}
+{%     set ns.volume_att_deps="%s_vol_att"|format(volume_name) %}
+{%   endfor %}
+
+{% if disk_model.volumes %}
+  {{ server_name }}_server_wait:
+    type: OS::Heat::TestResource
+    depends_on: {{ server_name }}_server
+    properties:
+      action_wait_secs:
+        create: 30
+        update: 30
+{% endif %}
+
+  # server: {{ server.name }}
+  # role: {{ server.role }}
+  {{ server_name }}_server:
+    type: OS::Nova::Server
+    depends_on: [ {{ ', '.join(server_ns.trunk_port_names+server_ns.volume_names) }} ]
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ server_name }}_server
+{% if os_key_name is defined %}
+      key_name: { get_param: key_name }
+{% endif %}
+      image: {{ server.image }}
+      flavor: {{ server.flavor }}
+      networks:
+{%   for port_name, port in server_ns.ports %}
+          # port: {{ port.name }}
+{%     if port.bond is defined %}
+          # bond:  {{ port.bond }}
+{%     endif %}
+          # interface model: {{ server.interface_model }}
+        - port: { get_resource: {{ port_name }}_port }
+{%   endfor %}
+{% endfor %}
+
+outputs:
+  # floating IP address of the admin node
+  admin-floating-ip:
+    description: Floating IP address of the admin node
+    value: { get_attr: [admin_floating_ip, floating_ip_address] }
+
+{% for server, port_name in global_ns.conf_ports if server.is_admin %}
+  # management IP address of the admin node
+  admin-conf-ip:
+    description: Management IP address of the management node
+    value: { get_attr: [{{ port_name }}_port, fixed_ips, 0, ip_address] }
+{%   endfor %}
+
+  # management IP addresses of the controller nodes
+  controller-conf-ips:
+    description: Management IP addresses of the controller node
+    value:
+{% for server, port_name in global_ns.conf_ports if server.is_controller %}
+      - { get_attr: [{{ port_name }}_port, fixed_ips, 0, ip_address] }
+{%   endfor %}
+
+  # management IP addresses of the compute nodes
+  compute-conf-ips:
+    description: Management IP addresses of the compute nodes
+    value:
+{% for server, port_name in global_ns.conf_ports if server.is_compute %}
+      - { get_attr: [{{ port_name }}_port, fixed_ips, 0, ip_address] }
+{%   endfor %}

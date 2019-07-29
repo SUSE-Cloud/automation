@@ -17,6 +17,7 @@
             - Cloud:OpenStack:Pike:Staging
             - Cloud:OpenStack:Queens:Staging
             - Cloud:OpenStack:Rocky:Staging
+            - Cloud:OpenStack:Stein:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
@@ -37,6 +38,7 @@
             - openstack-horizon-plugin-designate-ui
             - openstack-horizon-plugin-freezer-ui
             - openstack-horizon-plugin-gbp-ui
+            - openstack-horizon-plugin-heat-ui
             - openstack-horizon-plugin-ironic-ui
             - openstack-horizon-plugin-neutron-fwaas-ui
             - openstack-horizon-plugin-neutron-lbaas-ui
@@ -106,7 +108,7 @@
             "python-vmware-nsxlib",
             "python-vmware-nsx"
             ].contains(component) ||
-            [ "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
               "python-heat-cfntools",
               "openstack-rally",
@@ -115,7 +117,7 @@
               "python-vmware-nsxlib",
               "python-vmware-nsx",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging" ].contains(project) &&
             [
               "openstack-trove",
               "openstack-horizon-plugin-trove-ui",
@@ -126,16 +128,20 @@
               "openstack-horizon-plugin-neutron-vpnaas-ui",
               "openstack-neutron-vsphere",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Pike:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-murano-ui",
               "openstack-gnocchi",
               "openstack-monasca-transform"
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-freezer-ui",
               "openstack-nova-virt-zvm"
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
+            [
+              "openstack-horizon-plugin-heat-ui"
             ].contains(component)
             )
       sequential: true

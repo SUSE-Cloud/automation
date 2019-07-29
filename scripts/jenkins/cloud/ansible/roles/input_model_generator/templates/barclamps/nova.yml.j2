@@ -1,0 +1,38 @@
+  - barclamp: nova
+    attributes:
+      libvirt_type: kvm
+{% set nova_service = 'nova' %}
+{% include 'barclamps/lib/ssl.yml.j2' %}
+{#
+  Include the ses.yml.j2 block again for ec2-api
+  Use a Jinja 'macro' trick in order to indent the block
+#}
+{% set nova_service = 'ec2-api' %}
+{% macro ssl_block() %}{% include 'barclamps/lib/ssl.yml.j2' %}{% endmacro %}
+      ec2-api:
+  {{ ssl_block()|indent(2) }}
+{#
+  Include the ses.yml.j2 block again for novnc
+  Use a Jinja 'macro' trick in order to indent the block
+#}
+{% set nova_service = 'novnc' %}
+{% macro ssl_block() %}{% include 'barclamps/lib/ssl.yml.j2' %}{% endmacro %}
+      novnc:
+  {{ ssl_block()|indent(2) }}
+      trusted_flavors: true
+      use_migration: true
+      kvm:
+        ksm_enabled: true
+{% if not is_physical_deploy %}
+      compute:
+        kvm-x86_64:
+          cpu_mode: custom
+          cpu_model: Westmere
+{% endif %}
+      metadata:
+        vendordata:
+          json: '{"custom-key": "custom-value"}'
+{% for compute_type in ['qemu', 'vmware', 'xen', 'zvm', 'ironic'] %}
+{%   set _ = deployment.update({'nova-compute-' ~ compute_type: {}}) %}
+{% endfor %}
+{% include 'barclamps/lib/deployment.yml.j2' %}

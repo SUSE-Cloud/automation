@@ -12,6 +12,7 @@
     previous_version: 8
     arch: x86_64
     tempestoptions: --smoke
+    magnumoptions: --regex '^magnum_tempest_plugin.tests.api'
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: mysql
     jobs:
@@ -26,6 +27,7 @@
         - 'cloud-mkcloud{version}-job-monasca-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-disruptive-{arch}'
+        - 'cloud-mkcloud{version}-job-ipv6-{arch}'
 - project:
     name: cloud-mkcloud9-ha-x86_64
     disabled: false
@@ -44,6 +46,7 @@
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-linuxbridge-bonding-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}'
@@ -54,7 +57,7 @@
     version: 9
     previous_version: 8
     arch: x86_64
-    tempestoptions: --parallel
+    tempestoptions: --parallel --concurrency 3
     label: openstack-mkcloud-SLE12-x86_64
     jobs:
          - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
@@ -81,5 +84,4 @@
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
         - 'cloud-mkcloud{version}-job-btrfs-{arch}'
         - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-magnum-{arch}'
         - 'cloud-mkcloud{version}-job-raid-{arch}'

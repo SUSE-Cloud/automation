@@ -1,0 +1,118 @@
+
+- project:
+    name: cloud-ardana-job-mu-entry-scale-kvm-x86_64
+    reserve_env: false
+    updates_test_enabled: false
+    scenario_name: entry-scale-kvm
+    clm_model: standalone
+    controllers: '3'
+    computes: '2'
+    ses_enabled: true
+    ses_rgw_enabled: false
+    extra_params: |
+      tempest_retry_failed=True
+      update_services_serial=True
+    triggers: []
+    ardana_job:
+      - cloud-ardana8-job-mu-entry-scale-kvm-deploy-x86_64:
+          cloudsource: GM8+up
+          update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
+            designate,heat,ceilometer,magnum,freezer,monasca"
+      - cloud-ardana8-job-mu-entry-scale-kvm-update-x86_64:
+          cloudsource: GM8+up
+          update_after_deploy: true
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
+            designate,heat,ceilometer,magnum,freezer,monasca"
+      - cloud-ardana9-job-mu-entry-scale-kvm-deploy-x86_64:
+          cloudsource: GM9+up
+          update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
+            designate,heat,magnum,monasca"
+      - cloud-ardana9-job-mu-entry-scale-kvm-update-x86_64:
+          cloudsource: GM9+up
+          update_after_deploy: true
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
+            designate,heat,magnum,monasca"
+    jobs:
+        - '{ardana_job}'
+
+
+- project:
+    name: cloud-crowbar-job-mu-no-ha-x86_64
+    reserve_env: false
+    updates_test_enabled: false
+    reboot_after_deploy: true
+    scenario_name: standard
+    controllers: '1'
+    computes: '2'
+    triggers: []
+    crowbar_job:
+      - cloud-crowbar7-job-mu-no-ha-deploy-x86_64:
+          cloudsource: GM7+up
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar7-job-mu-no-ha-update-x86_64:
+          cloudsource: GM7+up
+          ses_enabled: false
+          update_after_deploy: true
+      - cloud-crowbar8-job-mu-no-ha-deploy-x86_64:
+          cloudsource: GM8+up
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar8-job-mu-no-ha-update-x86_64:
+          cloudsource: GM8+up
+          ses_enabled: false
+          update_after_deploy: true
+      - cloud-crowbar9-job-mu-no-ha-deploy-x86_64:
+          cloudsource: GM9+up
+          ses_enabled: true
+          update_after_deploy: false
+      - cloud-crowbar9-job-mu-no-ha-update-x86_64:
+          cloudsource: GM9+up
+          ses_enabled: true
+          update_after_deploy: true
+    jobs:
+        - '{crowbar_job}'
+
+
+- project:
+    name: cloud-crowbar-job-mu-ha-x86_64
+    reserve_env: false
+    updates_test_enabled: false
+    reboot_after_deploy: true
+    scenario_name: standard
+    controllers: '3'
+    computes: '2'
+    triggers: []
+    crowbar_job:
+      - cloud-crowbar7-job-mu-ha-deploy-x86_64:
+          cloudsource: GM7+up
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar7-job-mu-ha-update-x86_64:
+          cloudsource: GM7+up
+          ses_enabled: false
+          update_after_deploy: true
+      - cloud-crowbar8-job-mu-ha-deploy-x86_64:
+          cloudsource: GM8+up
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar8-job-mu-ha-update-x86_64:
+          cloudsource: GM8+up
+          ses_enabled: false
+          update_after_deploy: true
+      - cloud-crowbar9-job-mu-ha-deploy-x86_64:
+          cloudsource: GM9+up
+          ses_enabled: true
+          update_after_deploy: false
+      - cloud-crowbar9-job-mu-ha-update-x86_64:
+          cloudsource: GM9+up
+          ses_enabled: true
+          update_after_deploy: true
+    jobs:
+        - '{crowbar_job}'

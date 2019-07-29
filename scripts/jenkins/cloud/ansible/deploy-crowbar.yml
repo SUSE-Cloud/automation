@@ -1,0 +1,77 @@
+---
+- import_playbook: cloud-ses-integration.yml
+  when: ses_enabled
+
+- name: Configure Crowbar and deploy OpenStack
+  hosts: "{{ cloud_env }}"
+  remote_user: root
+  gather_facts: True
+  vars:
+    task: "deploy"
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when:
+        - rc_notify
+        - rc_notify_start
+        - not is_physical_deploy
+
+  tasks:
+    - block:
+        - name: Crowbar log stream at
+          debug:
+            msg: "http://{{ ansible_host }}:9091/"
+
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: "setup_trusted_cert {{ ssl_certfile }} {{ ssl_keyfile }}"
+          when:
+            - ssl_enabled
+            - not ssl_insecure
+
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: onadmin_batch
+
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: onadmin_rebootcloud
+          when:
+            - reboot_after_deploy
+            - not update_after_deploy
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+      always:
+        - include_role:
+            name: jenkins_artifacts
+          when: lookup("env", "WORKSPACE")
+          vars:
+            jenkins_artifacts_to_collect:
+              - src: "{{ admin_mkcloud_config_file }}"
+              - src: "{{ qa_crowbarsetup_log }}"
+
+  post_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "finished"
+        rc_state: "Success"
+      when:
+        - rc_notify

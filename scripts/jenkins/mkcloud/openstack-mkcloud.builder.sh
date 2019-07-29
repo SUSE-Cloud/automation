@@ -8,7 +8,6 @@ mkdir -p $artifacts_dir
 touch $artifacts_dir/.ignore
 export log_dir=$artifacts_dir/mkcloud_log
 
-jtsync=${automationrepo}/scripts/jtsync/jtsync.rb
 export ghprrepo=~/github.com/openSUSE/github-pr
 export ghpr=${ghprrepo}/github_pr.rb
 
@@ -43,70 +42,70 @@ case $cloudsource in
 esac
 
 if [[ $cinder_backend = " " ]] ; then
-  cinder_backend=""
+    cinder_backend=""
 elif [[ $cinder_backend = "nfs" ]] ; then
-  export nodenumberlonelynode=1
+    export nodenumberlonelynode=1
 fi
 
 
 # HAcloud
 if [[ $hacloud == 1 ]] ; then
-  case $cloudsource in
-    develcloud6|GM7|GM7+up)
-        clusternodes=2
-        nodes=3
-        ;;
-    *)
-        clusternodes=3
-        nodes=4
-        ;;
-  esac
+    case $cloudsource in
+        develcloud6|GM7|GM7+up)
+            clusternodes=2
+            nodes=3
+            ;;
+        *)
+            clusternodes=3
+            nodes=4
+            ;;
+    esac
 
-  : ${clusterconfig:=data+services+network=$clusternodes}
-  export clusterconfig
-  if [[ $nodenumber -lt $nodes ]] ; then
-      export nodenumber=$nodes
-  fi
+    : ${clusterconfig:=data+services+network=$clusternodes}
+    export clusterconfig
+    if [[ $nodenumber -lt $nodes ]] ; then
+        export nodenumber=$nodes
+    fi
 
-  # for now disable ceph deployment in HA mode explicitly
-  # it would need 5 nodes (2 for the cluster + 3 nodes for compute and ceph)
-  #### temorarily allow ceph in HA (test if it works)
-  #export want_ceph=0
-  #export cephvolumenumber=0
+    # for now disable ceph deployment in HA mode explicitly
+    # it would need 5 nodes (2 for the cluster + 3 nodes for compute and ceph)
+    #### temorarily allow ceph in HA (test if it works)
+    #export want_ceph=0
+    #export cephvolumenumber=0
 fi
 
 #storage
 case "$storage_method" in
-  none)
-    want_ceph=0
-    want_swift=0
-    ;;
-  swift)
-    want_ceph=0
-    want_swift=1
-    ;;
-  ceph)
-    want_ceph=1
-    want_swift=0
-    if [[ $nodenumber -lt 5 ]] ; then
-      export nodenumber=5
-    fi
-    if [[ $cephvolumenumber -lt 2 ]] ; then
-      cephvolumenumber=2
-    fi
-    ;;
-  *)
-    unset want_ceph
-    unset want_swift
+    none)
+        want_ceph=0
+        want_swift=0
+        ;;
+    swift)
+        want_ceph=0
+        want_swift=1
+        ;;
+    ceph)
+        want_ceph=1
+        want_swift=0
+        if [[ $nodenumber -lt 5 ]] ; then
+            export nodenumber=5
+        fi
+        if [[ $cephvolumenumber -lt 2 ]] ; then
+            cephvolumenumber=2
+        fi
+        ;;
+    *)
+        unset want_ceph
+        unset want_swift
 esac
 export want_ceph
 export want_swift
 
 if [ ! -z "$UPDATEREPOS" ] ; then
-  # testing update only makes sense with GM and without TESTHEAD
-#  unset TESTHEAD
-#  export cloudsource=GM
-  export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
+    # testing update only makes sense with GM and without TESTHEAD
+    #unset TESTHEAD
+    #export cloudsource=GM
+    export UPDATEREPOS=${UPDATEREPOS//$'\n'/+}
 fi
 
 function mkcloudgating_trap()
@@ -121,7 +120,7 @@ if [[ $github_pr ]] ; then
 
     github_context=suse/mkcloud
     if [[ $github_pr_context ]] ; then
-      github_context=$github_context/$github_pr_context
+        github_context=$github_context/$github_pr_context
     fi
     ghpr_paras="--org ${github_org} --repo ${github_repo} --sha $github_pr_sha --context $github_context"
 
@@ -155,14 +154,14 @@ MKCLOUDTARGET=$mkcloudtarget
 
 [ $(uname -m) = s390x ] && WITHCROWBARREGISTER=true
 if [ $WITHCROWBARREGISTER == "true" ] ; then
-  export nodenumberlonelynode=1
-  [ $(uname -m) = s390x ] && {
-      export nodenumberlonelynode=$nodenumber
-      export nodenumber=0
-      export controller_node_memory=8388608
-      export compute_node_memory=6291456
-  }
-  MKCLOUDTARGET+=" setuplonelynodes crowbar_register"
+    export nodenumberlonelynode=1
+    [ $(uname -m) = s390x ] && {
+        export nodenumberlonelynode=$nodenumber
+        export nodenumber=0
+        export controller_node_memory=8388608
+        export compute_node_memory=6291456
+    }
+    MKCLOUDTARGET+=" setuplonelynodes crowbar_register"
 fi
 
 [ $(uname -m) = aarch64 ] && {
@@ -189,9 +188,7 @@ perl -e "alarm 6*60*60 ; exec '${mkcloudwrapper} bash ${automationrepo}/scripts/
 ret=${PIPESTATUS[0]}
 if [[ $ret != 0 ]] ; then
     if [[ $github_pr_sha ]] ; then
-      mkcloudgating_trap
-    else
-      $jtsync --ci suse --job $JOB_NAME 1
+        mkcloudgating_trap
     fi
     echo "mkcloud ret=$ret"
     exit $ret # check return code before tee
@@ -199,8 +196,6 @@ fi
 
 # report mkcloud-gating status or jenkins trello status
 if [[ $github_pr_sha ]] ; then
-  $ghpr --action set-status --debugratelimit $ghpr_paras --status "success" --targeturl $BUILD_URL --message "PR gating succeeded"
-  trap "-" ERR
-else
-  $jtsync --ci suse --job $JOB_NAME 0
+    $ghpr --action set-status --debugratelimit $ghpr_paras --status "success" --targeturl $BUILD_URL --message "PR gating succeeded"
+    trap "-" ERR
 fi

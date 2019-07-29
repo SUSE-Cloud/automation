@@ -1,0 +1,74 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+---
+
+- name: Run tempest and collect results
+  hosts: "{{ cloud_env }}"
+  remote_user: ardana
+  gather_facts: True
+  vars:
+    task: "tempest"
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when: rc_notify
+
+  tasks:
+    - block:
+        - include_role:
+            name: ardana_tempest
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+      always:
+        - include_role:
+            name: jenkins_artifacts
+          vars:
+            jenkins_artifacts_to_collect:
+              - src: "~/.ansible/ansible.log"
+              - src: "~/testr_results_region1.html"
+                dest: "testr_results_region1_{{ tempest_run_filter }}.html"
+              - src: "~/testr_results_region1.xml"
+                dest: "testr_results_region1_{{ tempest_run_filter }}.xml"
+              - src: "/opt/stack/tempest/logs/testr_results_region1.log"
+                dest: "testr_results_region1_{{ tempest_run_filter }}.log"
+          when: lookup("env", "WORKSPACE")
+
+        - include_role:
+            name: send_to_os_health
+          when: "'failed' not in tempest_status"
+
+
+  post_tasks:
+      - include_role:
+          name: rocketchat_notify
+        vars:
+          rc_action: "finished"
+          rc_state: "{{ (tempest_test_results.failed | int > 0) | ternary('Failed', 'Success' )}}"
+        when: rc_notify

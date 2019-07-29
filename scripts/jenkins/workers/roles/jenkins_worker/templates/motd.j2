@@ -1,0 +1,13 @@
+{% if lookup('env', 'BUILD_URL') %}
+Built by: {{ lookup('env', 'BUILD_URL') }}
+{% endif %}
+------------------------------------------------------------------------------
+* This is one of the CI worker nodes for the Cloud Team!                     *
+* Please only connect on this node for last resort debugging.                *
+* Be careful in what you do on this environment, as it might break CI.       *
+*                                                                            *
+* WARNING                                                                    *
+* This secured system and your actions will be logged along                  *
+* with identifying information. Disconnect immediately if you are not an     *
+* authorized user of this system.                                            *
+------------------------------------------------------------------------------

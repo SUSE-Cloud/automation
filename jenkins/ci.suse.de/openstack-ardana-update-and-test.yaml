@@ -32,7 +32,7 @@
 
     parameters:
       - validating-string:
-          name: ardana_env
+          name: cloud_env
           default: ''
           regex: '[A-Za-z0-9-_]+'
           msg: >-
@@ -42,8 +42,24 @@
             be set to one of the values associated with the known hardware environments
             (e.g. qe101), or to a value that will identify the created virtual environment.
 
-            WARNING: if a virtual environment associated with the supplied ardana_env already
+            WARNING: if a virtual environment associated with the supplied cloud_env already
             exists, it will be replaced.
+
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The OpenStack cloud platform where the virtual cloud environment is
+            running. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+            If the 'cloud_env' value matches one of the virtual cloud slots
+            (https://ci.nue.suse.com/lockable-resources/), the 'os_cloud' parameter is
+            overridden to reflect the OpenStack platform associated with it.
 
       - choice:
           name: update_to_cloudsource
@@ -58,18 +74,8 @@
             - hosGM8+up
             - stagingcloud9
             - develcloud9
-            - cloud9M3
-            - cloud9M4
-            - cloud9M5
-            - cloud9M6
-            - cloud9M7
-            - cloud9M8
-            - cloud9M9
-            - cloud9M10
-            - cloud9RC1
-            - cloud9RC2
-            - cloud9RC3
-            - cloud9GMC
+            - GM9
+            - GM9+up
           description: >-
             The cloud repository (from provo-clouddata) to be used for updating.
             This value can take the following form:
@@ -101,9 +107,8 @@
           multi-select-delimiter: ','
           default-value: ''
           value: >-
-            ci,smoke,smoke-upstream,defcore,full,barbican,compute,designate,
-            identity,lbaas,magnum,manila,monasca,network,neutron-api,periodic,
-            periodic-virtual,refstack,swift,tests2skip,tests-ci,upgrade-ci,upgrade
+            ci,smoke,keystone,swift,glance,cinder,neutron,nova,barbican,lbaas,
+            fwaas,vpnaas,designate,heat,ceilometer,magnum,manila,freezer,monasca
           description: >-
             Name of the filter file to use for tempest. Selecting multiple values
             will run tempest for each selected value.
@@ -122,7 +127,7 @@
             nova_server,nova_services,nova_flavor,nova_image,barbican-cli-func,
             barbican-functional,horizon,freezer,keystone-soapui,
             remove_compute_node,add_compute_node,tempest_cleanup,service-ansible-playbooks,
-            change_credentials,nova_guest_image
+            change_credentials,nova_guest_image,monasca-ceilometer
           description: >-
             Select QA tests to run. Use an empty value to skip running QA tests.
 
@@ -145,11 +150,31 @@
             The git automation branch
 
       - string:
-          name: os_cloud
+          name: os_project_name
           default: ''
           description: >-
-            The OpenStack API credentials used to manage virtual clouds (leave
-            empty to use the default shared 'cloud' ECP account).
+            The name of the OpenStack project that hosts the virtual cloud deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
+
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'cloud-ci' OpenStack project used exclusively for the Cloud CI will be used
+            regardless of this parameter.
+
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
 
     pipeline-scm:
       scm:

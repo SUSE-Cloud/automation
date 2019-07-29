@@ -1,0 +1,45 @@
+- block:
+    - name: Generate filter with failed tests
+      template:
+        src: "run_filter_{{ item.filter }}.txt.j2"
+        dest: "/opt/stack/tempest/run_filters/{{ tempest_run_filter }}_{{ item .filter}}.txt.j2"
+        owner: tempest
+        group: tempest
+        mode: 0644
+      become: yes
+      when: item.when | default(True)
+      loop:
+         - filter: "retry"
+         - filter: "retry_serial"
+           when: "{{ tempest_failed_tests.stdout_lines | length > 1 }}"
+
+    - name: Save previous tempest run outputs
+      copy:
+        src: "/opt/stack/tempest/logs/{{ item }}"
+        dest: "/opt/stack/tempest/logs/{{ item }}.previous"
+        remote_src: True
+        owner: tempest
+        group: tempest
+        mode: 0644
+      become: yes
+      loop:
+        - "testr_results_region1.log"
+        - "testrepository_region1.subunit"
+
+    - name: Rerun tempest for '{{ tempest_run_filter }}' failed tests
+      shell: |
+        ansible-playbook -i hosts/verb_hosts tempest-run.yml \
+                     -e run_filter="{{ tempest_run_filter }}_retry"
+      args:
+        chdir: "{{ ardana_scratch_path }}"
+  rescue:
+    - name: Get list of failed tempest tests
+      shell: "grep -B1 -- '------' {{ tempest_results_log }} | awk -F '\n' 'ln ~ /^$/ { ln = \"matched\"; print $1 } $1 ~ /^--$/ { ln = \"\" }'"
+      register: tempest_failed_tests
+  always:
+    - name: Combine test outputs
+      shell: |
+        {{ subunit_tools_venv }}/bin/subunit-filter -fs {{ tempest_results_subunit }}.previous >> {{ tempest_results_subunit }}
+        cat {{ tempest_results_log }}.previous {{ tempest_results_log  }} > {{ tempest_results_log }}.tmp
+        mv {{ tempest_results_log }}.tmp {{ tempest_results_log }} && chown tempest.tempest {{ tempest_results_log }}
+      become: yes

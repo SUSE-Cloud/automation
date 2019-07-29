@@ -1,0 +1,13 @@
+
+- project:
+    name: openstack-cloud-jenkins-workers
+    worker_ids:
+      - ci-trigger:
+          jenkins_worker_labels: 'cloud-ci-worker cloud-ci-trigger'
+          jenkins_workers_executors: '50'
+      - ci:
+          jenkins_worker_labels: 'cloud-ci-worker cloud-ci'
+          jenkins_workers_executors: '50'
+    jobs:
+        - 'cloud-jenkins-worker-{worker_ids}'
+

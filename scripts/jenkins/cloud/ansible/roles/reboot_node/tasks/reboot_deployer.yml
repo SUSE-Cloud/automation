@@ -1,0 +1,46 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Reboot deployer
+  shell: sleep 2 && shutdown -r now "{{cloud_product == 'crowbar'| ternary('Crowbar','Ardana')}} updates triggered"
+  async: 1
+  poll: 0
+  failed_when: false
+  become: yes
+
+- name: Wait for node after reboot
+  wait_for_connection:
+    delay: 5
+
+- name: Get host uptime
+  shell: cut -d " " -f 1 /proc/uptime
+  register: _hostuptime
+
+- name: Fail when uptime more then 2 minutes
+  fail:
+    msg: "Uptime more then 2 minutes - it looks like node didn't reboot"
+  when: _hostuptime.stdout|int > 120
+
+- name: Check crowbar webui (http status)
+  uri:
+    url: http://127.0.0.1:3000/
+    status_code: 200
+  retries: 3
+  delay: 9
+  register: _uri_output
+  until: "(_uri_output.status == 200)"
+  when: cloud_product == 'crowbar'

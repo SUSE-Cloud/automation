@@ -1,0 +1,52 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+interface_models:
+  - name: CLM
+    service_groups:
+      - clm
+    network_interfaces:
+      - network_groups:
+          - MANAGEMENT
+        forced_network_groups:
+          - EXTERNAL-API
+
+  - name: CORE
+    service_groups:
+      - mml-core
+      - dbmq
+      - lmm
+    network_interfaces:
+      - network_groups:
+          - EXTERNAL-API
+          - GUEST
+          - MANAGEMENT
+      - network_groups:
+          - EXTERNAL-VM
+          - TENANT-VLAN
+
+  - name: COMPUTE
+    service_groups:
+      - compute
+      - rhel-compute
+    network_interfaces:
+      - network_groups:
+          - GUEST
+          - MANAGEMENT
+      - network_groups:
+          - EXTERNAL-VM
+          - TENANT-VLAN

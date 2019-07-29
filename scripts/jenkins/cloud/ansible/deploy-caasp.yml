@@ -1,0 +1,55 @@
+---
+
+- name: Deploy CaaSP using heat templates
+  hosts: "{{ cloud_env }}"
+  gather_facts: False
+  remote_user: ardana
+  vars:
+    caasp_image_url: "http://provo-clouddata.cloud.suse.de/images/openstack/x86_64/SUSE-CaaS-Platform-3.0-for-OpenStack-Cloud.x86_64-3.0.0-GM.qcow2"
+    caasp_image_path: "/tmp/SUSE-CaaS-Platform-3.0-for-OpenStack-Cloud.x86_64-3.0.0-GM.qcow2"
+    image_name: "SUSE-CaaS-Platform-3.0-for-OpenStack-Cloud"
+    stack_name: "caasp-stack"
+  tasks:
+  - name: Install caasp-openstack-heat-templates
+    always_run: True
+    become: yes
+    zypper:
+      name: caasp-openstack-heat-templates
+      state: present
+
+  - name: Download CaaSP image
+    always_run: True
+    get_url:
+      url: "{{ caasp_image_url }}"
+      dest: "{{ caasp_image_path }}"
+      mode: 0600
+    register: _download_caasp_image
+    until: _download_caasp_image | success
+    retries: 5
+    delay: 2
+
+  - name: Upload CaaSP image to glance
+    always_run: True
+    shell: |
+      source ~ardana/service.osrc
+      if ! openstack image list | grep "{{ image_name }}"; then openstack image create --public --disk-format qcow2 --container-format bare --file "{{ caasp_image_path }}" "{{ image_name }}"; fi
+    args:
+      executable: /bin/bash
+
+  - name: Create heat stack for CaaSP deployment
+    always_run: True
+    shell: |
+      source ~ardana/service.osrc
+      openstack stack create --wait --timeout 120 -t caasp-stack.yaml -e caasp-environment.yaml --parameter image="{{ image_name }}" "{{ stack_name }}"
+      openstack stack show "{{ stack_name }}"
+      status=$(openstack stack show "{{ stack_name }}" | grep -w stack_status | awk '{print $4}')
+      if [ $status = 'CREATE_COMPLETE' ]; then echo "CaaSP stack created successfully."; else echo "Failed to create stack: $status"; exit 1; fi
+    args:
+      executable: /bin/bash
+      chdir: /usr/share/caasp-openstack-heat-templates/
+
+  - name: Delete downloaded image
+    always_run: True
+    file:
+      state: absent
+      path: "{{ caasp_image_path }}"

@@ -1,0 +1,53 @@
+---
+
+- name: Gather variables for '{{ cloud_product }}'
+  include_vars: "{{ cloud_product }}.yml"
+
+- name: Install SLE package dependencies
+  zypper:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ sle_packages }}"
+
+- name: Ensure Leap repo is in place
+  zypper_repository:
+    repo: "{{ leap_repo_url }}"
+    name: leap
+    state: present
+    disable_gpg_check: yes
+    runrefresh: yes
+
+- name: Install Leap package dependencies
+  zypper:
+    name: "{{ item }}"
+    state: present
+  loop: "{{ leap_packages }}"
+
+- name: Remove Leap repo
+  zypper_repository:
+    name: leap
+    state: absent
+    runrefresh: yes
+
+- name: Generate xml subunit results
+  shell: "subunit2junitxml {{ tempest_results_subunit }} > {{ subunit_xml_results }}"
+  changed_when: false
+  failed_when: false
+
+- name: Generate html subunit results
+  shell: "subunit2html {{ tempest_results_subunit }} {{ subunit_html_results }}"
+  changed_when: false
+  failed_when: false
+
+- name: Get results from subunit
+  command: "subunit-stats {{ tempest_results_subunit }}"
+  failed_when: false
+  register: _test_results
+
+- name: Process test results from subunit
+  set_fact:
+    tempest_test_results: "{{ tempest_test_results | default({}) | combine({item.split()[0] | lower: item.split()[-1]}) }}"
+  when: "'tests' in item"
+  loop: "{{ _test_results.stdout_lines }}"
+  loop_control:
+    label: "{{ item.split()[0] | lower }}: {{ item.split()[-1] }}"

@@ -16,11 +16,11 @@ This project has several scripts for different automated tasks. Some of them are
 
 # Documentation
 
-## Crowbar deployments
+## Crowbar mkcloud deployments
 
 Find out more in [`/docs/mkcloud.md`](docs/mkcloud.md)
 
-## Ardana deployments
+## Unified Cloud deployments
 
 Find out more in [`/docs/ardana/`](docs/ardana/)
 

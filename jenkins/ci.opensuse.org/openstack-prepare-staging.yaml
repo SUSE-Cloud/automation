@@ -14,3 +14,8 @@
     wrappers:
       - build-name:
           name: '#${BUILD_NUMBER} / C:O:${ENV,var="openstack_project"}'
+      - timestamps
+      - timeout:
+          fail: true
+          write-description: "If this timed out while being in state finished and not yet published, it is likely that this took too long because OBS is waiting for rsync for the download infrastructure of openSUSE, contact an OBS admin."
+          timeout: 180

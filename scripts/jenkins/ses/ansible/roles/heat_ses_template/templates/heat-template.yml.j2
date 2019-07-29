@@ -23,6 +23,12 @@ parameters:
     description: Existing network to be used by SES
     default: "{{ network }}"
 
+  router:
+    type: string
+    label: Router
+    description: Existing router to be used by SES network
+    default: "{{ router }}"
+
   subnet_cidr:
     type: string
     label: Default CIDR
@@ -31,69 +37,58 @@ parameters:
 
 resources:
 {% if network is not defined or network|length == 0 %}
-  ses-{{ ses_id }}_network:
+  ses_network:
     type: OS::Neutron::Net
     properties:
-      name: openstack-ses-{{ ses_id }}
+      name: {{ heat_resource_name_prefix }}
       port_security_enabled: True
 
-  ses-{{ ses_id }}_subnet:
+  ses_subnet:
     type: OS::Neutron::Subnet
     properties:
-      name: openstack-ses-{{ ses_id }}
-      network_id: { get_resource: ses-{{ ses_id }}_network }
+      name: {{ heat_resource_name_prefix }}
+      network_id: { get_resource: ses_network }
       cidr: { get_param: subnet_cidr }
       ip_version: 4
       enable_dhcp: True
 
-  ses-{{ ses_id }}_router:
+{% if router is not defined or router|length == 0 %}
+  ses_router:
     type: OS::Neutron::Router
     properties:
-      name: openstack-ses-{{ ses_id }}
+      name: {{ heat_resource_name_prefix }}
       external_gateway_info:
         network: { get_param: floating_network }
-
-  ses-{{ ses_id }}-router_interface:
-    type: OS::Neutron::RouterInterface
-    properties:
-      router: { get_resource: ses-{{ ses_id }}_router }
-      subnet: { get_resource: ses-{{ ses_id }}_subnet }
 {% endif %}
 
-  ses-{{ ses_id }}_port:
+  ses_router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { {{ (router is not defined or router|length == 0) | ternary('get_resource: ses_router', 'get_param: router') }} }
+      subnet: { get_resource: ses_subnet }
+{% endif %}
+
+  ses_port:
     type: OS::Neutron::Port
     properties:
-      name: openstack-ses-{{ ses_id }}
-      network_id: { {{ (network is not defined or network|length == 0) | ternary('get_resource: ses-' ~ ses_id ~ '_network', 'get_param: network') }} }
+      name: {{ heat_resource_name_prefix }}
+      network_id: { {{ (network is not defined or network|length == 0) | ternary('get_resource: ses_network', 'get_param: network') }} }
 {% if network is not defined or network|length == 0 %}
       security_groups:
         - all-incoming
 {% endif %}
 
-  ses-{{ ses_id }}_server:
+  ses_server:
     type: OS::Nova::Server
     properties:
 {% if server_key_name is defined %}
       key_name: { get_param: key_name }
 {% endif %}
-      name: openstack-ses-{{ ses_id }}
+      name: {{ heat_resource_name_prefix }}
       image: {{ server_image }}
       flavor: {{ server_flavor }}
       networks:
-        - port: { get_resource: ses-{{ ses_id }}_port }
-
-  ses-{{ ses_id }}_vol:
-    type: OS::Cinder::Volume
-    properties:
-      name: openstack-ses-{{ ses_id }}
-      size: {{ volume_size }}
-
-  ses-{{ ses_id }}_vol_att:
-    type: OS::Cinder::VolumeAttachment
-    properties:
-      instance_uuid: { get_resource: ses-{{ ses_id }}_server }
-      volume_id: { get_resource: ses-{{ ses_id }}_vol }
-      mountpoint: "{{ volume_mountpoint }}"
+        - port: { get_resource: ses_port }
 
   ses_floating_ip:
     type: OS::Neutron::FloatingIP
@@ -102,9 +97,12 @@ resources:
 
   ses_floating_ip_assoc:
     type: OS::Neutron::FloatingIPAssociation
+{% if network is not defined or network|length == 0 %}
+    depends_on: ses_router_interface
+{% endif %}
     properties:
       floatingip_id: { get_resource: ses_floating_ip }
-      port_id: { get_resource: ses-{{ ses_id }}_port }
+      port_id: { get_resource: ses_port }
 
 outputs:
   ses-floating-ip:

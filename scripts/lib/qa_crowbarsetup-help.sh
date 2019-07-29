@@ -6,6 +6,8 @@ function qacrowbarsetup_help
     cat <<EOUSAGE
     crowbar_networkingmode=single         (default single)
         set the networking mode for Crowbar.
+    want_l3_ha=1         (default 0)
+        Use the upstream l3 HA solution (with VRRP/keepalived)
     want_neutronsles12=1 (default 0)
         if there is a SLE12 node, deploy neutron-network role into the SLE12 node
     want_mtu_size=<size> (default='')

@@ -42,12 +42,15 @@
             Cloud:OpenStack:[R]*)
               OSCBUILDDIST=SLE_12_SP4
             ;;
+            Cloud:OpenStack:[S]*)
+              OSCBUILDDIST=SLE_15
+            ;;
             *) echo "Please add support for the project: $openstack_project"
               exit 1
             ;;
           esac
 
-          if [ "Cloud:OpenStack:Rocky" = "$COS" ]; then
+          if [[ "$COS" =~ (Rocky|Stein) ]]; then
               # TODO replace this once the osc here is new enough to have
               # https://github.com/openSUSE/osc/commit/fb80026651c47d262dbff33136ae5306ff83aff3
               $OSC api -m POST "/source/${COST}?cmd=release&nodelay=1"

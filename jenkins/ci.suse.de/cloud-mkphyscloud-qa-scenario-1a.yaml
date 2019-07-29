@@ -31,7 +31,7 @@
 
       - string:
           name: admin_os
-          default: sles12sp3
+          default: sles12sp4
           description: Mandatory, admin node operating system version
 
       - string:
@@ -71,34 +71,26 @@
             - vlan
             - gre
 
-      - string:
+      - choice:
           name: tempest
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
+          choices:
+            - smoke
+            - full
 
-      - bool:
-          name: trigger_upgrade
-          default: false
-          description: Trigger the upgrade process for this cloud in a separate job
-
-      - bool:
-          name: horizon-tests
-          default: false
-          description: Optional, Run horizon integration tests.
-
-      - bool:
-          name: rally-tests
-          default: false
-          description: Optional, Run rally  tests
-
-      - string:
+      - choice:
           name: ssl_type
           default: no-ssl
           description: "Mandatory, set the SSL configuration for the cloud, available options: no-ssl, ssl-insecure, ssl"
+          choices:
+            - no-ssl
+            - ssl-insecure
+            - ssl
 
       - string:
           name: cloud_version
-          default: "8"
+          default: "9"
           description: Mandatory, version of the cloud to be installed as integer
 
       - string:
@@ -139,10 +131,13 @@
           name: want_ipmi
           default: "1"
 
-      - string:
+      - choice:
           name: commands
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
-          description: All the steps that needs to be completed to have cloud installed:for ssl add "install_ca_certificates" before "batch" command
+          description: All the steps that needs to be completed to have cloud installed:When deploying with SSL add "install_ca_certificates" before "batch" command
+          choices:
+            - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
+            - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases install_ca_certificates batch
 
       - string:
           name: want_test_updates
@@ -158,6 +153,21 @@
           name: UPDATEBEFOREINSTALL
           default: false
           description: add update repos before crowbar install
+
+      - bool:
+          name: trigger_upgrade
+          default: false
+          description: Trigger the upgrade process for this cloud in a separate job
+
+      - bool:
+          name: horizon-tests
+          default: false
+          description: Optional, Run horizon integration tests.
+
+      - bool:
+          name: rally-tests
+          default: false
+          description: Optional, Run rally  tests
 
     builders:
       - shell: |
@@ -236,7 +246,7 @@
 
           [ $UPDATEBEFOREINSTALL == "true" ] && export updatesteps="addupdaterepo runupdate"
 
-          timeout --signal=ALRM 240m bash -x -c ". scripts/jenkins-support.sh;. scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
+          timeout --signal=ALRM 240m bash -x -c ". scripts/qa_crowbarsetup.sh ; onadmin_runlist $commands"
           ' || ret=$?
 
 

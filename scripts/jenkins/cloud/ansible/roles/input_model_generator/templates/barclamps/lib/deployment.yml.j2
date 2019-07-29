@@ -1,0 +1,15 @@
+    deployment:
+      elements:
+{% for role, service_groups in deployment.items() %}
+        {{ role }}:{{ service_groups|length|ternary('', ' []') }}
+{%   for service_group in service_groups.values() %}
+{%     if service_group.type == 'cluster' and service_group.member_count|int > 1 and role not in non_clustered_roles %}
+          - cluster:{{ cluster_names[service_group.name]|default(service_group.name) }}
+{%     else %}
+{%       set non_clustered_role = non_clustered_roles[role]|default({}) %}
+{%       for idx in range([service_group.member_count|int, non_clustered_role['max']|default(1000)]|min) %}
+          - @@{{ service_group.name }}{{ (service_group.member_count|int > 1) | ternary(idx+1, '') }}@@
+{%       endfor %}
+{%     endif %}
+{%   endfor %}
+{% endfor %}

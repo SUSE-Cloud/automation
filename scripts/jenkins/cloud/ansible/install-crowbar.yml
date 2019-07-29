@@ -1,0 +1,93 @@
+---
+
+- name: Install Crowbar on admin node
+  hosts: "{{ cloud_env }}"
+  remote_user: root
+  gather_facts: True
+  vars:
+    task: "deploy"
+
+  pre_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "started"
+        rc_state: "Started"
+      when:
+        - rc_notify
+        - rc_notify_start
+        - not is_physical_deploy
+
+  tasks:
+    - block:
+        - name: Log stream at
+          debug:
+            msg: "http://{{ ansible_host }}:9091/"
+
+        - name: Sync automation scripts onto the admin node
+          synchronize:
+            src: "{{ automation_scripts_path }}"
+            dest: "{{ admin_scripts_path }}"
+            delete: yes
+            recursive: yes
+
+        - name: Copy generated mkcloud.config to admin node
+          copy:
+            src: "{{ mkcloud_config_file }}"
+            dest: "{{ admin_mkcloud_config_file }}"
+
+        - name: Copy generated scenario to admin node
+          copy:
+            src: "{{ crowbar_batch_file }}"
+            dest: "{{ admin_crowbar_batch_file }}"
+
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: "onadmin_{{ command }}"
+          loop:
+            - addupdaterepo
+            - prepareinstallcrowbar
+            - bootstrapcrowbar
+            - installcrowbar
+          loop_control:
+            loop_var: command
+
+        # reboot node after crowbar install
+        - include_role:
+            name: reboot_node
+          vars:
+            reboot_target: deployer
+          when:
+            - reboot_after_deploy
+            - not update_after_deploy
+
+      rescue:
+        - include_role:
+            name: rocketchat_notify
+          vars:
+            rc_action: "finished"
+            rc_state: "Failed"
+          when: rc_notify
+
+        - name: Stop if something failed
+          fail:
+            msg: "{{ task }} failed."
+      always:
+        - include_role:
+            name: jenkins_artifacts
+          when: lookup("env", "WORKSPACE")
+          vars:
+            jenkins_artifacts_to_collect:
+              - src: "{{ admin_mkcloud_config_file }}"
+              - src: "{{ admin_crowbar_batch_file }}"
+              - src: "{{ qa_crowbarsetup_log }}"
+
+  post_tasks:
+    - include_role:
+        name: rocketchat_notify
+      vars:
+        rc_action: "finished"
+        rc_state: "Success"
+      when:
+        - rc_notify

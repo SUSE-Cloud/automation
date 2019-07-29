@@ -1,10 +1,11 @@
+#!/bin/bash
 n=$1
 shift
 . /root/cloud.d/cloudfunc
 
 if [ "$n" -lt 1 -o "$n" -gt 4 ] ; then
-  echo "$n is out of range [1..4]"
-  exit 1
+    echo "$n is out of range [1..4]"
+    exit 1
 fi
 
 export net_admin=192.168.$n

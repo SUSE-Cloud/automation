@@ -1,3 +1,3 @@
 ---
 exclude_patterns:
-  - "scripts/jenkins/ardana/ansible/roles/heat_stack/library/ecp_os_stack.py"
+  - "scripts/jenkins/cloud/ansible/roles/heat_stack/library/ecp_os_stack.py"

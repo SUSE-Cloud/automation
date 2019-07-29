@@ -37,6 +37,17 @@
             WARNING: if a heat stack associated with the supplied ses_id already
             exists, it will be replaced if this job is launched.
 
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The target OpenStack cloud platform. Possible values are:
+
+              engcloud - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
       - string:
           name: server_key_name
           default: ""
@@ -51,14 +62,9 @@
 
       - string:
           name: server_flavor
-          default: "m1.large"
+          default: "cloud-ses"
           description: >-
             SES instance flavor
-      - string:
-          name: volume_size
-          default: "40"
-          description: >-
-            Size of the volume to be attached to the SES instance
 
       - string:
           name: floating_net
@@ -72,6 +78,14 @@
           description: >-
             An existing network to connect the SES node to.
             If empty a new network will be created.
+
+      - string:
+          name: router
+          default: ""
+          description: >-
+            An existing router to connect the SES network to.
+            If empty a new router will be created.
+            Only takes effect when the network parameter is also empty.
 
       - string:
           name: subnet_cidr
@@ -93,11 +107,12 @@
             The git automation branch
 
       - string:
-          name: os_cloud
+          name: os_project_name
           default: ''
           description: >-
-            The OpenStack API credentials used to manage virtual clouds (leave
-            empty to use the default shared 'cloud' ECP account).
+            The name of the OpenStack project that hosts the virtual SES deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
 
     pipeline-scm:
       scm:

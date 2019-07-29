@@ -8,13 +8,13 @@ Ardana deployment (including a tempest run, if deployment succeeded),
 and comparing the results.  If any tampering is discovered, `init.yml`
 will fail with a helpful error.
 
-[Whitelists](../../scripts/jenkins/ardana/ansible/files/) are used to
+[Whitelists](../../scripts/jenkins/cloud/ansible/files/) are used to
 ignore known exceptions, some of which need to be fixed in the future.
 
 ## Testing changes to the checks
 
 [The `test-post-deployment-checks.yml`
-playbook](../../scripts/jenkins/ardana/ansible/test-post-deployment-checks.yml)
+playbook](../../scripts/jenkins/cloud/ansible/test-post-deployment-checks.yml)
 is also provided for rapid repeated testing of the post-deployment
 checks, without having to deploy an entire fresh cloud each time:
 
@@ -47,7 +47,7 @@ checks, without having to deploy an entire fresh cloud each time:
         git fetch myremote
         git reset --hard myremote/mybranch
 
--   `cd scripts/jenkins/ardana/ansible/`
+-   `cd scripts/jenkins/cloud/ansible/`
 
 -   Run the following command, replacing the temporary directory with
     the one you identified above:

@@ -1,0 +1,219 @@
+---
+#============= Cloud Product ===========#
+# The cloud product to be deployed. Possible values are:
+# - crowbar
+# - ardana
+#
+# IMPORTANT: only alphanumeric and '-' characters must be used for this value
+cloud_product: 'ardana'
+
+#============= Cloud Platform ===========#
+# The OpenStack API credentials used to manage virtual clouds.
+#
+# This value must correspond to one of the OpenStack configurations that are
+# present in the ~/.config/openstack/clouds.yml file.
+# Note that the OpenStack project name needs to be configured separately
+# via the `os_project_name` configuration option below.
+os_cloud: 'engcloud'
+
+# The OpenStack project that will be used to provide the virtual resources
+# required to deploy the virtual environment.
+os_project_name: 'cloud'
+
+# The virtual or hardware environment identifier. This field should either be set to one
+# of the value that will identify the created virtual environment.
+# WARNING: if a virtual environment associated with the supplied cloud_env already
+# exists, it will be replaced.
+cloud_env: ''
+
+# If true, use a local ssh key for access to the deployer. This
+# setting is only useful if the cloud deployment is deployed manually
+# from an ephemeral machine, e.g. a docker container.
+local_ssh_key: false
+
+# If set to false, the cloud deployment steps will be skipped. This option can be used
+# if you only need to set up the infrastructure and configure the cloud media and
+# repositories, but skip the actual cloud deployment, e.g. for testing purposes.
+deploy_cloud: true
+
+# Reboot cloud after deploy. Primarly used to reboot cloud after installation of
+# Maintenance updates. For now it is valid for **CROWBAR** flavor only.
+reboot_after_deploy: true
+
+#============= Repositories =============#
+# The cloud repository (from provo-clouddata) to be used for testing. This value can take
+# the following form:
+#   stagingcloud<X> (Devel:Cloud:X:Staging)
+#   develcloud<X> (Devel:Cloud:X)
+#   GM<X> (official GM)
+#   GM<X>+up (official GM plus Cloud-Updates)
+#   cloud9MX (cloud 9 milestones)
+cloudsource: 'GM8+up'
+
+# Enable SLES/Cloud test update repos (the Cloud test update repos will be enabled only
+# when cloudsource is GM based)
+updates_test_enabled: false
+
+# Run ardana update after the cloud is deployed. If true the MU's will be applied only
+# after the cloud is deployed.
+update_after_deploy: false
+
+# Only valid if update_after_deploy is true. The cloud repository (from provo-clouddata)
+# to be used to update.
+# This opention takes the same values as cloudsource.
+update_to_cloudsource: ''
+
+# List of maintenance update IDs separated by comma (eg. 7396,7487)
+maint_updates: ''
+
+# A comma separated list of repository urls to be added on the deployer/admin node.
+# WARNING: For ARDANA the packages from those repositories will be availabe to all cloud
+# nodes through a repository with a higher priority, meaning that those packages will be
+# installed even if there is a newer package available on other repositories.
+# For CROWBAR the repository has higher priority only on the deployer node, on the other
+# nodes it has the default priority.
+extra_repos: ''
+
+#============= Gerrit =============#
+# A comma separated list of IDs for changes in gerrit.prv.suse.net to test.
+# The patchset may be supplied as part of the change ID in the form: <change_number>[/<patchset_number>]
+gerrit_change_ids: ''
+
+# Project in IBS that will act as the parent project for the newly generated test project.
+# E.g. 'home:<username>'
+homeproject: ''
+
+
+#============= Input model =============#
+# The name of one of the available scenarios that can be used to generate input models.
+# If this parameter is set, the following parameters may also be set to different values,
+# to control various aspects of the generated input model: clm_model, controllers, core_nodes,
+# lmm_nodes, dbmq_nodes, neutron_nodes, swift_nodes, computes, rhel_computes, disabled_services
+# and enabled_services.
+#
+# NOTE: use this parameter only if you want to use a generated input model. To use an existing
+# input model instead, leave this field empty and use the 'model' parameter instead.
+# Possible values:
+#   - standard (recommended for most use-cases)
+#   - std-lmm
+#   - std-split
+#   - entry-scale-kvm
+#   - mid-scale-kvm
+scenario_name: 'standard'
+
+# The name of the one of the available 'ardana-ci' input models to use from
+# the ardana-input-model git repository.
+#
+# NOTE: use this parameter only if you want to use an existing input model.
+# The recommended way is to generate an input model instead. To generate an
+# input model, leave this field empty and use the 'scenario_name' parameter
+# instead.
+model: ''
+
+# The type of deployer node deployment to use for the generated input model.
+# Possible values:
+#   - standalone: one node dedicated for deployer/admin
+#   - integrated: the first controller node will also be used as a deployer node
+#   (only valid for Ardana deployments).
+#
+# For crowbar deployments, this should always be set to 'standalone'.
+#
+# Input model generator scenarios using this parameter : all
+# NOTE: this parameter is used to generate input models. See the 'scenario_name' parameter
+# about using one of the available input model generator scenarios.
+clm_model: 'standalone'
+
+# The number of controller nodes in the generated input model (0-3).
+# Input model generator scenarios using this parameter: standard, entry-scale-kvm.
+controllers: '3'
+
+# The number of SLES compute nodes in the generated input model.
+# Input model generator scenarios using this parameter: all
+computes: '1'
+
+# The number of RHEL (CentOS) compute nodes in the generated input model.
+# Input model generator scenarios using this parameter: all
+rhel_computes: '0'
+
+# The OS distribution and version to use for Ardana RHEL compute nodes.
+# Possible values:
+#   - CentOS_73
+#   - CentOS_75
+#   - RHEL_73 (only for BM deployments)
+#   - RHEL_75 (only for BM deployments)
+rhel_os: 'CentOS_75'
+
+# The number of OpenStack core services nodes in the generated input model (0-3).
+# Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+core_nodes: ''
+
+# The number of LMM services nodes in the generated input model (0-3).
+# Input model generator scenarios using this parameter: mid-scale-kvm, std-split,
+# std-lmm.
+lmm_nodes: ''
+
+# The number of database & rabbitmq service nodes in the generated input model (0-3).
+# Input model generator scenarios using this parameter: mid-scale-kvm, std-split.
+dbmq_nodes: ''
+
+# The number of neutron network nodes in the generated input model (0-3).
+# Input model generator scenarios using this parameter: mid-scale-kvm.
+neutron_nodes: ''
+
+# The number of swift proxy/account/container/object service nodes in the generated input model (0-3).
+# Input model generator scenarios using this parameter: mid-scale-kvm.
+swift_nodes: ''
+
+# The list of services (barclamps) that are enabled in the generated cloud
+# configuration (applicable only for Crowbar). Leave empty to include everything.
+#
+# Possible values are: database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,
+# horizon,ceilometer,heat,manila,trove,designate,barbican,octavia,magnum,sahara,aodh,tempest
+#
+# NOTE: this list may not reflect what is actually added to the generated
+# cloud configuration. Some services may be filtered out because they are
+# only available in certain cloud versions or because they depend on other
+# disabled services. Other services may not be deployed because they are not
+# included in the scenario or because the number of nodes where they are
+# deployed is set to 0 using the other scenario parameters.
+#
+# Input model generator scenarios using this parameter: all
+# Example for deploying a minimalistic cloud deployment, with only infrastructure
+# and keystone services, set:
+# enabled_services: 'database,rabbitmq,keystone,tempest'
+enabled_services: ''
+
+# Regex matching service components and component groups to exclude from the generated input model.
+# Input model generator scenarios using this parameter: all
+# Example for disabling monasca, ceilometer, freezer and octavia set:
+# disabled_services: 'monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer|octavia'
+disabled_services: ''
+
+# Use ipv6 networks in the cloud input model.
+ipv6: false
+
+
+#============= SES =============#
+# Configure SES backend for glance, cinder, cinder-backup and nova
+ses_enabled: true
+
+# Configure object-store service with RADOS Gateway. This only takes effect
+# if ses_enabled is set to true.
+ses_rgw_enabled: false
+
+
+#============= Tests =============#
+# Name of the filter file to use for tempest in Ardana.
+# Comma separated values will run tempest for each selected value.
+# Use an empty value to skip running tempest.
+tempest_filter_list: ''
+
+# Name of the QA tests to run in Ardana.
+# Comma separated values will run QA tests for each selected value.
+# Use an empty value to skip running QA tests.
+qa_test_list: ''
+
+
+#============= Rocketchat =============#
+# Notify RocketChat when deployment starts/finishes.
+rc_notify: false

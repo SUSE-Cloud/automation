@@ -1,0 +1,117 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Run ardana-init
+  command: "ardana-init"
+  environment:
+    ARDANA_INIT_AUTO: 1
+
+- name: Copy ardana input model
+  copy:
+    src: "{{ input_model_path }}/"
+    dest: "~/openstack/my_cloud/definition"
+  register: input_model
+
+- name: Change VRRP offset
+  replace:
+    path: "~/openstack/ardana/ansible/roles/keepalived/defaults/main.yml"
+    regexp: "keepalived_vrrp_offset: 0"
+    replace: "keepalived_vrrp_offset: {{ vrrp_offset }}"
+  register: vrrp
+  when: is_physical_deploy
+
+- name: Commit changes
+  shell: |
+    git add -A
+    git commit -m 'Add input model'
+  args:
+    chdir: "{{ ardana_openstack_path }}"
+  when: input_model.changed or vrrp.changed
+
+- include_tasks: setup_ses_config.yml
+  when: ses_enabled
+
+- name: Run playbooks from "{{ ardana_openstack_path }}"
+  command: "ansible-playbook -i hosts/localhost {{ item }}"
+  args:
+    chdir: "{{ ardana_openstack_path }}"
+  loop: "{{ ardana_openstack_playbooks }}"
+  register: ansible_openstack_plays
+  when: not (ansible_openstack_plays | default({})) is failed
+
+- include_tasks: setup_rhel_repo.yml
+  when: rhel_enabled
+
+- include_tasks: setup_rhel_ceph_client_repo.yml
+  when:
+    - rhel_enabled
+    - ses_enabled
+
+- include_tasks: reimage_nodes.yml
+  when: is_physical_deploy
+
+- name: Import Devel:Cloud:X key when cloudsource is staging or devel
+  shell: "ansible {{ item }} resources"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  environment:
+    ANSIBLE_HOST_KEY_CHECKING: False
+    ANSIBLE_SSH_ARGS: '-o UserKnownHostsFile=/dev/null'
+  loop:
+    - '-m copy -a "src=`find /srv/www/*/x86_64/repos/*Cloud* -name content.key` dest=/tmp/"'
+    - '-b -a "rpm --import /tmp/content.key"'
+  when: "'staging' in cloudsource or 'devel' in cloudsource"
+
+- name: Ensure extra-repos repository on non-deployer nodes
+  command: |
+    ansible -m command -a "zypper ar -f -G -p 90 \
+        http://{{ '{{' }} hostvars[groups['ARD-SVC--first-member'].0].ansible_ssh_host {{ '}}' }}:79/{{ suse_release | replace('.', '-') | upper }}/{{ ansible_architecture }}/repos/extra-repos \
+        extra-repos creates=/etc/zypp/repos.d/extra-repos.repo" -b 'resources:!ARD-SVC--first-member:!*rhel*'
+  environment:
+    ANSIBLE_HOST_KEY_CHECKING: False
+    ANSIBLE_SSH_ARGS: '-o UserKnownHostsFile=/dev/null'
+  when:
+    - extra_repos is defined
+    - extra_repos != ''
+
+- include_tasks: setup_mu_repos.yml
+  when:
+    - not update_after_deploy
+    - maint_updates_list | length
+
+- name: Run playbooks from "{{ ardana_scratch_path }}"
+  command: "ansible-playbook {{ item.play }}"
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  loop: "{{ ardana_scratch_playbooks }}"
+  register: ansible_scratch_plays
+  when:
+    - item.when | default(True)
+    - not (ansible_scratch_plays | default({})) is failed
+    - skip_running_site_yml is not defined
+  loop_control:
+    label: "{{ item.play }}"
+
+- name: Get public vip
+  shell: grep  'public-KEY-API-extapi' /etc/hosts | awk {'print $1'}
+  register: public_vip
+
+- name: Update /etc/hosts on the deployer and controller nodes
+  shell: ansible -b -m lineinfile -a "dest=/etc/hosts line='{{ public_vip.stdout }}    {{ external_name }}'" OPS-LM--first-member,KEY-API
+  args:
+    chdir:"{{ ardana_scratch_path }}"
+  when: external_name | default('') != ''

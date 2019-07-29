@@ -12,6 +12,7 @@
     previous_version: 7
     arch: x86_64
     tempestoptions: --smoke
+    magnumoptions: --regex '^magnum.tests.functional.api'
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: mysql
     jobs:
@@ -46,6 +47,7 @@
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
         - 'cloud-mkcloud{version}-job-ha-compute-{arch}'
         - 'cloud-mkcloud{version}-job-ha-linuxbridge-{arch}'
+        - 'cloud-mkcloud{version}-job-ha-linuxbridge-bonding-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ironic-agent-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-disruptive-ha-mariadb-{arch}'
@@ -73,23 +75,6 @@
     tempestoptions: --smoke
     jobs:
         - 'cloud-mkcloud{version}-job-uefi-{arch}'
-- project:
-    name: cloud-mkcloud8-aarch64
-    disabled: false
-    version: 8
-    previous_version: 7
-    arch: aarch64
-    label: openstack-mkcloud-SLE12-{arch}
-    tempestoptions: --smoke
-    jobs:
-        - 'cloud-mkcloud{version}-job-2nodes-{arch}'
-        - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
-        - 'cloud-mkcloud{version}-job-btrfs-{arch}'
-        - 'cloud-mkcloud{version}-job-crowbar_register-{arch}'
-        - 'cloud-mkcloud{version}-job-magnum-{arch}'
-        - 'cloud-mkcloud{version}-job-raid-{arch}'
-        - 'cloud-mkcloud{version}-job-ssl-{arch}'
-
 - project:
     name: cloud-mkcloud8-s390x
     disabled: true

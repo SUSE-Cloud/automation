@@ -16,7 +16,7 @@ pipeline {
 
   agent {
     node {
-      label "cloud-ardana-ci"
+      label "cloud-ci"
       customWorkspace "${JOB_NAME}-${BUILD_NUMBER}"
     }
   }
@@ -27,8 +27,8 @@ pipeline {
         script {
           // Set this variable to be used by upstream builds
           env.blue_ocean_buildurl = env.RUN_DISPLAY_URL
-          if (ardana_env == '') {
-            error("Empty 'ardana_env' parameter value.")
+          if (cloud_env == '') {
+            error("Empty 'cloud_env' parameter value.")
           }
           // Parameters of the type 'extended-choice' are set to null when the job
           // is automatically triggered and its default value is ''. So, we need to set
@@ -39,15 +39,16 @@ pipeline {
           if (env.qa_test_list == null) {
             env.qa_test_list = ''
           }
-          currentBuild.displayName = "#${BUILD_NUMBER}: ${ardana_env}"
+          currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env}"
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
-            source automation-git/scripts/jenkins/ardana/jenkins-helper.sh
-            ansible_playbook load-job-params.yml
-            ansible_playbook setup-ssh-access.yml -e @input.yml
           ''')
-          ardana_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-ardana.groovy"
-          ardana_lib.get_deployer_ip()
+          cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+          cloud_lib.load_os_params_from_resource(cloud_env)
+          cloud_lib.load_extra_params_as_vars(extra_params)
+          cloud_lib.ansible_playbook('load-job-params')
+          cloud_lib.ansible_playbook('setup-ssh-access')
+          cloud_lib.get_deployer_ip()
         }
       }
     }
@@ -55,7 +56,7 @@ pipeline {
     stage('Update ardana') {
       steps {
         script {
-          ardana_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
+          cloud_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
         }
       }
     }
@@ -67,9 +68,9 @@ pipeline {
       steps {
         script {
           // Generate stages for Tempest tests
-          ardana_lib.generate_tempest_stages(env.tempest_filter_list)
+          cloud_lib.generate_tempest_stages(env.tempest_filter_list)
           // Generate stages for QA tests
-          ardana_lib.generate_qa_tests_stages(env.qa_test_list)
+          cloud_lib.generate_qa_tests_stages(env.qa_test_list)
         }
       }
     }

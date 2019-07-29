@@ -157,19 +157,6 @@ proposals:
       heat-server:
       - cluster:services
 
-- barclamp: ceilometer
-  deployment:
-    elements:
-      ceilometer-agent:
-      - @@compute1@@
-      - @@compute2@@
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
-
 - barclamp: tempest
   deployment:
     elements:

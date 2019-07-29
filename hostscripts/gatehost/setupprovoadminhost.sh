@@ -5,9 +5,9 @@ using salt-ssh adminhost state.highstate'
 grep -q salt /etc/motd || { echo "error: salt not applied" ; exit 74; }
 
 for vm in crowbarp2 ; do
-  virsh define $vm.xml
-  virsh start $vm
-  virsh autostart $vm
+    virsh define $vm.xml
+    virsh start $vm
+    virsh autostart $vm
 done
 
 sleep 100 # TODO waitfor ssh

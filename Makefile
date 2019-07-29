@@ -11,11 +11,19 @@ filecheck:
 		xargs grep $$'\t'
 
 bashate:
-	cd scripts && \
 	for f in \
-	    *.sh mkcloud mkchroot repochecker \
-	    jenkins/{update_automation,*.sh} \
-	    ../hostscripts/ci1/* ../hostscripts/clouddata/syncSLErepos ../mkcloudruns/*/[^R]*;\
+	    `find -name \*.sh` \
+	    hostscripts/ci1/* \
+	    hostscripts/clouddata/{syncSLErepos,syncgitrepos} \
+	    hostscripts/gatehost/{sudo-freshadminvm,freshadminvm} \
+	    hostscripts/nagios/ci-o-o \
+	    mkcloudruns/*/[^R]*\
+	    scripts/{mkcloud,mkchroot,repochecker} \
+	    scripts/jenkins/update_automation \
+	    scripts/mkcloudhost/{runtestn,mkcloud_free_pool,mkcloude,fixlibvirt,generate-radvd-conf} \
+	    scripts/mkcloudhost/{runtestmulticloud,boot.local,boot.mkcloud,mkcloud_reserve_pool,runtestn} \
+	    scripts/mkcloudhost/{routed.cloud,hacloud.common,cloudrc.host,cloudfunc} \
+	    ; \
 	do \
 	    echo "checking $$f"; \
 	    bash -n $$f || exit 3; \
@@ -25,7 +33,7 @@ bashate:
 
 perlcheck:
 	cd scripts && \
-	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi} mkcloudhost/allocpool ; \
+	for f in `find -name \*.pl` jenkins/{apicheck,grep,japi} mkcloudhost/{allocpool,correlatevirsh} ; \
 	do \
 	    perl -wc $$f || exit 2; \
 	done
@@ -39,7 +47,8 @@ rubycheck:
 pythoncheck:
 	for f in `find -name \*.py` scripts/lib/libvirt/{admin-config,cleanup,compute-config,net-config,net-start,vm-start} scripts/jenkins/jenkins-job-trigger; \
         do \
-	    python -m py_compile $$f || exit 22; \
+	    python2 -m py_compile $$f || exit 22; \
+	    python3 -m py_compile $$f || exit 22; \
 	done
 
 rounduptest:
@@ -47,13 +56,15 @@ rounduptest:
 	cd scripts/jenkins && roundup
 
 flake8:
-	flake8 scripts/ hostscripts/soc-ci/soc-ci
+	flake8 .
 
 python_unittest:
-	python -m unittest discover -v -s scripts/lib/libvirt/
+	python2 -m unittest discover -v
+	python3 -m unittest discover -v
 
 gerrit-project-regexp:
-	scripts/jenkins/ardana/gerrit/project-map2project-regexp.py > jenkins/ci.suse.de/gerrit-project-regexp.txt
+	scripts/jenkins/cloud/gerrit/project-map2project-regexp.py master > jenkins/ci.suse.de/gerrit-project-regexp-cloud9.txt
+	scripts/jenkins/cloud/gerrit/project-map2project-regexp.py stable/pike > jenkins/ci.suse.de/gerrit-project-regexp-cloud8.txt
 
 jjb_test: gerrit-project-regexp
 	jenkins-jobs --ignore-cache test jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud* openstack* > /dev/null
@@ -65,23 +76,15 @@ cisd_deploy: gerrit-project-regexp
 cioo_deploy:
 	jenkins-jobs --conf /etc/jenkins_jobs/jenkins_jobs-cioo.ini update jenkins/ci.opensuse.org:jenkins/ci.opensuse.org/templates/ openstack*
 
-# for travis-CI:
-install: debianinstall genericinstall
+shellcheck:
+	shellcheck `grep -Erl '^#! ?/bin/b?a?sh'`
 
-debianinstall:
-	sudo apt-get update -qq
-	sudo apt-get -y install libxml-libxml-perl libjson-perl libjson-xs-perl python-libvirt
-
-suseinstall:
-	sudo zypper install perl-JSON-XS perl-libxml-perl python-pip libvirt-python
-
-genericinstall:
-	sudo pip install -U 'pbr>=2.0.0,!=2.1.0' bashate 'flake8<3.0.0' flake8-import-order jenkins-job-builder requests
+install:
+	sudo zypper install perl-JSON-XS perl-libxml-perl perl-libwww-perl python-pip python3-pip libvirt-python python3-libvirt-python
+	sudo pip2 install -U bashate flake8 flake8-import-order jenkins-job-builder
+	sudo pip3 install -U bashate flake8 flake8-import-order jenkins-job-builder
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
 	make && \
 	sudo make install
-
-shellcheck:
-	shellcheck `grep -Erl '^#! ?/bin/b?a?sh'`

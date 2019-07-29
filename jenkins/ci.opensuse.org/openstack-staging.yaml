@@ -1,44 +1,13 @@
-- job:
-    name: 'openstack-staging'
-    project-type: matrix
+- project:
+    name: openstack-staging
+    disabled: false
+    release:
+      - Newton
+      - Pike
+      - Queens
+      - Rocky
+      - Stein
+      - Master
+    jobs:
+      - 'openstack-staging-{release}'
 
-    triggers:
-      - timed: 'H 4 * * *'
-
-    logrotate:
-      numToKeep: -1
-      daysToKeep: 10
-
-    axes:
-      - axis:
-          type: user-defined
-          name: openstack_project
-          values:
-            - Newton
-            - Pike
-            - Queens
-            - Rocky
-            - Master
-      - axis:
-          type: slave
-          name: slave
-          values:
-            - openstack
-    execution-strategy:
-      sequential: true
-    builders:
-      - trigger-builds:
-        - project: openstack-prepare-staging
-          block: true
-          predefined-parameters:
-            openstack_project=${openstack_project}
-      - trigger-builds:
-        - project: openstack-cleanvm
-          block: true
-          predefined-parameters:
-            openstack_project=${openstack_project}
-      - trigger-builds:
-        - project: openstack-submit
-          condition: SUCCESS
-          predefined-parameters:
-            openstack_project=${openstack_project}

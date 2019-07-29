@@ -21,12 +21,18 @@
             cloudsource=develcloud{version}
             storage_method=none
             hacloud=1
-            mkcloudtarget=instonly batch setupironicnodes
+            mkcloudtarget=plain setupironicnodes testsetup
             networkingplugin=openvswitch
             networkingmode=gre
             want_node_aliases=controller={nodenumber_controller},compute=1
             label={label}
-            scenario=cloud{version}-ironic-basic-ha.yml
             job_name=cloud-mkcloud{version}-job-ha-ironic-{arch}
             want_ironic=1
             nodenumberironicnode=2
+            want_monasca_proposal=0
+            want_ceilometer_proposal=0
+            want_aodh_proposal=0
+            want_barbican_proposal=0
+            want_manila_proposal=0
+            want_magnum_proposal=0
+            want_sahara_proposal=0

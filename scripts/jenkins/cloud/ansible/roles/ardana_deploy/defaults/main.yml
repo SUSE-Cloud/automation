@@ -1,0 +1,56 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+ardana_openstack_path: "~/openstack/ardana/ansible"
+ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
+
+ardana_openstack_playbooks:
+  - "config-processor-run.yml -e encrypt='' -e rekey=''"
+  - "ready-deployment.yml"
+
+ardana_scratch_playbooks:
+  - play: "wipe_disks.yml -e automate=true"
+    when: "{{ is_physical_deploy }}"
+  - play: "site.yml -e '{{ ardana_extra_vars|to_json }}'"
+  - play: "ardana-cloud-configure.yml -e '{{ ardana_extra_vars|to_json }}'"
+
+ardana_third_party_playbooks:
+  - "third-party-deploy.yml"
+  - "third-party-import.yml"
+
+ardana_ceph_third_party_dir: "~/third-party/ceph/pkgs/rhel/"
+ardana_rhel_ceph_client_pkg_repo: "https://download.ceph.com/rpm-{{ ardana_ceph_release_name[_ceph_version.stdout.split('.')[0]] }}/el7/x86_64"
+ardana_centos_pkg_repo: "http://centos.mirror.lstn.net/7/storage/x86_64/ceph-{{ ardana_ceph_release_name[_ceph_version.stdout.split('.')[0]] }}"
+ardana_ceph_release_name:
+  "12": "luminous"
+ardana_rhel_ceph_client_pkg_list:
+  - ceph-common
+  - libcephfs2
+  - librados2
+  - libradosstriper1
+  - librbd1
+  - librgw2
+  - python-cephfs
+  - python-rados
+  - python-rbd
+  - python-rgw
+
+ardana_rhel_ceph_client_pkg_requires:
+  - "lttng-ust-2.10.0-1.el7.x86_64.rpm"
+  - "leveldb-1.12.0-5.el7.1.x86_64.rpm"
+  - "libbabeltrace-1.2.4-3.1.el7.x86_64.rpm"
+  - "userspace-rcu-0.10.0-3.el7.x86_64.rpm"

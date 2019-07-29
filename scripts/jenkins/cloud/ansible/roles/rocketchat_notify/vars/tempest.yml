@@ -1,0 +1,81 @@
+#
+# (c) Copyright 2018 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+os_health_build_name: "{{ cloud_env }}_tempest_{{ tempest_run_filter }}"
+tempest_log_url: "{{ jenkins_build_url }}artifact/.artifacts/testr_results_region1_{{ tempest_run_filter }}.log"
+tempest_log_url_msg: "[{{ tempest_log_url }}]({{ tempest_log_url }})"
+
+rc_att_colapsed: True
+
+rc_announcement_started: "Running tempest {{ tempest_run_filter }}"
+rc_announcement_finished: "{{ rc_previous_announcement.content | b64decode if rc_previous_announcement.content is defined else 'NA' }}"
+
+rc_msg_title: "Tempest - {{ tempest_run_filter }}: {{ rc_state }}"
+
+rc_msg_fields_started:
+  - title: Started by
+    value: "{{ jenkins_build_url_msg }}"
+    short: False
+  - title: Ardana log stream
+    value: "{{ ansible_log_stream_msg }}"
+    short: False
+  - title: Deployer
+    value: "{{ hostvars[cloud_env].ansible_host }}"
+    short: True
+  - title: Filter
+    value: "{{ tempest_run_filter }}"
+    short: True
+
+rc_msg_fields_finished_temp:
+  - title: Built by
+    value: "{{ jenkins_build_url_msg }}"
+    short: False
+  - title: Failed tests
+    value: "{{ tempest_failed_tests.stdout if tempest_failed_tests is defined else 'Not available' }}"
+    short: False
+  - title: Tempest log
+    value: "{{ tempest_log_url_msg if jenkins_build_url else 'Not available' }}"
+    short: False
+  - title: Deployer
+    value: "{{ hostvars[cloud_env].ansible_host }}"
+    short: True
+  - title: Filter
+    value: "{{ tempest_run_filter }}"
+    short: True
+  - title: Ran
+    value: "{{ tempest_test_results.total if tempest_test_results is defined else 'Not available' }}"
+    short: True
+  - title: Passed
+    value: "{{ tempest_test_results.passed if tempest_test_results is defined else 'Not available' }}"
+    short: True
+  - title: Skipped
+    value: "{{ tempest_test_results.skipped if tempest_test_results is defined else 'Not available' }}"
+    short: True
+  - title: Failed
+    value: "{{ tempest_test_results.failed if tempest_test_results is defined else 'Not available' }}"
+    short: True
+  - title: OpenStack-Health
+    value: "{{ os_health_url_msg }}"
+    short: False
+
+refstack_url_msg: "{{ '[' ~ refstack_out.stdout ~ '](' ~ refstack_out.stdout ~ ')' if refstack_out is defined else 'Not available' }}"
+rc_msg_fields_finished_defcore:
+  - title: RefStack
+    value: "{{ refstack_url_msg }}"
+    short: False
+
+rc_msg_fields_finished: "{{ rc_msg_fields_finished_temp + rc_msg_fields_finished_defcore if tempest_run_filter == 'defcore' else rc_msg_fields_finished_temp }}"
