@@ -46,6 +46,6 @@ matrix:
     - name: "Validate Jenkins (jjb)"
       language: python
       install:
-        - pip install jenkins-job-builder
+        - pip install 'jenkins-job-builder!=3.0.0'
       script:
         - make jjb_test
