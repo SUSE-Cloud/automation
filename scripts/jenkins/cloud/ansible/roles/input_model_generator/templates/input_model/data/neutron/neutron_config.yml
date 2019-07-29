@@ -25,6 +25,7 @@
 {% if bm_info is defined %}
         neutron_provider_networks:
 {{   bm_info.neutron.provider_networks | to_nice_yaml(indent=2) | indent(10, True) }}
+{%   if bm_info.neutron.external_networks is defined %}
         neutron_external_networks:
 {%   for external_network in bm_info.neutron.external_networks %}
           - {{ external_network | to_nice_yaml(indent=2) | indent(12, False) }}
@@ -34,6 +35,7 @@
               physical_network: external{{ loop.index0 | ternary(loop.index0, '') }}
 {%     endif %}
 {%   endfor %}
+{%   endif %}
 {% else %}
 {% set ns = namespace(provider_nets_hdr=False, ext_nets_hdr=False, mgmt_net_id=0, physnet_id=0, net_id=30, vlan_id=gen_subnet_start+scenario.network_groups|length) %}
 {% for network_group in scenario.network_groups %}

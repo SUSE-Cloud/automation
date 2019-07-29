@@ -104,7 +104,10 @@ _field_nodes_values:
     Core: {{ core_nodes }}
     LMM: {{ lmm_nodes }}
     DBMQ: {{ dbmq_nodes }}
-    Computes: {{ computes}} (SLES) / {{ rhel_computes }} (RHEL)
+    Computes: {{ sles_computes}} (SLES) / {{ rhel_computes }} (RHEL)
+  entry-scale-ironic-flat-network: |
+    Controllers: {{ controllers }}
+    Computes: {{ ironic_compute }} (IRONIC)
 
 _field_nodes:
   - title: Nodes

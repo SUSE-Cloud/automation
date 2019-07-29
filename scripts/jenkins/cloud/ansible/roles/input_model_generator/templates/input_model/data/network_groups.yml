@@ -77,7 +77,11 @@
 {%   set ns.routes=network_group.routes|default([]) %}
 {%   if 'MANAGEMENT' in network_group.component_endpoints %}
 {%     if bm_info is defined %}
+{%       if scenario.name != 'entry-scale-ironic-flat-network' %}
 {%       set _ = ns.routes.append('OCTAVIA-MGMT-NET') %}
+{%       else %}
+{%       set _ = ns.routes.append('guest-network') %}
+{%       endif %}
 {%       set _ = ns.routes.append('ILO') %}
 {%     else %}
 {%       for neutron_ng in scenario.network_groups if 'NEUTRON-VLAN' in neutron_ng.component_endpoints %}
@@ -196,12 +200,17 @@
         # This is the network group that will be used to provide
         # external access to VMs (via floating IP Addresses)
         #
-{%       if enable_external_network_bridge %}
+{%       if enable_external_network_bridge and scenario.name !='entry-scale-ironic-flat-network' %}
         - neutron.l3_agent.external_network_bridge
 {%       else %}
         - neutron.networks.flat:
+{%          if scenario.name == 'entry-scale-ironic-flat-network' %}
+{%          set ns.physnet_id = ns.physnet_id+1 %}
+            provider-physical-network: physnet{{ ns.physnet_id }}
+{%          else %}
             provider-physical-network: external{{ ns.extnet_id | ternary(ns.extnet_id, '') }}
 {%         set ns.extnet_id = ns.extnet_id+1 %}
+{%          endif %}
 {%       endif %}
 {%     endif %}
 {%     if 'NEUTRON-VLAN' in network_group['component_endpoints'] %}

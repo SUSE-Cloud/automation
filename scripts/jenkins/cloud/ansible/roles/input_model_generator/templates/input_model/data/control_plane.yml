@@ -26,9 +26,14 @@
         - AZ2
         - AZ3
       configuration-data:
+{% if scenario.name == 'entry-scale-ironic-flat-network' %}
+        - IRONIC-CONFIG-CP1
+        - NEUTRON-CONFIG-CP1
+{% else %}
         - DESIGNATE-CONFIG-CP1
         - OCTAVIA-CONFIG-CP1
         - NEUTRON-CONFIG-CP1
+{% endif %}
       common-service-components:
 {% set common_service_components = service_component_groups.COMMON | reject('match', disabled_services|ternary(disabled_services, '^$')) | list %}
 {% for service_component in common_service_components|unique|sort %}
