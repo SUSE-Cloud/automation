@@ -19,11 +19,11 @@ def load_extra_params_as_vars(extra_params) {
 // to the target OpenStack platform associated with the slot and the 'cloud-ci'
 // OpenStack project used exclusively for the Cloud CI
 def load_os_params_from_resource(cloud_env) {
-  if (cloud_env.startsWith("engcloud-ci-slot")) {
-    env.os_cloud = "engcloud"
+  if (cloud_env.startsWith("ecp-ci-slot")) {
+    env.os_cloud = "ecp"
     env.os_project_name = "cloud-ci"
-  } else if (cloud_env.startsWith("susecloud-ci-slot")) {
-    env.os_cloud = "susecloud"
+  } else if (cloud_env.startsWith("ecn-ci-slot")) {
+    env.os_cloud = "ecn"
     env.os_project_name = "cloud-ci"
   } else if (os_project_name == "cloud-ci") {
     error("""The OpenStack 'cloud-ci' project is reserved and may only be used with

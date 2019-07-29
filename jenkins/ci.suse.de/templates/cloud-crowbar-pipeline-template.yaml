@@ -34,14 +34,14 @@
       - choice:
           name: os_cloud
           choices:
-            - 'engcloud'
-            - 'susecloud'
+            - 'ecp'
+            - 'ecn'
           description: >-
             The target OpenStack cloud platform used as infrastructure for a
             virtual cloud deployment. Possible values are:
 
-              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
-              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+              ecp  - the Provo engineering cloud (engcloud.prv.suse.net)
+              ecn - the Nuremberg engineering cloud (cloud.suse.de)
 
             If the 'cloud_env' value (or the reserved resource, when 'reserve_env' is selected),
             matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
