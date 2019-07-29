@@ -31,7 +31,9 @@
     - maint_updates_list | length
 
 - include_tasks: add_extra_repos.yml
-  when: extra_repos_list | length
+  when:
+    - extra_repos_list | length
+    - cloud_product == 'ardana'
 
 - include_tasks: set_motd.yml
   when: task == 'deploy'
