@@ -23,4 +23,4 @@
     chdir: "{{ ardana_scratch_path }}"
   environment:
     SKIP_REPO_CHECKS: 1
-  loop: "['ARD-SVC--first-member'] + {{ ardana_nodes.stdout_lines }}"
+  loop: "['ARD-SVC--first-member:tempest_all'] + {{ ardana_nodes.stdout_lines }}"
