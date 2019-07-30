@@ -450,6 +450,8 @@ non_clustered_roles:
     max: 1
   swift-ring-compute:
     max: 1
+  trove-server:
+    max: 1
   tempest:
     max: 1
 
