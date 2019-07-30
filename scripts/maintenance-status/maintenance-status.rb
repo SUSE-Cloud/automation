@@ -122,11 +122,20 @@ class ObsHandler
       if product["target"]["project"] =~ /(SUSE:Updates:(HPE-Helion-OpenStack|OpenStack-Cloud|OpenStack-Cloud-Crowbar):[0-9](-LTSS)?:x86_64)|(SUSE:Updates:SLE-SERVER:[0-9]{2}-SP[0-9]:x86_64)/
         project = product["target"]["project"]
         project.gsub!(":x86_64", "")
-        project.gsub!("SUSE:Updates:OpenStack-Cloud:", "SOC")
-        project.gsub!("SUSE:Updates:OpenStack-Cloud-Crowbar:", "SOCC")
-        project.gsub!("SUSE:Updates:HPE-Helion-OpenStack:", "HOS")
-        project.gsub!("SUSE:Updates:SLE-SERVER:", "SLES")
-        products.push(project)
+        if project.include?("OpenStack")
+          project.gsub!("SUSE:Updates:OpenStack-Cloud:", "SOC")
+          project.gsub!("SUSE:Updates:OpenStack-Cloud-Crowbar:", "SOCC")
+          project.gsub!("SUSE:Updates:HPE-Helion-OpenStack:", "SOC")
+          products.push(project)
+        elsif project == "SUSE:Updates:SLE-SERVER:12-SP4"
+          products.push("SOC9")
+          products.push("SOCC9")
+        elsif project == "SUSE:Updates:SLE-SERVER:12-SP3"
+          products.push("SOC8")
+          products.push("SOCC8")
+        elsif project == "SUSE:Updates:SLE-SERVER:12-SP2"
+          products.push("SOCC7")
+        end
       end
     end
     products.uniq.join("/")
