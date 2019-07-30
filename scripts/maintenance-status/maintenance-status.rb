@@ -9,9 +9,15 @@ class ObsHandler
     @group = config[:group] || "cloud-maintenance"
   end
 
-  def requests()
-    result = obs_api_call("/search/request?match=review[@by_group='#{@group}'+and+(@state='new')]")
-    requests = result["request"]
+  def requests(id = nil)
+    requests = []
+    if id.nil?
+      result = obs_api_call("/search/request?match=review[@by_group='#{@group}'+and+(@state='new')]")
+      requests = result["request"]
+    else
+      result = obs_api_call("/request/#{id}")
+      requests = [result]
+    end
     open_requests = []
     requests.each do |request|
       if request["state"]["name"] = "review" && request["id"]
@@ -93,6 +99,12 @@ class ObsHandler
     end
   end
 
+  def versions?(id)
+    review_id = maintenance_review(id)
+    request = requests(review_id)
+    print_rr_info(request)
+  end
+
   def open_requests()
     requests = requests()
     print_rr_info(requests)
@@ -138,12 +150,12 @@ class ObsHandler
         end
       end
     end
-    products.uniq.join("/")
+    products.uniq.join(",")
   end
 
   def print_rr_info(requests)
     requests.each do |request|
-      puts "#{request[:id]}:#{request[:source]}:#{request[:products]}:#{request[:status]}"
+      puts "#{request[:source]}:#{request[:products]}:#{request[:status]}"
     end
   end
 
@@ -161,7 +173,7 @@ options = {}
 optparse = OptionParser.new do |opts|
   opts.banner = "Query maintenance for review status"
 
-  opts.on("-a", "--action ACTION", "Action to perform (list-unseen, list-rebuild, list-forcerebuild, set-status)") do |a|
+  opts.on("-a", "--action ACTION", "Action to perform (list-unseen list-rebuild list-forcerebuild get-versions set-status)") do |a|
     options[:action] = a
   end
 
@@ -169,8 +181,8 @@ optparse = OptionParser.new do |opts|
     options[:group] = group
   end
 
-  opts.on("-p", "--project NUMBER", "Maintenance Project ID") do |review|
-    options[:review] = review
+  opts.on("-p", "--project NUMBER", "Maintenance Project ID") do |id|
+    options[:id] = id
   end
 
   opts.on("-s", "--status STATUS", "Maintenance Status of a CI Build [running,success,failure]") do |status|
@@ -198,8 +210,10 @@ case options[:action]
     obsh.unseen_requests()
   when "list-forcerebuild"
     obsh.forcerebuild_requests()
+  when "get-versions"
+    obsh.versions?(options[:id])
   when "set-status"
-    obsh.request_status(options[:review], options[:status], options[:message])
+    obsh.request_status(options[:id], options[:status], options[:message])
   else
     puts optparse
 end
