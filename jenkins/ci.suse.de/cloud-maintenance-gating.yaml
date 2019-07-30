@@ -28,15 +28,6 @@
           description: >-
             Reserve the 'cloud_env' lockable resource throughout the execution of this job
 
-      - extended-choice:
-          name: cloudversion
-          type: multi-select
-          visible-items: 5
-          multi-select-delimiter: ','
-          default-value: ''
-          value: >-
-            SOC8,SOC9,SOCC7,SOCC8,SOCC9
-
       - validating-string:
           name: maint_updates
           default: ''
