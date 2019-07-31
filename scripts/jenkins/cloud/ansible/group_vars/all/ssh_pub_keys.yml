@@ -180,3 +180,6 @@ ssh_pub_keys:
   - name: bbobrov
     keys:
       - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQC6cxJ8zZ3YrQSN7b2JHzb5TDoV15ziGPPwpOcj+LLD1UhcLIuMWo6zH3WiNt5iECaa0CR9b5a7WS2jbGg+3UTCs0onOhScrNY0Pcp35bCI/NZVf+57TcoByFjiN1q1xMF8AG4INs0labay14+PoYFJNWj0mk/kmrIg9nNax1TbqVb8H1fYV4iHKUyfEeupbaqatERHt8zQxn7jDhAGsBgdoxw3rhw6M+wvtOFYNaXv7obkPfYlr2XlQuSSJG0GkLjAecVb2QoYlh2g8Qpr250N0+Q27qIxy3KKtxnR1yJsV6iVjZwdUrCr4mqXLKjiITIyEaRV9deiKM2Mi4h00pyV breton@g140
+  - name: eapodaca
+    keys:
+      - ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJn9sndmQ59W/1nI0vPX6C4PdMfK/gt5OYAWfcE4l8jC eapodaca@suse.com
