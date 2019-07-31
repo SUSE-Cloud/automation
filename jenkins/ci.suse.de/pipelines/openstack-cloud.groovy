@@ -106,10 +106,13 @@ def generate_qa_tests_stages(qa_test_list) {
 }
 
 def maintenance_status(params='') {
-  sh("""
-    cd $WORKSPACE/automation-git/scripts/maintenance-status
-    ./maintenance-status.rb """+params+"""
-  """)
+  return sh (
+    returnStdout: true,
+    script: """
+      cd $WORKSPACE/automation-git/scripts/maintenance-status
+       ./maintenance-status.rb """+params+"""
+    """
+  ).trim()
 }
 
 // Converts a map of <param-name>: <param-value> pairs into a list of

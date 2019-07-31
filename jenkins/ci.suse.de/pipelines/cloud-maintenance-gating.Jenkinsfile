@@ -2,8 +2,6 @@
  * The openstack-maintenance-gating Jenkins Pipeline
  */
 
-def ardana_lib = null
-
 pipeline {
   // skip the default checkout, because we want to use a custom path
   options {
@@ -29,17 +27,24 @@ pipeline {
             error("Empty 'maint_updates' parameter value.")
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${maint_updates}"
-          def muBuildUrlList = []
-          for (project in maint_updates.split(',')) {
-              muBuildUrlList = muBuildUrlList + "<a href='https://build.suse.de/project/show/SUSE:Maintenance:${project}'>${project}</a>"
-          }
-          currentBuild.description = "Maintenance Updates: " + muBuildUrlList.join(", ") + "<br>Products: " + cloudversion.split(',').join(", ")
 
           sh('''
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
 
           cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
+
+          def muBuildUrlList = []
+          cloudversion = []
+          for (project in maint_updates.split(',')) {
+              muBuildUrlList = muBuildUrlList + "<a href='https://build.suse.de/project/show/SUSE:Maintenance:${project}'>${project}</a>"
+              cloudversions = cloud_lib.maintenance_status("-a get-versions -p ${project}")
+              cloudversion.addAll(cloudversions.split(':')[1].split(','))
+          }
+          cloudversion.unique()
+
+          currentBuild.description = "Maintenance Updates: " + muBuildUrlList.join(", ") + "<br>Products: " + cloudversion.join(", ")
+
           for (project in maint_updates.split(',')) {
               cloud_lib.maintenance_status("-a set-status -p ${project} -s running -m ${BUILD_URL}display/redirect")
           }
@@ -54,7 +59,7 @@ pipeline {
       steps {
         script {
           parallel cloud_lib.generate_parallel_stages(
-            cloudversion.split(','),
+            cloudversion,
             job_filter.tokenize(','),
             "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/cloud-maintenance-gating-config.yml") {
             job_title, job_def ->
