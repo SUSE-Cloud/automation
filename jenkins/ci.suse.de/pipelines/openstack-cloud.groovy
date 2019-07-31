@@ -217,4 +217,18 @@ def run_with_reserved_env(reserve, resource_label, default_resource, body) {
   }
 }
 
+def track_failure() {
+  ansible_playbook('report-job-failure')
+
+  def jiraIssuesFilePath = "${WORKSPACE}/.artifacts/triggered_issues.txt"
+  def jiraUrlList = []
+  if (fileExists(jiraIssuesFilePath)) {
+    def jiraIssues = readFile jiraIssuesFilePath
+    for (issue in jiraIssues.split("\n")) {
+      jiraUrlList = jiraUrlList + "<a href='https://jira.suse.com/browse/${issue}'>${issue}</a>"
+    }
+    currentBuild.description = "Jira issue(s): " + jiraUrlList.join(", ")
+  }
+}
+
 return this

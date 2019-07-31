@@ -335,6 +335,11 @@ pipeline {
         }
       }
     }
+    failure {
+      script {
+        cloud_lib.track_failure()
+      }
+    }
     cleanup {
       cleanWs()
     }

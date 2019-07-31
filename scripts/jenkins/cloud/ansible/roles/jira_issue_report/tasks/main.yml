@@ -1,0 +1,47 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Get build log and known issues
+  set_fact:
+    _build_log: "{{ lookup('url', jenkins_build_url ~ '/consoleText').split(',') }}"
+    jira_known_issues: "{{ lookup('url', jira_known_issues_url ~ '/export/txt', split_lines=False) | from_yaml }}"
+
+- name: Comment on jira card
+  jira:
+    uri: "https://jira.suse.com"
+    username: "{{ lookup('pipe', 'grep -A2 jira ~/.netrc | grep login | cut -d\" \" -f4') }}"
+    password: "{{ lookup('pipe', 'grep -A2 jira ~/.netrc | grep password | cut -d\" \" -f4') }}"
+    issue: "{{ item.issue }}"
+    operation: "comment"
+    comment: |
+      The following build failure matches an error message associated to this issue:
+        - {{ jenkins_build_url }}
+
+      Source: {{ jira_known_issues_url }}
+  register: _triggered_issues
+  when: _build_log | select('match', item.regexp) | list
+  loop: "{{ jira_known_issues }}"
+
+- name: Save known triggered issues
+  lineinfile:
+    line: "{{ item.item.issue }}"
+    dest: "{{ jenkins_artifacts_dir }}/triggered_issues.txt"
+    create: yes
+  when:  not 'skipped' in item
+  loop: "{{ _triggered_issues.results }}"
+  loop_control:
+    label: "{{ item.item.issue }}"
