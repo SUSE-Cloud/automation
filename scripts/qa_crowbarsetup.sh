@@ -3706,6 +3706,7 @@ function oncontroller_magnum_service_setup ()
 
 function oncontroller_setupproduction()
 {
+        # TODO echo -e "[DEFAULT]\nmax_stacks_per_tenant = 500" > /etc/heat/heat.conf.d/500-ECP.conf on all controller nodes
     (cd /srv/tftpboot/suse-12.1/x86_64/repos/PTF && wget http://download.suse.de/ibs/SUSE:/CA/SLE_12_SP1/noarch/ca-certificates-suse-1.0-5.1.noarch.rpm && createrepo-cloud-ptf)
     (cd /usr/local/bin ; wget https://raw.githubusercontent.com/SUSE-Cloud/cloud-tools/master/openstack/{getinstanceuser,getprojectid} ; chmod a+x *)
     (cd /etc/keystone ; wget -N https://w3.suse.de/~bwiedemann/cloud/user-project-map.json)
