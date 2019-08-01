@@ -19,6 +19,7 @@
   git:
     repo: "{{ rc_auth_info_git_url }}"
     dest: "{{ rc_auth_info_dir }}"
+    version: "master"
     force: yes
   delegate_to: localhost
 

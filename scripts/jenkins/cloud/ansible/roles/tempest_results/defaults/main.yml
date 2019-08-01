@@ -15,3 +15,7 @@ sle_packages:
 
 leap_packages:
   - "python-junitxml"
+
+tempest_results_subunit: "{{ tempest_output_dir }}/tempest-{{ tempest_run_filter }}.subunit"
+subunit_xml_results: "{{ tempest_output_dir }}/tempest-{{ tempest_run_filter }}.xml"
+subunit_html_results: "{{ tempest_output_dir }}/tempest-{{ tempest_run_filter }}.html"

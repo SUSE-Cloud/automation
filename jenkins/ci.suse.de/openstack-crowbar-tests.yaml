@@ -1,0 +1,121 @@
+- job:
+    name: openstack-crowbar-tests
+    project-type: pipeline
+    concurrent: true
+    wrappers:
+      - timestamps
+
+    logrotate:
+      numToKeep: 1000
+      daysToKeep: 90
+
+    parameters:
+      - validating-string:
+          name: cloud_env
+          default: ''
+          regex: '[A-Za-z0-9-_]+'
+          msg: >-
+            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+          description: >-
+            The virtual or hardware environment identifier. This field should either
+            be set to one of the values associated with the known hardware environments
+            (e.g. qe101), or to a value that will identify the created virtual environment.
+
+      - choice:
+          name: os_cloud
+          choices:
+            - 'engcloud'
+            - 'susecloud'
+          description: >-
+            The OpenStack cloud platform where the virtual cloud environment is
+            running. Possible values are:
+
+              engcloud  - the Provo engineering cloud (engcloud.prv.suse.net)
+              susecloud - the Nuremberg SUSE cloud (cloud.suse.de)
+
+            If the 'cloud_env' value matches one of the virtual cloud slots
+            (https://ci.nue.suse.com/lockable-resources/), the 'os_cloud' parameter is
+            overridden to reflect the OpenStack platform associated with it.
+
+      - bool:
+          name: test_cloud
+          default: 'false'
+          description: >-
+            If left unchecked, the cloud test steps will be skipped.
+
+      - extended-choice:
+          name: tempest_filter_list
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: ''
+          value: >-
+            smoke,keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,
+            lbaas,heat,magnum,manila
+          description: >-
+            Name of the filter file to use for tempest. Selecting multiple values
+            will run tempest for each selected value.
+
+            Use an empty value to skip running tempest.
+
+      - bool:
+          name: rc_notify
+          default: true
+          description: >-
+            Notify RocketChat when testing starts/finishes.
+
+      - string:
+          name: git_automation_repo
+          default: https://github.com/SUSE-Cloud/automation.git
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: master
+          description: >-
+            The git automation branch
+
+      - string:
+          name: os_project_name
+          default: ''
+          description: >-
+            The name of the OpenStack project that hosts the virtual cloud deployment
+            in the 'os_cloud' OpenStack cloud platform (leave empty to use the
+            default shared 'cloud' account).
+
+            If the 'cloud_env' value (or the reserved resource, when 'reserve_env' selected),
+            matches one of the virtual cloud slots (https://ci.nue.suse.com/lockable-resources/),
+            the 'cloud-ci' OpenStack project used exclusively for the Cloud CI will be used
+            regardless of this parameter.
+
+      - text:
+          name: extra_params
+          default:
+          description: >-
+            This field may be used to define additional parameters, one per line, in the form:
+
+              <parameter_name>=<parameter-value>
+
+            These parameters will be injected into the Jenkins job as environment variables that supplement
+            or override the other parameters configured for the Jenkins job.
+            This should not be used by default or regularly. It is meant to run job build customized in ways
+            not already supported by the job's parameters, such as testing automation git pull requests
+            with special configurations.
+
+      - hidden:
+          name: cloud_product
+          default: 'crowbar'
+          description: >-
+            Cloud product (ardana or crowbar)
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${git_automation_repo}
+            branches:
+              - ${git_automation_branch}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
+      lightweight-checkout: false

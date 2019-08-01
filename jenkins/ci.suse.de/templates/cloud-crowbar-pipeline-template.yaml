@@ -253,6 +253,19 @@
           description: >-
             Enable ipv6 support in the cloud configuration
 
+      - extended-choice:
+          name: tempest_filter_list
+          type: multi-select
+          visible-items: 10
+          multi-select-delimiter: ','
+          default-value: '{tempest_filter_list|}'
+          value: >-
+            smoke,keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,
+            lbaas,heat,magnum,manila
+          description: >-
+            Name of the filter file to use for tempest. Selecting multiple values
+            will run tempest for each selected value.
+
       - validating-string:
           name: extra_repos
           default: ''

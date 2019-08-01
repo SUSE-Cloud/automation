@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2018 SUSE LLC
+# (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,18 +15,7 @@
 #
 ---
 
-- name: Ensure artifacts dir exists
-  file:
-    path: "{{ jenkins_artifacts_dir }}"
-    state: "directory"
-  delegate_to: localhost
-
-- name: Collect artifacts
-  synchronize:
-    src: "{{ item.src }}"
-    dest: "{{ jenkins_artifacts_dir }}/{{ item.dest | default('') }}"
-    use_ssh_args: yes
-    mode: pull
-  when: item | length > 0
-  loop: "{{ jenkins_artifacts_to_collect }}"
-  failed_when: false
+tempest_retry_failed: False
+tempest_work_dir: "/var/lib/openstack-tempest-test"
+tempest_results_log: "{{ tempest_work_dir }}/logs/tempest-{{ tempest_run_filter }}.log"
+tempest_results_subunit: "{{ tempest_work_dir }}/logs/tempest-{{ tempest_run_filter }}.subunit"

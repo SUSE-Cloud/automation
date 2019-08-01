@@ -77,16 +77,16 @@ def get_deployer_ip() {
   """
 }
 
-def generate_tempest_stages(tempest_filter_list) {
+def generate_tempest_stages(tempest_filter_list, cloud_product = 'ardana') {
   if (tempest_filter_list != '') {
     for (filter in tempest_filter_list.split(',')) {
       catchError {
         stage("Tempest: "+filter) {
-          ansible_playbook('run-tempest', "-e tempest_run_filter=$filter")
+          ansible_playbook("run-tempest-$cloud_product", "-e tempest_run_filter=$filter")
         }
       }
       archiveArtifacts artifacts: ".artifacts/**/ansible.log, .artifacts/**/*${filter}*", allowEmptyArchive: true
-      junit testResults: ".artifacts/testr_results_region1_${filter}.xml", allowEmptyResults: true
+      junit testResults: ".artifacts/*${filter}.xml", allowEmptyResults: true
     }
   }
 }
