@@ -17,18 +17,37 @@ def load_extra_params_as_vars(extra_params) {
 // When a CI lockable resource slot name is used for the `cloud_env` value,
 // this function overrides the os_cloud and os_project_name values to correspond
 // to the target OpenStack platform associated with the slot and the 'cloud-ci'
-// OpenStack project used exclusively for the Cloud CI
+// OpenStack project used exclusively for the Cloud CI.
+//
+// This function also enforces the following two rules:
+// 1. the 'cloud-ci' OpenStack project (supplied via `os_project_name`) is reserved
+//    and may only be used with 'cloud_env' values that correspond to CI Lockable Resource
+//    slots
+// 2. CI Lockable Resource slots may not be used directly by manually triggered jobs.
+//
 def load_os_params_from_resource(cloud_env) {
+  def is_lockable_resource = false
   if (cloud_env.startsWith("engcloud-ci-slot")) {
     env.os_cloud = "engcloud"
     env.os_project_name = "cloud-ci"
+    is_lockable_resource = true
   } else if (cloud_env.startsWith("susecloud-ci-slot")) {
     env.os_cloud = "susecloud"
     env.os_project_name = "cloud-ci"
+    is_lockable_resource = true
   } else if (os_project_name == "cloud-ci") {
-    error("""The OpenStack 'cloud-ci' project is reserved and may only be used with
+    def errMsg = """The OpenStack 'cloud-ci' project is reserved and may only be used with
 'cloud_env' values that correspond to CI Lockable Resource slots.
-Please adjust your 'cloud_env' or 'os_project_name' parameter values to avoid this error.""")
+Please adjust your 'cloud_env' or 'os_project_name' parameter values to avoid this error."""
+    echo errMsg
+    error(errMsg)
+  }
+
+  if (is_lockable_resource && currentBuild.upstreamBuilds.isEmpty()) {
+    def errMsg = """The '${cloud_env}' cloud environment name may not be used with manually triggered jobs.
+Please adjust your 'cloud_env' parameter value to avoid this error, or use the parent job instead."""
+    echo errMsg
+    error(errMsg)
   }
 }
 
