@@ -34,8 +34,8 @@
     computes: '2'
     ses_enabled: true
     ses_rgw_enabled: false
-    tempest_retry_failed: true
-    update_services_serial: false
+    tempest_retry_failed: 'true'
+    update_services_serial: 'false'
     triggers: []
     ardana_job:
       - cloud-ardana8-job-gate-entry-scale-kvm-deploy-x86_64:
