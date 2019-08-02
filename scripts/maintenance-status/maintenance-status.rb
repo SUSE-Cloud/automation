@@ -12,7 +12,7 @@ class ObsHandler
   def requests(id = nil)
     requests = []
     if id.nil?
-      result = obs_api_call("/search/request?match=review[@by_group='#{@group}'+and+(@state='new')]")
+      result = obs_api_call("/search/request?match=(review/@by_group='#{@group}'+and+review/@state='new')+and+(state/@name='review')")
       requests = result["request"]
     else
       result = obs_api_call("/request/#{id}")
@@ -20,7 +20,7 @@ class ObsHandler
     end
     open_requests = []
     requests.each do |request|
-      if request["state"]["name"] = "review" && request["id"]
+      if request["id"]
         id = request["id"].to_i
         status = request_status?(request["id"])
         source = request["action"][1]["source"]["project"].split(":").last
