@@ -19,7 +19,6 @@
 controllers: 3
 computes: 3
 rhel_computes: 0
-swobj_devices: 3
 
 scenario:
   name: standard
@@ -34,5 +33,4 @@ scenario:
 
   service_template: standard
   network_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
-  disk_template: compact
   interface_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"

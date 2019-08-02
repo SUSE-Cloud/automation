@@ -21,7 +21,6 @@ lmm_nodes: 1
 dbmq_nodes: 1
 computes: 3
 rhel_computes: 0
-swobj_devices: 3
 
 scenario:
   name: standard
@@ -37,5 +36,4 @@ scenario:
 
   service_template: split
   network_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
-  disk_template: compact
   interface_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
