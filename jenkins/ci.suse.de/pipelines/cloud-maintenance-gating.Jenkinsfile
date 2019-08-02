@@ -76,11 +76,15 @@ pipeline {
                 rc_notify            : false,
                 cleanup              : "never",
                 git_automation_repo  : git_automation_repo,
-                git_automation_branch: git_automation_branch,
-                extra_params         : extra_params
+                git_automation_branch: git_automation_branch
               ]
               // override default parameters with those loaded from config file
               job_params.putAll(job_def.job_params)
+              // combine together extra_params from this job with those loaded from config file
+              combined_extra_params = [extra_params, job_def.job_params.extra_params?: ""].join('\n').trim()
+              if (!combined_extra_params.isEmpty()) {
+                 job_params.extra_params = combined_extra_params
+              }
               cloud_lib.trigger_build(job_def.job_name, cloud_lib.convert_to_build_params(job_params))
             }
           }
