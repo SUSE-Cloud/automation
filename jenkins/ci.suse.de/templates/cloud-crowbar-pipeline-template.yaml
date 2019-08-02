@@ -335,6 +335,12 @@
             with special configurations.
 
       - hidden:
+          name: tempest_retry_failed
+          default: '{tempest_retry_failed|false}'
+          description: >-
+            Re-run failed tempest test cases.
+
+      - hidden:
           name: cloud_product
           default: 'crowbar'
           description: >-
