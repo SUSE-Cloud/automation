@@ -23,9 +23,10 @@ def load_extra_params_as_vars(extra_params) {
 // 1. the 'cloud-ci' OpenStack project (supplied via `os_project_name`) is reserved
 //    and may only be used with 'cloud_env' values that correspond to CI Lockable Resource
 //    slots
-// 2. CI Lockable Resource slots may not be used directly by manually triggered jobs.
+// 2. CI Lockable Resource slots may not be used directly by manually triggered jobs
+//    without reserving the resource
 //
-def load_os_params_from_resource(cloud_env) {
+def load_os_params_from_resource(cloud_env, is_reserved=false) {
   def is_lockable_resource = false
   if (cloud_env.startsWith("engcloud-ci-slot")) {
     env.os_cloud = "engcloud"
@@ -43,7 +44,7 @@ Please adjust your 'cloud_env' or 'os_project_name' parameter values to avoid th
     error(errMsg)
   }
 
-  if (is_lockable_resource && currentBuild.upstreamBuilds.isEmpty()) {
+  if (is_lockable_resource && !is_reserved && currentBuild.upstreamBuilds.isEmpty()) {
     def errMsg = """The '${cloud_env}' cloud environment name may not be used with manually triggered jobs.
 Please adjust your 'cloud_env' parameter value to avoid this error, or use the parent job instead."""
     echo errMsg

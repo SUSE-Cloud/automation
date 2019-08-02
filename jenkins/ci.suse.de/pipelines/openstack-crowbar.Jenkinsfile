@@ -58,7 +58,7 @@ pipeline {
             fi
           ''')
           cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
-          cloud_lib.load_os_params_from_resource(cloud_env)
+          cloud_lib.load_os_params_from_resource(cloud_env, reserve_env.toBoolean())
           cloud_lib.load_extra_params_as_vars(extra_params)
           cloud_lib.ansible_playbook('load-job-params',
                                       "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-crowbar-pipeline-template.yaml"
