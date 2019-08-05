@@ -15,22 +15,22 @@
 #
 ---
 
+# Scenario parameters and default values
 controllers: 3
-computes: 2
+computes: 3
 rhel_computes: 0
 
 scenario:
-  name: entry-scale-kvm
-  cloud_name: entry-scale
+  name: standard
+  cloud_name: standard
   description: >
-    Multi-cluster scenario with all services enabled, {{ clm_model }} CLM node,
+    Standard scenario with all services enabled, {{ clm_model }} CLM node, {{ controllers }} controller nodes,
     {{ computes }} SLES compute nodes and {{ rhel_computes }} RHEL compute nodes.
-  audit_enabled: True
+  audit_enabled: False
   use_cinder_volume_disk: False
   use_glance_cache_disk: False
   availability_zones: "{{ availability_zones }}"
 
   service_template: standard
-  network_template: "{{ (cloud_product == 'ardana') | ternary('compact', 'crowbar') }}"
-  interface_template: "{{ (cloud_product == 'ardana') | ternary('compact', 'crowbar') }}"
-  disk_template: compact
+  network_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"

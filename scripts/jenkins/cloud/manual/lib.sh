@@ -139,7 +139,7 @@ function delete_stack {
 
 function prepare_input_model {
     if is_defined scenario_name; then
-        ansible_playbook generate-input-model.yml
+        ansible_playbook generate-cloud.yml
     else
         ansible_playbook clone-input-model.yml
     fi

@@ -25,7 +25,7 @@
   tasks:
     - block:
         - include_role:
-            name: input_model_generator
+            name: cloud_generator
       rescue:
         - include_role:
             name: rocketchat_notify

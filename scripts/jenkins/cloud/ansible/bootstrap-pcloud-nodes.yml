@@ -25,7 +25,7 @@
   tasks:
     - block:
         - include_role:
-            name: input_model_generator
+            name: cloud_generator
             tasks_from: get_qe_bm_info
 
         - name: Power off all baremetal nodes

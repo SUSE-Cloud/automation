@@ -80,7 +80,7 @@ pipeline {
       steps {
         script {
           if (scenario_name != '') {
-            cloud_lib.ansible_playbook('generate-input-model')
+            cloud_lib.ansible_playbook('generate-cloud')
           } else {
             cloud_lib.ansible_playbook('clone-input-model')
           }
