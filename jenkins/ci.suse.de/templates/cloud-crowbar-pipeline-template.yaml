@@ -340,6 +340,15 @@
           description: >-
             Re-run failed tempest test cases.
 
+      - validating-string:
+          name: sync_mark_timeout_multiplier
+          default: '{sync_mark_timeout_multiplier|1.0}'
+          regex: '[+-]?([0-9]*[.])[0-9]+'
+          msg: The entered value failed validation - requires a floating point value
+          description: >-
+            Set the crowbar sync_mark_timeout multiplier. Can be used to increase/decrease
+            the crowbar sync mark timeout.
+
       - hidden:
           name: cloud_product
           default: 'crowbar'

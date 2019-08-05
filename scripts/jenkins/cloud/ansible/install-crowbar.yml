@@ -53,6 +53,27 @@
           loop_control:
             loop_var: command
 
+        - block:
+            - name: Get sync_mark json from data bag
+              command: "knife data bag show crowbar-config sync_mark -F json"
+              register: _sync_mark_json
+
+            - name: Update timeout_multiplier value to {{ sync_mark_timeout_multiplier }}
+              set_fact:
+                _sync_mark_updated: "{{ _sync_mark_json.stdout | from_json | combine(
+                  { 'timeout_multiplier': sync_mark_timeout_multiplier }) }}"
+
+            - name: Generate json with updated sync_mark
+              copy:
+                content: "{{ _sync_mark_updated | to_json }}"
+                dest: "/tmp/crowbar_sync_mark.json"
+
+            - name: Insert json with updated sync_mark timeout_multiplier on data bag
+              command: "knife data bag from file crowbar-config /tmp/crowbar_sync_mark.json"
+              register: _data_bag_update_result
+              changed_when: _data_bag_update_result.rc == 0
+          when: sync_mark_timeout_multiplier != "1.0"
+
         # reboot node after crowbar install
         - include_role:
             name: reboot_node
