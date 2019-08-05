@@ -44,7 +44,6 @@
     release: Stein
     image:
       - SLE_15
-      - openSUSE-Leap-15.0
       - openSUSE-Leap-15.1
     jobs:
       - 'openstack-cleanvm-{release}'
@@ -53,9 +52,12 @@
     name: openstack-cleanvm-Master
     disabled: false
     release: Master
+
+    triggers:
+      - timed: 'H 4 * * *'
+
     image:
       - SLE_15
-      - openSUSE-Leap-15.0
       - openSUSE-Leap-15.1
     jobs:
       - 'openstack-cleanvm-{release}'

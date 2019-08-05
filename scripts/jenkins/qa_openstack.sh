@@ -69,8 +69,8 @@ function get_dist_version() {
 function addslesrepos {
     case "$VERSION" in
     12.*)
-        $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/$REPOVER/x86_64/product/" SLES$VERSION-Pool
-        $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER/x86_64/update/" SLES$VERSION-Updates
+        $zypper ar "http://ci1-opensuse.suse.de/repos/x86_64/SLES$REPOVER-Pool" SLES$VERSION-Pool
+        $zypper ar --refresh "http://ci1-opensuse.suse.de/repos/x86_64/SLES$REPOVER-Updates" SLES$VERSION-Updates
         ;;
     *)
         for prod in SLE-Product-SLES SLE-Module-Basesystem SLE-Module-Legacy SLE-Module-Development-Tools SLE-Module-Server-Applications; do
@@ -82,7 +82,7 @@ function addslesrepos {
 
     case "$VERSION" in
         "12.2")
-            $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/$REPOVER-LTSS/x86_64/update/" SLES$VERSION-LTSS-Updates
+            $zypper ar --refresh "http://ci1-opensuse.suse.de/repos/x86_64/SLES$REPOVER-LTSS-Updates/" SLES$VERSION-LTSS-Updates
             ;;
     esac
 }

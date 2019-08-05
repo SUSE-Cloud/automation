@@ -1,0 +1,35 @@
+#!/bin/bash
+
+SITE_DEFAULT="nue"
+
+# disable/debug rsync with E=echo
+E=echo
+E=
+
+# disable/debug {u,}mount with M=echo
+M=echo
+M=
+
+# debug/test rsync with DRY=--dry-run
+DRY=--dry-run
+DRY=
+
+rsync="$E rsync $DRY --timeout=1200 --fuzzy
+    --delay-updates $rsync_delete -aPH --no-owner --no-group $rsync_excludes "
+
+# prevent concurrent runs
+lockf=/srv/nfs/last-push-to-opensuse.txt
+
+lockfile -l $((4 * 60 * 60)) $lockf || exit 1
+date > /srv/nfs/last-push-to-opensuse.txt
+
+for SLE in 12-SP2 12-SP3 12-SP4; do
+    $rsync /srv/nfs/repos/x86_64/SLES$SLE-Pool root@ci1-opensuse:/srv/www/htdocs/repos/x86_64
+    $rsync /srv/nfs/repos/x86_64/SLES$SLE-Updates root@ci1-opensuse:/srv/www/htdocs/repos/x86_64
+done
+
+for SLE in 12-SP2 12-SP3; do
+    $rsync /srv/nfs/repos/x86_64/SLES$SLE-LTSS-Updates root@ci1-opensuse:/srv/www/htdocs/repos/x86_64
+done
+
+rm -f $lockf
