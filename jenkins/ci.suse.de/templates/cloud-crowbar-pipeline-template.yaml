@@ -258,6 +258,13 @@
             single: One single network interface
             team: Two interfaces will be used through one bonding interface
 
+      - choice:
+          name: neutron_networkingplugin
+          choices:
+            - '{neutron_networkingplugin|openvswitch}'
+            - linuxbridge
+          description: Neutron ML2 plugin
+
       - bool:
           name: ipv6
           default: '{ipv6|false}'
