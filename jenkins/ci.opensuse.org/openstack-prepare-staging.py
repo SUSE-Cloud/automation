@@ -6,6 +6,7 @@ import sys
 import osc.babysitter
 import osc.commandline
 import osc.core
+from osc.util.helper import decode_it
 
 try:
     from urllib.error import HTTPError
@@ -28,8 +29,8 @@ def get_package_results(apiurl, project, package=None, wait=False,
     while True:
         waiting = False
         try:
-            xml = ''.join(osc.core.show_results_meta(apiurl, project, package,
-                                                     *args, **kwargs))
+            xml = b''.join(osc.core.show_results_meta(apiurl, project, package,
+                                                      *args, **kwargs))
         except HTTPError as e:
             # check for simple timeout error and fetch again
             if e.code == 502 or e.code == 504:
@@ -102,7 +103,7 @@ class _OscModifiedPrjresults(osc.commandline.Osc):
         for results in get_package_results(apiurl, project, package=None,
                                            **kwargs):
             last = results
-            print(results)
+            print(decode_it(results))
         if last and is_package_results_success(last):
             return
         return 3
