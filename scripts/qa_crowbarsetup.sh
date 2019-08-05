@@ -1592,7 +1592,19 @@ function onadmin_allocate
         fi
     done
 
-    local controllernodes=($(get_all_discovered_nodes | head -n 2))
+    local controllernodecount=1
+    if [[ $hacloud = 1 ]] ; then
+        # mkcloud uses "services" cluster for controller selection, lets do the same here
+        cluster_node_assignment
+        local servicesnodesvar=clusternodes$clusternameservices
+        local hacontrollers=(${!servicesnodesvar})
+        controllernodecount=${#hacontrollers[@]}
+    fi
+    # note: this 'controller' should be an extra one (added by mkcloud) for monasca
+    if iscloudver 7plus && [[ $want_monasca_proposal = 1 ]]; then
+        controllernodecount=$(($controllernodecount+1))
+    fi
+    local controllernodes=($(get_all_discovered_nodes | head -n $controllernodecount))
 
     common_set_versions
     controller_os="suse-$suseversion"
@@ -1601,8 +1613,8 @@ function onadmin_allocate
     set_node_role_and_platform ${controllernodes[0]} "controller" $controller_os
 
     if iscloudver 7plus && [[ $want_monasca_proposal = 1 ]]; then
-        echo "Setting 2nd node to monitoring..."
-        set_node_role_and_platform ${controllernodes[1]} "monitoring" $controller_os
+        echo "Setting last 'controller' node to monitoring..."
+        set_node_role_and_platform ${controllernodes[-1]} "monitoring" $controller_os
     fi
 
     # setup RAID for all controller nodes
@@ -2635,6 +2647,11 @@ function custom_configuration
 
                 # only use remaining nodes as compute nodes, keep cluster nodes dedicated to cluster only
                 local novanodes=("${unclustered_nodes[@]}")
+
+                # first unclustered node is "controller sized" for monasca use. skip for compute
+                if iscloudver 7plus && [[ $want_monasca_proposal = 1 ]]; then
+                    unset novanodes[0]
+                fi
 
                 # make sure we do not pick SP1 nodes on cloud7 (or SP2 for cloud 8)
                 if [ -n "$deployceph" ] && iscloudver 7plus ; then
