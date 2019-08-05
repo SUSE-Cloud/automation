@@ -78,22 +78,6 @@ function h_setup_base_repos {
             $zypper ar -f http://download.opensuse.org/update/${DIST_VERSION}/${DIST_NAME}:${DIST_VERSION}:Update.repo || true
         fi
     fi
-
-    if [[ $DIST_NAME == "SLE" ]]; then
-        if [[ $DIST_VERSION == 12* ]]; then
-            $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SERVER/${DIST_VERSION}/x86_64/update/" Updates || true
-            $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SERVER/${DIST_VERSION}/x86_64/product" Base || true
-            $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/SLE-SDK/${DIST_VERSION}/x86_64/product" SDK || true
-            $zypper ar -f "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/SLE-SDK/${DIST_VERSION}/x86_64/update/" SDK-Update || true
-        fi
-        if [[ $DIST_VERSION == 12-SP3 ]]; then
-            $zypper ar -f "https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP3/" devel_languages_python_backports  || true
-            $zypper ar -f "https://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_12_SP3/" Cloud:OpenStack:Master  || true
-        elif [[ $DIST_VERSION == 12-SP4 ]]; then
-            $zypper ar -f "https://download.opensuse.org/repositories/devel:/languages:/python:/backports/SLE_12_SP4/" devel_languages_python_backports  || true
-            $zypper ar -f "https://download.opensuse.org/repositories/Cloud:/OpenStack:/Master/SLE_12_SP4/" Cloud:OpenStack:Master  || true
-        fi
-    fi
 }
 
 
@@ -115,9 +99,6 @@ function h_setup_extra_disk {
 }
 
 function h_setup_devstack {
-    if [[ $DIST_VERSION == 12-SP[34] ]]; then
-        $zypper --no-gpg-checks in http://download.opensuse.org/repositories/openSUSE:/Leap:/42.3/standard/noarch/git-review-1.25.0-6.2.noarch.rpm
-    fi
     $zypper in git-core which ca-certificates-mozilla net-tools git-review
     if ! getent group nobody >/dev/null; then
         $zypper in 'group(nogroup)'

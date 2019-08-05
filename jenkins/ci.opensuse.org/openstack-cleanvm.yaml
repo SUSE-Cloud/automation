@@ -57,7 +57,7 @@
       - timed: 'H 4 * * *'
 
     image:
-      - SLE_15
+      - SLE_15_SP1
       - openSUSE-Leap-15.1
     jobs:
       - 'openstack-cleanvm-{release}'
