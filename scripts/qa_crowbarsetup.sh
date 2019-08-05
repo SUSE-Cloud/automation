@@ -4717,12 +4717,14 @@ function oncontroller_create_ironic_node
     local disk_gb=$4
     local mac=$5
 
-    local deploy_interface=$6
+    local ipmi_ip=$6
+    local ipmi_port=$7
+    local ipmi_user=$8
+    local ipmi_pass=$9
 
-    local ipmi_ip=$7
-    local ipmi_port=$8
-    local ipmi_user=$9
-    local ipmi_pass=${10}
+    # select best deploy interface based on proposalvars
+    local deploy_interface=iscsi
+    [[ $deployswift ]] && deploy_interface=direct
 
     # pick latest versions of kernel/ramdisk images
     local deploy_initrd_uuid=$(openstack image list -f value | grep ir-deploy-ramdisk | sort -V -k 2 | tail -n1 | awk '{print $1}')
