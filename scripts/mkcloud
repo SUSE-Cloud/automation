@@ -848,10 +848,10 @@ function install_vbmc
     grep -q 12-SP4 /etc/os-release || return 1
 
     # virtualbmc package is available in cloud9 repo
-    zypper addrepo --priority 500 --refresh \
+    $sudo zypper addrepo --priority 500 --refresh \
         http://download.suse.de/ibs/SUSE:/SLE-12-SP4:/Update:/Products:/Cloud9/standard/ \
         SLE-12-SP4-Cloud9
-    zypper -n in python-virtualbmc
+    $sudo zypper -n in python-virtualbmc
 }
 
 function start_vbmc
@@ -861,12 +861,12 @@ function start_vbmc
     local ipmi_user=$3
     local ipmi_password=$4
     # make sure old vbmc is not interfering
-    vbmc stop $ironic_node || true
-    vbmc delete $ironic_node || true
+    $sudo vbmc stop $ironic_node || true
+    $sudo vbmc delete $ironic_node || true
 
-    vbmc add $ironic_node --port $ipmi_port \
+    $sudo vbmc add $ironic_node --port $ipmi_port \
         --username $ipmi_user --password $ipmi_password
-    vbmc start $ironic_node
+    $sudo vbmc start $ironic_node
 }
 
 function setup_ironic_test_env
@@ -919,8 +919,8 @@ function teardown_ironic_test_env
         onadmin delete_ironic_node $cloud-node$i
 
         # cleanup vbmc for this ironic node
-        vbmc stop $ironic_node || true
-        vbmc delete $ironic_node || true
+        $sudo vbmc stop $ironic_node || true
+        $sudo vbmc delete $ironic_node || true
     done
 }
 
