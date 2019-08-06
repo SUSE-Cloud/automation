@@ -58,7 +58,7 @@ pipeline {
       failFast false
       steps {
         script {
-          parallel cloud_lib.generate_parallel_stages(
+          def parallelJobMap = cloud_lib.generate_parallel_stages(
             ["SOC" + version, "SOCC" + version],
             [],
             "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/cloud-gating-config.yml") {
@@ -87,6 +87,15 @@ pipeline {
               cloud_lib.trigger_build(job_def.job_name, cloud_lib.convert_to_build_params(job_params))
             }
           }
+
+          if (parallelJobMap.isEmpty()) {
+            def errorMsg = "ERROR: No jobs found that matched the SOC${version} and SOCC${version} cloud versions."
+            echo errorMsg
+            error(errorMsg)
+          }
+
+          parallel parallelJobMap
+
         }
       }
     }

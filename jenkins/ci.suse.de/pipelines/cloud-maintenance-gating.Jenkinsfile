@@ -39,6 +39,11 @@ pipeline {
           for (project in maint_updates.split(',')) {
               muBuildUrlList = muBuildUrlList + "<a href='https://build.suse.de/project/show/SUSE:Maintenance:${project}'>${project}</a>"
               cloudversions = cloud_lib.maintenance_status("-a get-versions -p ${project}")
+              if (cloudversions == '') {
+                def errorMsg = "ERROR: Could not find maintenance update: ${project}"
+                echo errorMsg
+                error(errorMsg)
+              }
               cloudversion.addAll(cloudversions.split(':')[1].split(','))
           }
           cloudversion.unique()
@@ -58,7 +63,7 @@ pipeline {
       failFast false
       steps {
         script {
-          parallel cloud_lib.generate_parallel_stages(
+          def parallelJobMap = cloud_lib.generate_parallel_stages(
             cloudversion,
             job_filter.tokenize(','),
             "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/cloud-maintenance-gating-config.yml") {
@@ -88,6 +93,15 @@ pipeline {
               cloud_lib.trigger_build(job_def.job_name, cloud_lib.convert_to_build_params(job_params))
             }
           }
+
+          if (parallelJobMap.isEmpty()) {
+            def errorMsg = "ERROR: No jobs found that matched the '${cloudversion}' cloud versions and the '${job_filter}' job filter."
+            echo errorMsg
+            error(errorMsg)
+          }
+
+          parallel parallelJobMap
+
         }
       }
     }
