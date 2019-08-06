@@ -36,7 +36,6 @@
     controllers: '3'
     computes: '2'
     ses_enabled: true
-    sync_mark_timeout_multiplier: '2.0'
     triggers:
      - timed: 'H H * * *'
     jobs:
