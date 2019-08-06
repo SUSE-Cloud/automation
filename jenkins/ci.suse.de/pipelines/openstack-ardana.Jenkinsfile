@@ -364,6 +364,9 @@ pipeline {
           automation-git/scripts/cloud/pr-failure.sh
         fi
       '''
+      script {
+        cloud_lib.track_failure()
+      }
     }
     cleanup {
       cleanWs()
