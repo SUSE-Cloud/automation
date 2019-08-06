@@ -18,6 +18,7 @@
 heat_resource_name_prefix: "{{ cloud_env }}-cloud"
 rhel_distro_id: "rhel{{ rhel_os_version }}-x86_64"
 rhel_image: "centos{{ rhel_os_version }}"
+disk_size: 2
 
 # Versioned virtualized configuration artifacts
 virt_artifacts:
@@ -29,7 +30,6 @@ virt_artifacts:
     clm_flavor: cloud-ardana-job-compute
     controller_flavor: cloud-ardana-job-controller
     compute_flavor: cloud-ardana-job-compute
-    disk_size: 20
   cloud8:
     sles_distro_id: sles12sp3-x86_64
     rhel_distro_id: "{{ rhel_distro_id }}"
@@ -38,7 +38,6 @@ virt_artifacts:
     clm_flavor: cloud-ardana-job-compute
     controller_flavor: cloud-ardana-job-controller
     compute_flavor: cloud-ardana-job-compute
-    disk_size: 20
   cloud9:
     sles_distro_id: sles12sp4-x86_64
     rhel_distro_id: "{{ rhel_distro_id }}"
@@ -47,7 +46,6 @@ virt_artifacts:
     clm_flavor: cloud-ardana-job-compute
     controller_flavor: cloud-ardana-job-controller
     compute_flavor: cloud-ardana-job-compute
-    disk_size: 20
 
 # Exhaustive list of service components required by the CLM node.
 # When service components that are not in this list are hosted
@@ -83,7 +81,7 @@ virt_config:
   compute_flavor: '{{ compute_flavor|default(virt_artifacts[cloud_release].compute_flavor) }}'
   sles_image: '{{ sles_image|default(virt_artifacts[cloud_release].sles_image) }}'
   rhel_image: '{{ rhel_image|default(virt_artifacts[cloud_release].rhel_image) }}'
-  disk_size: '{{ disk_size|default(virt_artifacts[cloud_release].disk_size) }}'
+  disk_size: '{{ disk_size }}'
   flavors: '{{ flavors|default([]) }}'
   images: '{{ images|default([]) }}'
   disks: '{{ disks|default([]) }}'

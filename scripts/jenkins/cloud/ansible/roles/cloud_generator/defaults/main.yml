@@ -34,11 +34,12 @@ disabled_services: ""
 # all applicable barclamps will be deployed.
 enabled_services: ""
 
-# Disable extra volume groups in the generated disk models when LVM is
-# disabled in the base image, since these have no effect anyway as long as
-# `skip_disk_config` is also used to skip LVM disk configuration
-# in deployed clouds
-enable_extra_volume_groups: "{{ want_lvm }}"
+# Disable extra volume groups in the disk models generated for the virtual
+# cloud deployments, otherwise they will be implemented as Ceph volumes,
+# which have a latency higher than the ephemeral disk used for the root
+# partition, which is implemented using the local storage available on the
+# underlying OpenStack compute node.
+enable_extra_volume_groups: False
 
 swiftobj_disk_enabled: True
 
