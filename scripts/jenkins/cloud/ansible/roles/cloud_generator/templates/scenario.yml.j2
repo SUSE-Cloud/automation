@@ -10,7 +10,8 @@ proposals:
 {#
 
    Generate the pacemaker barclamps, based on the clusters service groups
-   configured in the scenario.
+   configured in the scenario, but only if the cluster is associated with
+   at least one barclamp role that can be clustered.
 
 #}
 {% for service_group in scenario.service_groups if service_group.type == 'cluster' and service_group.member_count|int > 1 and enabled_clusters[service_group.name] %}
