@@ -33,4 +33,4 @@ scenario:
 
   service_template: standard
   network_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
-  interface_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar') }}"
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('standard', 'crowbar-' ~ crowbar_networkingmode) }}"
