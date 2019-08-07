@@ -65,7 +65,7 @@
             - name: Update timeout_multiplier value to {{ sync_mark_timeout_multiplier }}
               set_fact:
                 _sync_mark_updated: "{{ _sync_mark_json.stdout | from_json | combine(
-                  { 'timeout_multiplier': sync_mark_timeout_multiplier }) }}"
+                  { 'timeout_multiplier': sync_mark_timeout_multiplier|float }) }}"
 
             - name: Generate json with updated sync_mark
               copy:
