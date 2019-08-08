@@ -30,6 +30,7 @@
   uri:
     url: "http://{{ hostvars['ses-' ~ ses_cluster_id].ansible_host }}:8000/"
     method: POST
+    timeout: 60
     headers:
       X-Auth-Token: "{{ _salt_token.json.return.0.token }}"
     body:
