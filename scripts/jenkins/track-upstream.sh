@@ -78,8 +78,8 @@ osc -A $OSCAPI co -c "$OBS_PROJECT" "$COMPONENT"
 cd "$COMPONENT"
 
 set +e
-if [ ${OBS_PROJECT} != "Cloud:OpenStack:Master" ] ; then
-    # skip test in C:O:M as we do not have linked packages there
+if [ ${OBS_PROJECT} != "Cloud:OpenStack:Master" ] &&  [ ${OBS_PROJECT} != "Cloud:socok8s:master" ]; then
+    # skip test in C:O:M and C:socok8s:master as we do not have linked packages there
     grep -q "<linkinfo" .osc/_files || exit 2
 fi
 timeout 1h ~/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream-and-package.pl
