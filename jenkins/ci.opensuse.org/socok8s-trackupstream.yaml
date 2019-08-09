@@ -1,0 +1,33 @@
+- job:
+    name: 'socok8s-trackupstream'
+    project-type: matrix
+
+    triggers:
+      - timed: 'H 1 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 15
+
+    axes:
+      - axis:
+          type: user-defined
+          name: project
+          values:
+            - Cloud:socok8s:master
+      - axis:
+          type: user-defined
+          name: component
+          values:
+            - socok8s
+      - axis:
+          type: slave
+          name: slave
+          values:
+            - cloud-trackupstream
+    execution-strategy:
+      sequential: true
+    builders:
+      - update-automation
+      - shell: |
+          ~/github.com/SUSE-Cloud/automation/scripts/jenkins/track-upstream.sh
