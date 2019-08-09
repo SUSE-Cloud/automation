@@ -37,6 +37,9 @@ case $OBS_TYPE in
             Cloud:OpenStack:Master)
                 OSC_BUILD_DIST=SLE_15
                 ;;
+            Cloud:socok8s:master)
+                OSC_BUILD_DIST=SLE_15_SP1
+                ;;
             *)
                 echo "Support missing"
                 exit 1
