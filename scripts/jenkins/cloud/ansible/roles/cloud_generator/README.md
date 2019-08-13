@@ -411,7 +411,8 @@ service group
 
 , the following Crowbar batch scenario elements:
 
-* one pacemaker proposal for each _cluster_ _service group_ that has more than one node member
+* one pacemaker proposal for each _cluster_ _service group_ that has more than one node member and
+is associated with at least one barclamp role that can be clustered
 * the deployment part of each barclamp proposal, based on the _service component groups_ in each _service group_
 
 , and the following Crowbar `mkcloud.confg` variables:

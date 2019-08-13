@@ -67,9 +67,11 @@
 {%           set _updated_roles = deployment[role] | default({}) %}
 {%           set _ = _updated_roles.update({service_group.name: service_group}) %}
 {%           set _ = deployment.update({role: _updated_roles}) %}
+{%           if role not in non_clustered_roles %}
+{%             set _ = ns.enabled_service_groups.update({service_group.name: True}) %}
+{%           endif %}
 {%         endfor %}
 {%         set _ = ns.deployments.update({barclamp: deployment}) %}
-{%         set _ = ns.enabled_service_groups.update({service_group.name: True}) %}
 {%       endif %}
 {%     endfor %}
 {%   endfor %}
