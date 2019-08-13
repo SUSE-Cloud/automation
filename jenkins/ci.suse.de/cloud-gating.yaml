@@ -73,6 +73,7 @@
     reserve_env: false
     updates_test_enabled: true
     reboot_after_deploy: true
+    tempest_retry_failed: 'true'
     scenario_name: standard
     controllers: '1'
     computes: '2'
@@ -90,6 +91,13 @@
           cloudsource: stagingcloud9
           ses_enabled: true
           update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
+            heat,magnum,manila"
+          # Delete when adding to the cloud 9 gating job
+          cloud_env: cloud-crowbar-test-slot
+          triggers:
+           - timed: 'H H * * *'
     jobs:
         - '{crowbar_job}'
 
@@ -97,8 +105,9 @@
 - project:
     name: cloud-crowbar-job-gate-ha-x86_64
     reserve_env: false
-    updates_test_enabled: false
+    updates_test_enabled: true
     reboot_after_deploy: true
+    tempest_retry_failed: 'true'
     scenario_name: standard
     controllers: '3'
     computes: '2'
@@ -116,6 +125,13 @@
           cloudsource: stagingcloud9
           ses_enabled: true
           update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
+            heat,magnum,manila"
+          # Delete when adding to the cloud 9 gating job
+          cloud_env: cloud-crowbar-test-slot
+          triggers:
+           - timed: 'H H * * *'
     jobs:
         - '{crowbar_job}'
 
@@ -125,7 +141,7 @@
     reserve_env: false
     updates_test_enabled: true
     reboot_after_deploy: true
-    tempest_retry_failed: true
+    tempest_retry_failed: 'true'
     neutron_networkingplugin: linuxbridge
     crowbar_networkingmode: team
     scenario_name: standard
@@ -145,5 +161,12 @@
           cloudsource: stagingcloud9
           ses_enabled: true
           update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
+            heat,magnum,manila"
+          # Delete when adding to the cloud 9 gating job
+          cloud_env: cloud-crowbar-test-slot
+          triggers:
+           - timed: 'H H * * *'
     jobs:
         - '{crowbar_job}'
