@@ -22,6 +22,9 @@ SOC9:
 #  crowbar7-ha-deploy:
 #    job_name: cloud-crowbar7-job-gate-ha-deploy-x86_64
 #    job_params: []
+#  crowbar7-linuxbridge-deploy:
+#    job_name: cloud-crowbar7-job-gate-linuxbridge-deploy-x86_64
+#    job_params: []
 #SOCC8:
 #  crowbar8-no-ha-deploy:
 #    job_name: cloud-crowbar8-job-gate-no-ha-deploy-x86_64
@@ -29,10 +32,16 @@ SOC9:
 #  crowbar8-ha-deploy:
 #    job_name: cloud-crowbar8-job-gate-ha-deploy-x86_64
 #    job_params: []
+#  crowbar8-linuxbridge-deploy:
+#    job_name: cloud-crowbar8-job-gate-linuxbridge-deploy-x86_64
+#    job_params: []
 #SOCC9:
 #  crowbar9-no-ha-deploy:
 #    job_name: cloud-crowbar9-job-gate-no-ha-deploy-x86_64
 #    job_params: []
 #  crowbar9-ha-deploy:
 #    job_name: cloud-crowbar9-job-gate-ha-deploy-x86_64
+#    job_params: []
+#  crowbar9-linuxbridge-deploy:
+#    job_name: cloud-crowbar9-job-gate-linuxbridge-deploy-x86_64
 #    job_params: []

@@ -1,0 +1,24 @@
+---
+
+interface_models:
+  - name: ALL
+    service_groups:
+      - admin
+      - clm
+      - controller
+      - compute
+      - core
+      - lmm
+      - dbmq
+      - neutron
+      - swpac
+      - swobj
+      - swift
+    network_interfaces:
+      - bond:
+          num_interfaces: 2
+        network_groups:
+          - MANAGEMENT
+          - PUBLIC
+          - OS_SDN
+          - STORAGE

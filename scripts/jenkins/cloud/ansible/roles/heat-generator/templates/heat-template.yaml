@@ -178,7 +178,7 @@ resources:
     type: OS::Neutron::Port
     properties:
       name: {{ heat_resource_name_prefix }}_{{ port_name }}_port
-{%       if network.is_mgmt and not port.primary|default(true) %}
+{%       if network.is_conf and not port.primary|default(true) %}
       network: { get_resource: default_network }
 
 {%       else %}

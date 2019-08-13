@@ -334,6 +334,8 @@ ordered_barclamps:
   - aodh
   - tempest
 
+crowbar_networkingmode: single
+
 neutron_networkingplugin: openvswitch
 neutron_networkingmode: vxlan
 neutron_use_dvr: false
