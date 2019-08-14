@@ -71,8 +71,18 @@ resources:
       network_id: { get_resource: {{ name }}_network }
 {%   if network.cidr is defined %}
       cidr: "{{ network.cidr }}"
+{%       if ( network.cidr | ipv6 ) %}
+      ip_version: 6
+{%          if network.is_conf or network.is_mgmt %}
+      ipv6_ra_mode: dhcpv6-stateful
+      ipv6_address_mode: dhcpv6-stateful
+{%          endif %}
+{%       else %}
+      ip_version: 4
+{%       endif %}
 {%   elif network.allocation_pools is not defined %}
       cidr: { get_param: default_subnet_cidr }
+      ip_version: {{ ipv6 | ternary(6, 4) }}
 {%   endif %}
 {%   if network.allocation_pools is defined %}
       allocation_pools:
@@ -88,15 +98,6 @@ resources:
         - {{ dns_server }}
 {%       endfor %}
 {%     endif  %}
-{%   endif  %}
-{%   if ipv6 %}
-      ip_version: 6
-{%     if network.is_conf or network.is_mgmt %}
-      ipv6_ra_mode: dhcpv6-stateful
-      ipv6_address_mode: dhcpv6-stateful
-{%     endif %}
-{%   else %}
-      ip_version: 4
 {%   endif  %}
       enable_dhcp: {{ network.is_conf or network.is_mgmt }}
 {%   if network.gateway is defined %}
