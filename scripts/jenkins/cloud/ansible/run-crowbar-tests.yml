@@ -56,6 +56,7 @@
               - src: "{{ tempest_results_subunit }}"
               - src: "{{ subunit_xml_results }}"
               - src: "{{ subunit_html_results }}"
+              - src: "~/simple_horizon.log"
           when: lookup("env", "WORKSPACE")
 
   post_tasks:

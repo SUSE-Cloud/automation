@@ -931,6 +931,7 @@ function testsetup
     [[ $want_ironic = 1 ]] && teardown_ironic_test_env
 
     $scp root@$(wrap_ip $adminip):tempest*.log "$artifacts_dir/"
+    $scp root@$(wrap_ip $adminip):simple_horizon.log "$artifacts_dir/"
 
     # Register the cloud in Rally and import the results
     if [[ $rally_server && -f $artifacts_dir/tempest.subunit.log ]] ; then

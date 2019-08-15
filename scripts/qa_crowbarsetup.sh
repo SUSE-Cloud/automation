@@ -4839,7 +4839,7 @@ function onadmin_testsetup
     get_horizon
     echo "openstack horizon server:  $horizonserver"
     echo "openstack horizon service: $horizonservice"
-    curl -L -m 180 -s -S -k http://$horizonservice | \
+    curl -L -m 180 -s -S -k http://$horizonservice | tee simple_horizon.log | \
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
     || complain 101 "simple horizon test failed"
 
