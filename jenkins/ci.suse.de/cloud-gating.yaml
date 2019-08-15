@@ -96,6 +96,7 @@
             heat,magnum,manila"
           # Delete when adding to the cloud 9 gating job
           cloud_env: cloud-crowbar-test-slot
+          reserve_env: true
           triggers:
            - timed: 'H H * * *'
     jobs:
@@ -130,6 +131,7 @@
             heat,magnum,manila"
           # Delete when adding to the cloud 9 gating job
           cloud_env: cloud-crowbar-test-slot
+          reserve_env: true
           triggers:
            - timed: 'H H * * *'
     jobs:
@@ -166,6 +168,7 @@
             heat,magnum,manila"
           # Delete when adding to the cloud 9 gating job
           cloud_env: cloud-crowbar-test-slot
+          reserve_env: true
           triggers:
            - timed: 'H H * * *'
     jobs:
