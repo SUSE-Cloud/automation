@@ -40,4 +40,4 @@ scenario:
 
   service_template: full-spread
   network_template: "{{ (cloud_product == 'ardana') | ternary('full-spread', 'crowbar') }}"
-  interface_template: "{{ (cloud_product == 'ardana') | ternary('full-spread', 'crowbar') }}"
+  interface_template: "{{ (cloud_product == 'ardana') | ternary('full-spread', 'crowbar-' ~ crowbar_networkingmode) }}"
