@@ -3668,8 +3668,6 @@ id-f5dfcc22-45fd-409f-954c-5bd500d7890b
 id-301f5a30-1c6f-4ea0-be1a-91fd28d44354
 id-bdbb5441-9204-419d-a225-b4fdbfb1a1a8
 id-6bba729b-3fb6-494b-9e1e-82bbd89a1045
-manila_tempest_tests.tests.scenario.test_share_basic_ops.TestShareBasicOpsNFS.test_read_write_two_vms # bsc#1137262
-manila_tempest_tests.tests.scenario.test_share_basic_ops.TestShareBasicOpsCIFS.test_read_write_two_vms # bsc#1137262
 EOF
     fi
 
