@@ -57,3 +57,42 @@
       # git-scm module with an environment variable (for some odd jenkins
       # reason).
       lightweight-checkout: false
+
+- job-template:
+    name: '{name}-nightly-osh-from-rpm'
+    project-type: pipeline
+    concurrent: false
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+    triggers:
+      - timed: '@daily'
+
+    parameters:
+      - string:
+          name: git_automation_repo
+          default: '{git_automation_repo|https://github.com/SUSE-Cloud/automation.git}'
+          description: >-
+            The git automation repository to use
+
+      - string:
+          name: git_automation_branch
+          default: '{git_automation_branch|master}'
+          description: >-
+            The git automation branch
+
+    pipeline-scm:
+      scm:
+        - git:
+            url: ${{git_automation_repo}}
+            branches:
+              - ${{git_automation_branch}}
+            browser: auto
+            wipe-workspace: false
+      script-path: jenkins/ci.suse.de/pipelines/socok8s-osh-from-rpm.Jenkinsfile
+      # NOTE(jhesketh): We cannot use a lightweight checkout when supplying the
+      # git-scm module with an environment variable (for some odd jenkins
+      # reason).
+      lightweight-checkout: false
