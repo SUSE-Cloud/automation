@@ -289,6 +289,17 @@ resources:
 {% endif %}
       image: {{ server.image }}
       flavor: {{ server.flavor }}
+      tags:
+{%   if server.is_admin %}
+        - soc-admin-node
+{%   elif server.is_controller %}
+        - soc-controller-node
+{%   elif server.is_compute %}
+        - soc-compute-node
+          # Also tag compute node VMs to indicate that nested virtualization
+          # is actively used (SOC-10184)
+        - uses-nested-virt
+{%   endif  %}
       networks:
 {%   for port_name, port in server_ns.ports %}
           # port: {{ port.name }}
