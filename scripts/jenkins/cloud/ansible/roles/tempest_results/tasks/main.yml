@@ -39,4 +39,6 @@
 - name: Fail if any tempest test has failed
   fail:
     msg: "{{ tempest_test_results.failed }} tests failed."
-  when: tempest_test_results.failed | int > 0
+  when:
+    - tempest_test_results is defined
+    - tempest_test_results.failed | int > 0
