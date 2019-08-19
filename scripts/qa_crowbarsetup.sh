@@ -878,26 +878,26 @@ function onadmin_set_source_variables
 {
     case "$cloudsource" in
         develcloud6)
-            CLOUDISOURL=${want_cloud6_iso_url:="$susedownload/ibs/Devel:/Cloud:/6/images/iso"}
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/6:/Staging/images/iso"
+            CLOUDISOURL=${want_cloud6_iso_url:="$susedownload/ibs/Devel:/Cloud:/6/images/iso/"}
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/6:/Staging/images/iso/"
             CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}-Media1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         develcloud7)
-            CLOUDISOURL=${want_cloud7_iso_url:="$susedownload/ibs/Devel:/Cloud:/7/images/iso"}
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/7:/Staging/images/iso"
+            CLOUDISOURL=${want_cloud7_iso_url:="$susedownload/ibs/Devel:/Cloud:/7/images/iso/"}
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/7:/Staging/images/iso/"
             CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
         develcloud8)
-            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8/images/iso"
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8:/Staging/images/iso"
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8/images/iso/"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8:/Staging/images/iso/"
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-devel"
         ;;
         develcloud9)
-            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9/images/iso"
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso"
+            CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9/images/iso/"
+            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso/"
             CLOUDISONAME="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
