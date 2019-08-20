@@ -326,6 +326,11 @@ if [ $SITE = "nue" ]; then
 
     # this one is always failing - we need to ignore that otherwise the lock file remains stuck
     timeout 1h ~/bin/syncgitrepos || :
+
+else
+    # Keep stuff that is "owned" in NUE site over to this site
+    $rsync --exclude='*untested*'  clouddata.cloud.suse.de::cloud/images/x86_64/ /srv/nfs/images/x86_64/
+    $rsync clouddata.cloud.suse.de::cloud/repos/disabled /srv/nfs/repos
 fi
 
 rm -f $lockf
