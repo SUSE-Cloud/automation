@@ -119,7 +119,6 @@
       scm:
         - git:
             url: https://github.com/SUSE-Cloud/socok8s.git
-            repo-owner: '{repo-owner}'
             credentials-id: '{repo-credentials}'
             branches:
               - master
@@ -127,7 +126,6 @@
             wipe-workspace: false
             submodule:
               recursive: true
-            notification-context: daily-integration/jenkins
       script-path: Jenkinsfile.integration
       lightweight-checkout: false
 
