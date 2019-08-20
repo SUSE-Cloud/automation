@@ -8,5 +8,6 @@
     reserve_env: false
     cleanup: never
     ses_enabled: false
+    collect_supportconfig: false
     jobs:
         - '{crowbar_job}'

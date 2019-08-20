@@ -355,6 +355,10 @@ pipeline {
     failure {
       script {
         cloud_lib.track_failure()
+        if (collect_supportconfig == 'true') {
+          cloud_lib.ansible_playbook('collect-supportconfig')
+          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+        }
       }
     }
     cleanup {
