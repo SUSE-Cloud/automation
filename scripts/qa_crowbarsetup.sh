@@ -5478,6 +5478,9 @@ function oncontroller_setupproduction()
     openstack role add --project cloud --user cloudinfra Member
     openstack user create --project cloud --email tbechtold@suse.com cloud-ci
     openstack role add --project cloud --user cloud-ci Member
+    openstack project create cloud-socok8s-ci
+    openstack quota set --instances -1 --cores 250 --ram 500000 --secgroups 100 --secgroup-rules 300 --volumes 30 cloud-socok8s-ci
+    openstack role add --project cloud-socok8s-ci --user cloud-ci Member
     openstack user create --project ses --email jpupava@suse.cz ses-qam
     openstack role add --project ses --user ses-qam Member
     openstack user create --project ses --email kyrylo.shatskyy@suse.com ses-ci
