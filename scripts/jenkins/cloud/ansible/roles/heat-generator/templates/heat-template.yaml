@@ -55,6 +55,7 @@ resources:
 {% for network_rec in heat_template.networks|dictsort %}
 {%   set network = network_rec[1] %}
 {%   set name = network.name|lower|replace('-','_')|regex_replace('_net$', '') %}
+{%   set enable_dhcp = network.is_conf or network.is_mgmt or name == 'management' %}
 
   # network: {{ network.name }}
   {{ name }}_network:
@@ -91,14 +92,14 @@ resources:
 {%   endif  %}
 {%   if ipv6 and name != 'bootstrap' %}
       ip_version: 6
-{%     if network.is_conf or network.is_mgmt %}
+{%     if enable_dhcp %}
       ipv6_ra_mode: dhcpv6-stateful
       ipv6_address_mode: dhcpv6-stateful
 {%     endif %}
 {%   else %}
       ip_version: 4
 {%   endif  %}
-      enable_dhcp: {{ network.is_conf or network.is_mgmt }}
+      enable_dhcp: {{ enable_dhcp }}
 {%   if network.gateway is defined %}
       gateway_ip: "{{ network.gateway }}"
 {%   endif   %}
