@@ -291,19 +291,6 @@ for version in 6 5 4 2.1; do
     done
 done
 
-# sync admin images
-for arch in $archs ; do
-    destdir_admin_images=/srv/nfs/images/$arch/
-    mkdir -p $destdir_admin_images
-    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-untested.qcow2
-    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP3/mkcloud-admin-node-SLE12SP3.${arch}.qcow2 $destdir_admin_images/SLES12-SP3-untested.qcow2
-    $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP4/mkcloud-admin-node-SLE12SP4.${arch}.qcow2 $destdir_admin_images/SLES12-SP4-untested.qcow2
-
-    if [ "$arch" == x86_64 ]; then
-        $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-uefi.qcow2
-    fi
-done
-
 # sync modules
 for arch in $archs ; do
     [ "$arch" == x86_64 ] || continue
@@ -313,6 +300,19 @@ for arch in $archs ; do
 done
 
 if [ $SITE = "nue" ]; then
+    # sync admin images
+    for arch in $archs ; do
+        destdir_admin_images=/srv/nfs/images/$arch/
+        mkdir -p $destdir_admin_images
+        $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-untested.qcow2
+        $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP3/mkcloud-admin-node-SLE12SP3.${arch}.qcow2 $destdir_admin_images/SLES12-SP3-untested.qcow2
+        $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP4/mkcloud-admin-node-SLE12SP4.${arch}.qcow2 $destdir_admin_images/SLES12-SP4-untested.qcow2
+
+        if [ "$arch" == x86_64 ]; then
+            $rsync -L ${ibs_source}/Devel:/Cloud:/Images/images_SLE_12_SP2/mkcloud-admin-node-SLE12SP2-uefi.${arch}.qcow2 $destdir_admin_images/SLES12-SP2-uefi.qcow2
+        fi
+    done
+
     for v in 12 15 ; do
         rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/devel:/languages:/ruby:/extensions/SLE_$v/ /srv/nfs/repos/repositories/devel:/languages:/ruby:/extensions/SLE_$v
     done
