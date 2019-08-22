@@ -3,7 +3,7 @@ heat_template_version: 2013-05-23
 parameters:
   image:
     type: string
-    default: cirros-0.3.4-x86_64-tempest-machine
+    default: cirros-0.4.0-x86_64-tempest-machine
 
   flavor:
     type: string

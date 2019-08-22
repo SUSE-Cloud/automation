@@ -4841,7 +4841,7 @@ function onadmin_testsetup
     echo "openstack horizon service: $horizonservice"
     curl -L -m 180 -s -S -k http://$horizonservice | tee simple_horizon.log | \
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
-    || complain 101 "simple horizon test failed"
+        || complain 101 "simple horizon test failed"
 
     if iscloudver 7plus; then
         update_keystone_password
@@ -4923,17 +4923,16 @@ function ping_fips
     done
 }
 
-# Use $heat_stack_params to provide parameters to heat template
+
+# Use heat_stack_params to provide parameters to heat template
 function oncontroller_testpreupgrade
 {
-    create_cmd="heat --insecure stack-create upgrade_test -f "
-    list_cmd="heat --insecure stack-list"
-    if iscloudver 7plus; then
-        create_cmd="openstack stack create upgrade_test -t "
-        list_cmd="openstack stack list"
-    fi
-    $create_cmd /root/scripts/heat/2-instances-cinder.yaml $heat_stack_params
-    wait_for 15 20 "$list_cmd | grep upgrade_test | grep CREATE_COMPLETE" \
+    local image=cirros-0.3.4-x86_64-tempest-machine
+    iscloudver 8plus && image=cirros-0.4.0-x86_64-tempest-machine
+    openstack stack create upgrade_test -t \
+        /root/scripts/heat/2-instances-cinder.yaml \
+        --parameter image=$image $heat_stack_params
+    wait_for 15 20 "openstack stack list | grep upgrade_test | grep CREATE_COMPLETE" \
              "heat stack for upgrade tests to complete"
     ping_fips && \
     echo "test pre-upgrade successful."
