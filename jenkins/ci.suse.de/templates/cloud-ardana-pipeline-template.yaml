@@ -487,6 +487,12 @@
           description: >-
             Cloud product (ardana or crowbar)
 
+      - hidden:
+          name: collect_supportconfig
+          default: '{collect_supportconfig|true}'
+          description: >-
+            Collect supportconfig files when the job fails
+
     pipeline-scm:
       scm:
         - git:
