@@ -22,11 +22,6 @@
   args:
     chdir: "{{ ardana_scratch_path }}"
 
-# FIXME: workaround for SCRD-9144
-- name: Wait a while to give neutron agents time to recover
-  pause:
-    minutes: 5
-
 - name: Run neutron-status
   shell: |
     ansible-playbook neutron-status.yml
