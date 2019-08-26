@@ -1,0 +1,84 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+
+---
+
+- name: Upgrade cloud - crowbar
+  hosts: "{{ cloud_env }}"
+  remote_user: root
+  gather_facts: True
+  vars:
+    extra_upgrade_vars:
+      upgrade_progress_file: "/var/lib/crowbar/upgrade/{{ cloud_release_number }}-to-{{ (cloud_release_number | int) + 1 }}-progress.yml"
+      UPDATEREPOS_UPGRADE: "{{ (upgrade_repos | length > 0) | ternary(upgrade_repos.split(',') | join('+'), '') }}"
+      cloudsource: "{{ upgrade_cloudsource }}"
+      want_nodesupgrade: 1
+  tasks:
+    - block:
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: "{{ upgrade_step.command }}"
+            override_vars: "{{ extra_upgrade_vars|combine(upgrade_step.vars|default({})) }}"
+            override_vars_reason: upgrade
+          loop:
+            - command: onadmin_prepare_cloudupgrade_nodes_repos
+            - command: onadmin_zypper_patch_all
+              vars:
+                cloudsource: "{{ cloudsource }}"
+            - command: onadmin_upgrade_prechecks
+              vars:
+                cloudsource: "{{ cloudsource }}"
+            - command: onadmin_allow_vendor_change_at_nodes
+              vars:
+                cloudsource: "{{ cloudsource }}"
+              enabled: "{{ 'devel' in cloudsource or 'staging' in cloudsource or 'devel' in upgrade_cloudsource or 'staging' in upgrade_cloudsource }}"
+            - command: onadmin_prepare_crowbar_upgrade
+            - command: onadmin_prepare_cloudupgrade_admin_repos
+            - command: onadmin_addupdaterepo upgrade
+              enabled: "{{ extra_upgrade_vars.UPDATEREPOS_UPGRADE != '' }}"
+            - command: onadmin_upgrade_admin_backup
+            - command: onadmin_upgrade_admin_repocheck
+            - command: onadmin_upgrade_admin_server
+          loop_control:
+            loop_var: upgrade_step
+          when: upgrade_step.enabled | default(True)
+
+        - include_role:
+            name: reboot_node
+          vars:
+            reboot_target: deployer
+            reboot_in_progress: True
+
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: "{{ upgrade_step.command }}"
+          loop:
+            - command: onadmin_check_admin_server_upgraded
+            - command: onadmin_wait_for_crowbar_api
+            - command: onadmin_crowbar_nodeupgrade
+          loop_control:
+            loop_var: upgrade_step
+          when: upgrade_step.enabled | default(True)
+
+      always:
+        - include_role:
+            name: jenkins_artifacts
+          when: lookup("env", "WORKSPACE")
+          vars:
+            jenkins_artifacts_to_collect:
+              - src: "{{ qa_crowbarsetup_log }}"

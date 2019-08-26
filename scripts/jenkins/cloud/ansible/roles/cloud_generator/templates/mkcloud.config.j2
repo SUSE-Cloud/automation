@@ -30,6 +30,7 @@ export cloudsource=develcloud{{ cloudsource[-1] }}
 export TESTHEAD=1
 {% else %}
 export cloudsource={{ cloudsource }}
+export TESTHEAD=
 {% endif %}
 
 # export mkclouddriver=
@@ -66,10 +67,10 @@ export crowbar_networkingmode={{ crowbar_networkingmode }}
 # export cinder_netapp_login=
 # export cinder_netapp_password=
 
-{% if extra_repos is defined and extra_repos | length > 0 != '' %}
+{% if extra_repos is defined and extra_repos | length > 0 %}
 export UPDATEREPOS={{ extra_repos.split(',') | join('+') }}
 {% endif %}
-# export UPDATEREPOS_UPGRADE=
+
 # export UPDATEREPOS_EXTRA=
 # export NOINSTALLCLOUDPATTERN=
 

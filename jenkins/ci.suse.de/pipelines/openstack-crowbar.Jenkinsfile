@@ -222,18 +222,22 @@ pipeline {
       }
     }
 
-    stage('Update cloud') {
+    stage('Update/upgrade cloud') {
       when {
-        expression { deploy_cloud == 'true' && update_after_deploy == 'true' }
+        expression { deploy_cloud == 'true' && (update_after_deploy == 'true' || upgrade_cloudsource != '') }
       }
       steps {
         script {
           // This is a mark for fail action 'collect list of installed packages'
-          // to distinguish stages after "Update cloud" and do the diff of installed
+          // to distinguish stages after "Update/upgrade cloud" and do the diff of installed
           // packages. Can be removed when jenkins feature (JENKINS-48315) is merged.
           env.stage_after_update = "true"
 
-          cloud_lib.ansible_playbook('crowbar-update')
+          if (upgrade_cloudsource == '') {
+            cloud_lib.ansible_playbook('crowbar-update')
+          } else {
+            cloud_lib.ansible_playbook('crowbar-upgrade')
+          }
           cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=diff")
         }
       }

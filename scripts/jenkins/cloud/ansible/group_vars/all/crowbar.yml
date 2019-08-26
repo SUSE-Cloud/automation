@@ -24,3 +24,5 @@ ssl_cert_required: false
 ssl_certfile: /etc/cloud/ssl/certs/signing_cert.pem
 ssl_keyfile: /etc/cloud/private/signing_key.pem
 ssl_ca_certs: /etc/ssl/ca-bundle.pem
+
+upgrade_repos: ''
