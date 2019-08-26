@@ -31,6 +31,12 @@
           description: >-
             Reserve the 'cloud_env' lockable resource throughout the execution of this job.
 
+      - bool:
+          name: debug
+          default: '{debug|false}'
+          description: >-
+            Debug 'qa_crowbarsetup.sh' and OpenStack services, i.e. add a lot of verbose output.
+
       - choice:
           name: os_cloud
           choices:
