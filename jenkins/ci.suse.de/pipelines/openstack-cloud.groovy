@@ -53,15 +53,18 @@ Please adjust your 'cloud_env' parameter value to avoid this error, or use the p
 }
 
 def ansible_playbook(playbook, params='') {
-  sh("""
-    cd $WORKSPACE
-    source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
-    if [[ -e automation-git/scripts/jenkins/cloud/ansible/input.yml ]]; then
-      ansible_playbook """+playbook+""".yml -e @input.yml """+params+"""
-    else
-      ansible_playbook """+playbook+""".yml """+params+"""
-    fi
-  """)
+  sh(
+    script: """
+      cd $WORKSPACE
+      source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
+      if [[ -e automation-git/scripts/jenkins/cloud/ansible/input.yml ]]; then
+        ansible_playbook """+playbook+""".yml -e @input.yml """+params+"""
+      else
+        ansible_playbook """+playbook+""".yml """+params+"""
+      fi
+    """,
+    label: "Ansible Playbook: " + playbook
+  )
 }
 
 def trigger_build(job_name, parameters, propagate=true, wait=true) {
