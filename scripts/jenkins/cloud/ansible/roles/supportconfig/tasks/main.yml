@@ -21,6 +21,7 @@
     name: "{{ item }}"
     state: present
   loop: "{{ supportconfig_pkgs }}"
+  failed_when: false
 
 - name: Generate supportconfig
   shell: |
