@@ -34,9 +34,9 @@
       - validating-string:
           name: cloud_env
           default: ''
-          regex: '[A-Za-z0-9-_]+'
+          regex: '[A-Za-z0-9-]+'
           msg: >-
-            Empty or malformed value (only alphanumeric, '-' and '_' characters are allowed).
+            Empty or malformed value (only alphanumeric and '-' characters are allowed).
           description: >-
             The virtual or hardware environment identifier. This field should either
             be set to one of the values associated with the known hardware environments
