@@ -20,7 +20,7 @@
 
 - include_tasks: reconfigure_neutron.yml
   vars:
-    extra_vars: "-e router_distributed=False"
+    extra_vars: "-e router_distributed=False -e enable_distributed_routing=False"
   when: tempest_run_filter in ['vpnaas', 'fwaas']
 
 - include_tasks: import_octavia_image.yml
