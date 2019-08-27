@@ -39,8 +39,8 @@
   uri:
     url: http://127.0.0.1:3000/
     status_code: 200
-  retries: 3
-  delay: 9
+  retries: 10
+  delay: 30
   register: _uri_output
   until: "(_uri_output.status == 200)"
   when: cloud_product == 'crowbar'
