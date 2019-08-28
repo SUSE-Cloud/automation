@@ -1,47 +1,4 @@
 - job-template:
-    name: '{name}-integration-{tempest}'
-    project-type: multibranch
-    periodic-folder-trigger: 5m
-    number-to-keep: 30
-    days-to-keep: 30
-    script-path: Jenkinsfile.integration
-    parameters:
-      - choice:
-          name: deployment
-          choices:
-            - 'airship'
-            - 'osh'
-          default: 'airship'
-          description: >-
-            Which deployment mechanism?
-      - bool:
-          name: run_tempest
-          default: '{run_tempest|true}'
-          description: >-
-            Run tempest tests?
-      - choice:
-          name: tempest_test_type
-          choices:
-            - 'all'
-            - 'smoke'
-          default: 'all'
-          description: >-
-            Run all or smoke tempest tests?
-    scm:
-      - github:
-          repo: '{repo-name}'
-          repo-owner: '{repo-owner}'
-          credentials-id: '{repo-credentials}'
-          branch-discovery: no-pr
-          discover-pr-forks-strategy: current
-          discover-pr-forks-trust: permission
-          discover-pr-origin: current
-          submodule:
-            recursive: true
-          notification-context: continuous-integration/jenkins
-          filter-head-regex: ^(master|stable\-\d\.\d|PR\-\d+)$
-
-- job-template:
     name: '{name}-nightly-airship-from-rpm'
     project-type: pipeline
     concurrent: false
@@ -101,11 +58,6 @@
           default: 'airship'
           description: >-
             Which deployment mechanism?
-      - bool:
-          name: run_tempest
-          default: '{run_tempest|true}'
-          description: >-
-            Run tempest tests?
       - choice:
           name: tempest_test_type
           choices:
