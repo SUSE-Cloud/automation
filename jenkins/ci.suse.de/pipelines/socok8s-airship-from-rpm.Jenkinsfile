@@ -38,7 +38,7 @@ pipeline {
                     // use lowercase SOCOK8S_ENVNAME. CaaSP Velum doesn't like it otherwise
                     // NOTE(jhesketh): ENVNAME cannot be longer than 28-chars or else it will be truncated and cause errors (build number included)
                     sh 'echo SOCOK8S_ENVNAME="cloud-socok8s-rpm-${BUILD_NUMBER}" > jenkins.env'
-                    sh 'echo OS_CLOUD="engcloud-cloud-ci" >> jenkins.env'
+                    sh 'echo OS_CLOUD="engcloud-socok8s-ci" >> jenkins.env'
                     sh 'echo KEYNAME="engcloud-cloud-ci" >> jenkins.env'
                     sh 'echo DELETE_ANYWAY="YES" >> jenkins.env'
                     sh 'echo SOCOK8S_DEVELOPER_MODE="False" >> jenkins.env'
