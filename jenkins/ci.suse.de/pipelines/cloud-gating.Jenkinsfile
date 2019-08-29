@@ -101,6 +101,9 @@ pipeline {
     }
 
     stage('Submit project') {
+      when {
+        expression { skip_submit_project == 'false' }
+      }
       steps {
         script{
           cloud_lib.trigger_build("openstack-submit-project", [
