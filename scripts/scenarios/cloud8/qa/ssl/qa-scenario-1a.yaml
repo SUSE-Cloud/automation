@@ -63,12 +63,12 @@ proposals:
       - cluster:services
 - barclamp: keystone
   attributes:
-    #ssl: TODO BUG#1069005
-    #  certfile: ##certfile##
-    #  keyfile: ##keyfile##
-    #  ca_certs: ##cafile##
-    #api:
-    # protocol: https
+    ssl:
+      certfile: ##certfile##
+      keyfile: ##keyfile##
+      ca_certs: ##cafile##
+    api:
+      protocol: https
   deployment:
     elements:
       keystone-server:
@@ -145,12 +145,12 @@ proposals:
     num_vlans: 99
     ml2_type_drivers_default_provider_network: ##networkingmode##
     ml2_type_drivers_default_tenant_network: ##networkingmode##
-    #ssl: TODO failing need investigation
-    #  certfile: ##certfile##
-    #  keyfile:  ##keyfile##
-    #  ca_certs: ##cafile##
-    #api:
-    #  protocol: https
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
+    api:
+      protocol: https
   deployment:
     elements:
       neutron-server:
@@ -191,9 +191,9 @@ proposals:
   attributes:
     apache:
       ssl: true
-      ssl_crt_file: /etc/cloud/ssl/qa4/qa4.cloud.suse.de.crt
-      ssl_key_file:  /etc/cloud/ssl/qa4/qa4.cloud.suse.de.pem
-      ssl_crt_chain_file: /etc/cloud/ssl/qa4/SUSE_CA_suse.de.chain.crt
+      ssl_crt_file: ##certfile##
+      ssl_key_file: ##keyfile##
+      ssl_crt_chain_file: ##cafile##
   deployment:
     elements:
       horizon-server:
