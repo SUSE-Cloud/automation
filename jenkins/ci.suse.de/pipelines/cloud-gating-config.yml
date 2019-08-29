@@ -12,19 +12,19 @@ SOC9:
   ardana9-update:
     job_name: cloud-ardana9-job-gate-entry-scale-kvm-update-x86_64
     job_params: []
+SOCC7:
+  crowbar7-no-ha-deploy:
+    job_name: cloud-crowbar7-job-gate-no-ha-deploy-x86_64
+    job_params: []
+  crowbar7-ha-deploy:
+    job_name: cloud-crowbar7-job-gate-ha-deploy-x86_64
+    job_params: []
+  crowbar7-linuxbridge-deploy:
+    job_name: cloud-crowbar7-job-gate-linuxbridge-deploy-x86_64
+    job_params: []
 #
 # NOTE: to be enabled when Crowbar ECP gating jobs will replace mkcloud gating jobs
 #
-#SOCC7:
-#  crowbar7-no-ha-deploy:
-#    job_name: cloud-crowbar7-job-gate-no-ha-deploy-x86_64
-#    job_params: []
-#  crowbar7-ha-deploy:
-#    job_name: cloud-crowbar7-job-gate-ha-deploy-x86_64
-#    job_params: []
-#  crowbar7-linuxbridge-deploy:
-#    job_name: cloud-crowbar7-job-gate-linuxbridge-deploy-x86_64
-#    job_params: []
 #SOCC8:
 #  crowbar8-no-ha-deploy:
 #    job_name: cloud-crowbar8-job-gate-no-ha-deploy-x86_64
