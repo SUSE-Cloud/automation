@@ -47,17 +47,9 @@
               delegate_to: "{{ target_host }}"
           vars:
             inventory_hostname: "{{ target_host }}"
-          loop: "{{ [cloud_env]+groups['cloud_virt_hosts'] }}"
+          loop: "{{ groups['cloud_virt_hosts'] }}"
           loop_control:
             loop_var: target_host
-
-        - include_role:
-            name: reboot_node
-          vars:
-            reboot_target: deployer
-          when:
-            - update_after_deploy
-            - reboot_after_deploy
 
         - include_role:
             name: crowbar_setup
@@ -65,7 +57,25 @@
             qa_crowbarsetup_cmd: onadmin_rebootcloud
           when:
             - reboot_after_deploy
-            - update_after_deploy
+
+        - include_role:
+            name: crowbar_update
+            apply:
+              delegate_to: "{{ cloud_env }}"
+          vars:
+            inventory_hostname: "{{ cloud_env }}"
+
+        - include_role:
+            name: reboot_node
+          vars:
+            reboot_target: deployer
+          when:
+            - reboot_after_deploy
+
+        - include_role:
+            name: crowbar_setup
+          vars:
+            qa_crowbarsetup_cmd: "crowbar batch export | crowbar batch --timeout 2400 build"
 
       rescue:
         - include_role:
