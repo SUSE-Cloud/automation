@@ -79,7 +79,7 @@ pipeline {
                 reserve_env          : false,
                 maint_updates        : maint_updates,
                 rc_notify            : false,
-                cleanup              : "never",
+                cleanup              : "on success",
                 git_automation_repo  : git_automation_repo,
                 git_automation_branch: git_automation_branch
               ]
