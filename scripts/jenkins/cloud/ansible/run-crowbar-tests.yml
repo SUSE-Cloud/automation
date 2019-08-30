@@ -45,6 +45,8 @@
 
         - include_role:
             name: tempest_results
+            apply:
+              ignore_errors: yes
 
         - include_role:
             name: jenkins_artifacts
