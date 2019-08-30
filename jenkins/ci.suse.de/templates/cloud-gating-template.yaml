@@ -34,7 +34,13 @@
           name: version
           default: '{version}'
           description: >-
-            Cloud version number (8, 9 etc.)
+            Cloud version number (7, 8, 9 etc.)
+
+      - hidden:
+          name: skip_submit_project
+          default: '{skip_submit_project|false}'
+          description:
+            Set to true to skip the submit project step
 
       - text:
           name: extra_params

@@ -5,6 +5,8 @@
       - project: 'cloud-{version}-gating'
         block: false
     cloud_url_trigger_job:
+      - cloud-7-gating-trigger:
+          version: '7'
       - cloud-8-gating-trigger:
           version: '8'
       - cloud-9-gating-trigger:
@@ -17,6 +19,9 @@
     concurrent: False
     cloud_env: 'cloud-gate{version}-slot'
     cloud_gating_job:
+      - cloud-7-gating:
+          version: '7'
+          skip_submit_project: 'true'
       - cloud-8-gating:
           version: '8'
       - cloud-9-gating:
