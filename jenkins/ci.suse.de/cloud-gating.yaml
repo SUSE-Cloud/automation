@@ -95,6 +95,11 @@
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
             fwaas,trove,aodh,lbaas,heat,magnum,manila"
+          # Delete when adding to the cloud 8 gating job
+          cloud_env: cloud-crowbar-test-slot
+          reserve_env: true
+          triggers:
+           - timed: 'H H * * *'
       - cloud-crowbar9-job-gate-no-ha-deploy-x86_64:
           cloudsource: stagingcloud9
           ses_enabled: true
@@ -133,6 +138,11 @@
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
             fwaas,trove,aodh,lbaas,heat,magnum,manila"
+          # Delete when adding to the cloud 8 gating job
+          cloud_env: cloud-crowbar-test-slot
+          reserve_env: true
+          triggers:
+           - timed: 'H H * * *'
       - cloud-crowbar9-job-gate-ha-deploy-x86_64:
           cloudsource: stagingcloud9
           ses_enabled: true
@@ -173,6 +183,11 @@
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
             fwaas,trove,aodh,lbaas,heat,magnum,manila"
+          # Delete when adding to the cloud 8 gating job
+          cloud_env: cloud-crowbar-test-slot
+          reserve_env: true
+          triggers:
+           - timed: 'H H * * *'
       - cloud-crowbar9-job-gate-linuxbridge-deploy-x86_64:
           cloudsource: stagingcloud9
           ses_enabled: true
