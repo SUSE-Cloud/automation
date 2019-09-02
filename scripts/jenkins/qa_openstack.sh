@@ -142,6 +142,17 @@ fi
 zypper rr cloudhead || :
 
 case "$cloudsource" in
+    openstackupstreammaster)
+        $zypper ar -G -f $cloudopenstackmirror/Upstream:/Master/standard/ upstreamcloud || :
+        $zypper mr --priority 1 upstreamcloud
+
+        $zypper ar -G -f $cloudopenstackmirror/Upstream:/Master:/Fixme/$REPO/ upstreamcloud-fixme || :
+        $zypper mr --priority 1 upstreamcloud-fixme
+
+        $zypper ar -G -f $cloudopenstackmirror/Master/$REPO/ cloud || :
+        $zypper mr --priority 22 cloud
+    ;;
+
     openstackmaster)
         $zypper ar -G -f $cloudopenstackmirror/Master/$REPO/ cloud || :
         # no staging for master
