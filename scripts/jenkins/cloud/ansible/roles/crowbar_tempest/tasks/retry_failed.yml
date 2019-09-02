@@ -27,9 +27,11 @@
 - name: Rerun failed tests
   shell: |
     set -o pipefail
-    testdriver=testr
-    [ -f ".stestr.conf" ] && testdriver=stestr
-    $testdriver run --serial --failing | tee {{ tempest_results_log }}
+    if [ -f ".stestr.conf" ]; then
+      stestr run --serial --failing | tee {{ tempest_results_log }}
+    else
+      testr run --failing --subunit | subunit-trace | tee {{ tempest_results_log }}
+    fi
   args:
     chdir: "{{ tempest_work_dir }}"
   changed_when: false
