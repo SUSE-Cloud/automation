@@ -15,6 +15,8 @@
     magnumoptions: --regex '^magnum_tempest_plugin.tests.api'
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: mysql
+    want_monasca_proposal: 1
+    want_aodh_proposal: 0
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
@@ -41,6 +43,8 @@
     storage_method_ha: swift
     database_engine: mysql
     want_all_ssl: 1
+    want_monasca_proposal: 1
+    want_aodh_proposal: 0
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
