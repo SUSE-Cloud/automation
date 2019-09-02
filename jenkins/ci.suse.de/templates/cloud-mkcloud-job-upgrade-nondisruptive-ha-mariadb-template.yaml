@@ -33,6 +33,8 @@
             want_trove_proposal=0
             want_barbican_proposal=0
             want_sahara_proposal=0
+            want_monasca_proposal={want_monasca_proposal|0}
+            want_aodh_proposal={want_aodh_proposal|1}
             mkcloudtarget=instonly setuplonelynodes lonelynode_nfs_server proposal testpreupgrade addupdaterepo runupdate cloudupgrade testpostupgrade testsetup
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}

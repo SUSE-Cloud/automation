@@ -25,6 +25,8 @@
             mkcloudtarget=plain_with_upgrade testsetup
             want_nodesupgrade=1
             want_database_sql_engine={database_engine}
+            want_monasca_proposal={want_monasca_proposal|0}
+            want_aodh_proposal={want_aodh_proposal|1}
             controller_node_memory=7864320
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-disruptive-{arch}
