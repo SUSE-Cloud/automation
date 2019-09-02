@@ -137,6 +137,9 @@
             group: ardana
             mode: 0600
 
+        - include_role:
+            name: ssh_keys
+
         - name: Enable skip_disk_config on non-deployer nodes
           file:
             state: "{{ item.state }}"
