@@ -4143,10 +4143,6 @@ function oncontroller_testsetup
         fi
     fi
 
-    # this file is created by the designate barclamp
-    designate_pools="/etc/desigate/pools.crowbar.yaml"
-    [[ -e $designate_pools ]] && designate-manage pool update --file $designate_pools
-
     # Run Tempest Smoketests if configured to do so
     tempestret=0
     if [[ $want_tempest = 1 ]]; then
