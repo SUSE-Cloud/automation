@@ -5,23 +5,6 @@
     number-to-keep: 30
     days-to-keep: 30
     script-path: Jenkinsfile.integration
-    parameters:
-      - choice:
-          name: deployment
-          choices:
-            - 'airship'
-            - 'osh'
-          default: 'airship'
-          description: >-
-            Which deployment mechanism?
-      - choice:
-          name: tempest_test_type
-          choices:
-            - 'all'
-            - 'smoke'
-          default: 'smoke'
-          description: >-
-            Run all or smoke tempest tests?
     scm:
       - github:
           repo: '{repo-name}'
