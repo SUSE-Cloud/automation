@@ -18,7 +18,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
-            designate,heat,ceilometer,magnum,freezer,monasca"
+            designate,heat,manila,ceilometer,magnum,freezer,monasca"
       - cloud-ardana8-job-mu-entry-scale-kvm-update-x86_64:
           cloudsource: GM8+up
           update_after_deploy: true
@@ -30,7 +30,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            designate,heat,magnum,monasca"
+            designate,heat,manila,magnum,monasca"
       - cloud-ardana9-job-mu-entry-scale-kvm-update-x86_64:
           cloudsource: GM9+up
           update_after_deploy: true
