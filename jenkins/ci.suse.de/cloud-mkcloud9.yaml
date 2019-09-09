@@ -11,6 +11,7 @@
     version: 9
     previous_version: 8
     arch: x86_64
+    controller_node_memory: 12582912
     tempestoptions: --smoke
     magnumoptions: --regex '^magnum_tempest_plugin.tests.api'
     label: openstack-mkcloud-SLE12-x86_64
