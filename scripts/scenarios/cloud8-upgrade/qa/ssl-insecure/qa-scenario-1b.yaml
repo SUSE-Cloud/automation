@@ -1,5 +1,5 @@
 ---
-#1b - 8 nodes: HA (IPMI 1 x 3), KVM x 2, Xen x 2
+#1b - 8 nodes: HA (IPMI 1 x 3), KVM x 2
 proposals:
 - barclamp: pacemaker
   name: services
@@ -189,9 +189,7 @@ proposals:
       - "@@compute-kvm1@@"
       - "@@compute-kvm2@@"
       nova-compute-qemu: []
-      nova-compute-xen:
-      - "@@compute-xen1@@"
-      - "@@compute-xen2@@"
+      nova-compute-xen: []
 
 - barclamp: horizon
   attributes:
@@ -209,25 +207,6 @@ proposals:
     elements:
       heat-server:
       - cluster:services
-
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm1@@"
-      - "@@compute-xen1@@"
-      - "@@compute-kvm2@@"
-      - "@@compute-xen2@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@controller3@@"
 
 - barclamp: manila
   attributes:

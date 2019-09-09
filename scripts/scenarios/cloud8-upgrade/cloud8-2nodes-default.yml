@@ -8,8 +8,6 @@ proposals:
       - @@controller@@
 - barclamp: rabbitmq
   attributes:
-    trove:
-      enabled: true
     client:
       enable_notifications: true
   deployment:
@@ -141,25 +139,6 @@ proposals:
   deployment:
     elements:
       barbican-controller:
-      - @@controller@@
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - @@compute-kvm@@
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - @@controller@@
-      ceilometer-server:
-      - @@controller@@
-      ceilometer-swift-proxy-middleware:
-      - @@controller@@
-- barclamp: trove
-  attributes:
-  deployment:
-    elements:
-      trove-server:
       - @@controller@@
 - barclamp: magnum
   attributes:

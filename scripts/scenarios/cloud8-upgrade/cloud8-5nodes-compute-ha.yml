@@ -165,27 +165,6 @@ proposals:
     elements:
       barbican-controller:
       - cluster:services
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - @@compute1@@
-      - @@compute2@@
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware:
-      - @@controller1@@
-      - @@controller2@@
-- barclamp: aodh
-  attributes:
-  deployment:
-    elements:
-      aodh-server:
-      - cluster:services
 - barclamp: manila
   attributes:
     default_share_type: default
@@ -207,12 +186,6 @@ proposals:
       manila-share:
       - @@controller1@@
       - @@controller2@@
-- barclamp: trove
-  attributes:
-  deployment:
-    elements:
-      trove-server:
-      - @@controller1@@
 - barclamp: magnum
   attributes:
     cert:

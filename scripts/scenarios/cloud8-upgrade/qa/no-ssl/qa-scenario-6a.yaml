@@ -148,19 +148,6 @@ proposals:
       heat-server:
       - cluster:services
 
-- barclamp: ceilometer
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@kvm2@@"
-      - "@@kvm1@@"
-      - "@@kvm3@@"
-      - "@@kvm4@@"
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-
 - barclamp: magnum
   attributes:
     trustee:

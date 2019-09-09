@@ -204,27 +204,6 @@ proposals:
     elements:
       heat-server:
       - cluster:services
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm1@@"
-      - "@@compute-kvm2@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@controller3@@"
-- barclamp: aodh
-  deployment:
-    elements:
-      aodh-server:
-      - "@@controller1@@"
 - barclamp: barbican
   attributes:
   deployment:

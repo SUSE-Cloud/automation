@@ -144,9 +144,7 @@ proposals:
       - "@@compute-kvm1@@"
       - "@@compute-kvm2@@"
       nova-compute-qemu: []
-      nova-compute-xen:
-      - "@@compute-xen1@@"
-      - "@@compute-xen2@@"
+      nova-compute-xen: []
 
 - barclamp: horizon
   deployment:
