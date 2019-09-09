@@ -69,7 +69,7 @@
             branches:
               - ${{git_socok8s_branch}}
             browser: auto
-            wipe-workspace: false
+            wipe-workspace: true
             submodule:
               recursive: true
       script-path: Jenkinsfile.integration
