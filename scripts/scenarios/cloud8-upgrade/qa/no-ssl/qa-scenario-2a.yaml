@@ -1,0 +1,265 @@
+---
+# 2a - 8 nodes, HA (SBD 3x2), KVM x 1
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@controller1@@":
+            devices:
+            - "@@sbd_device_services@@"
+          "@@controller2@@":
+            devices:
+            - "@@sbd_device_services@@"
+      per_node:
+        nodes:
+          "@@controller1@@":
+            params: ''
+          "@@controller2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      hawk-server:
+      - "@@controller1@@"
+      - "@@controller2@@"
+
+- barclamp: pacemaker
+  name: data
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@data1@@":
+            devices:
+            - "@@sbd_device_data@@"
+          "@@data2@@":
+            devices:
+            - "@@sbd_device_data@@"
+      per_node:
+        nodes:
+          "@@data1@@":
+            params: ''
+          "@@data2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@data1@@"
+      - "@@data2@@"
+      hawk-server:
+      - "@@data1@@"
+      - "@@data2@@"
+
+- barclamp: pacemaker
+  name: network
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          "@@network1@@":
+            devices:
+            - "@@sbd_device_network@@"
+          "@@network2@@":
+            devices:
+            - "@@sbd_device_network@@"
+      per_node:
+        nodes:
+          "@@network1@@":
+            params: ''
+          "@@network2@@":
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@network1@@"
+      - "@@network2@@"
+      hawk-server:
+      - "@@network1@@"
+      - "@@network2@@"
+
+- barclamp: database
+  attributes:
+    sql_engine: postgresql
+    ha:
+      storage:
+        shared:
+          device: ##shared_nfs_for_database##
+          fstype: nfs
+  deployment:
+    elements:
+      database-server:
+      - cluster:data
+
+- barclamp: rabbitmq
+  attributes:
+    client:
+      enable_notifications: true
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:data
+
+- barclamp: keystone
+  attributes:
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+
+- barclamp: swift
+  attributes:
+    replicas: 2
+    keystone_delay_auth_decision: true
+    allow_versions: true
+    middlewares:
+      crossdomain:
+        enabled: true
+      formpost:
+        enabled: true
+      staticweb:
+        enabled: true
+      tempurl:
+        enabled: true
+  deployment:
+    elements:
+      swift-dispersion:
+      - "@@controller1@@"
+      swift-proxy:
+      - cluster:services
+      swift-ring-compute:
+      - "@@controller1@@"
+      swift-storage:
+      - "@@controller2@@"
+      - "@@compute-kvm@@"
+
+- barclamp: glance
+  attributes:
+    default_store: swift
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: nfs
+      backend_name: nfs
+      nfs:
+        nfs_shares: ##cinder-storage-shares##
+        nfs_snapshot: true
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - cluster:services
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - ##networkingplugin##
+    ml2_type_drivers:
+    - ##networkingmode##
+    ml2_type_drivers_default_provider_network: ##networkingmode##
+    ml2_type_drivers_default_tenant_network:  ##networkingmode##
+    use_lbaas: false
+    num_vlans: 99
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:network
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+    metadata:
+      vendordata:
+        json: '{"custom-key": "custom-value"}'
+  deployment:
+    elements:
+      ec2-api:
+      - cluster:services
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - "@@compute-kvm@@"
+      nova-compute-qemu: []
+      nova-compute-xen: []
+
+# Because neutron and nova are deployed on different clusters, we need
+# to commit neutron proposal again after nova to pick up the nova authentication
+- barclamp: neutron
+  attributes:
+    use_lbaas: true
+
+- barclamp: horizon
+  attributes:
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  attributes:
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: ceilometer
+  attributes:
+  deployment:
+    elements:
+      ceilometer-agent:
+      - "@@compute-kvm@@"
+      ceilometer-agent-hyperv: []
+      ceilometer-central:
+      - cluster:services
+      ceilometer-server:
+      - cluster:services
+      ceilometer-swift-proxy-middleware: []
+
+- barclamp: manila
+  attributes:
+    default_share_type: default
+    shares:
+    - backend_driver: netapp
+      backend_name: netapp1
+      netapp:
+        netapp_storage_family: ontap_cluster
+        netapp_server_hostname: ##netapp_server##
+        netapp_server_port: 80
+        netapp_login: admin
+        netapp_password: ##netapp_password##
+        netapp_vserver: ##netapp_vserver##
+        netapp_transport_type: http
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - "@@data1@@"
+      - "@@data2@@"
+
+- barclamp: tempest
+  attributes:
+  deployment:
+    elements:
+      tempest:
+      - "@@controller1@@"
