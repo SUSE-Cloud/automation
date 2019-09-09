@@ -225,7 +225,7 @@ fi
 
 # start with patterns
 $zypper -n install -t pattern cloud_controller cloud_compute cloud_network
-$zypper -n install --force openstack-quickstart openstack-tempest-test
+$zypper -n install openstack-quickstart openstack-tempest-test
 
 # for debugging, use some files if available after installing
 # the openstack-quickstart package
