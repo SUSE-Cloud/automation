@@ -7,3 +7,4 @@
     jobs:
       - '{name}-integration'
       - '{name}-daily-airship-integration'
+      - '{name}-daily-osh-integration'
