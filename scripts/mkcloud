@@ -106,6 +106,7 @@ iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${adminnode_hdd_size:=15}
 [[ "$upgrade_cloudsource" ]] && \
     adminnode_hdd_size=$(max $adminnode_hdd_size 20)
+: ${fix_failed_prechecks:=0}
 : ${controller_hdd_size:=20}
 : ${computenode_hdd_size:=20}
 : ${cephvolume_hdd_size:=21}
@@ -365,6 +366,7 @@ function sshrun
         export bmc_user=$bmc_user;
         export bmc_password=$bmc_password;
         export upgrade_progress_file=$upgrade_progress_file;
+        export fix_failed_prechecks=$fix_failed_prechecks;
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
     export nodenumber nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask

@@ -5552,7 +5552,7 @@ function onadmin_reapply_openstack_proposals
     done
 }
 
-function onadmin_upgrade_prechecks
+function crowbar_run_upgrade_prechecks
 {
     # always show the prechecks output in the build log
     crowbarctl upgrade prechecks
@@ -5560,7 +5560,58 @@ function onadmin_upgrade_prechecks
     if ! crowbarctl upgrade prechecks --format json | rubyjsonparse \
         "exit false if j.any? { |test| test['required'] && test['passed'] == false }"
     then
-        complain 11 "Some necessary check before the upgrade has failed"
+      return 1
+    fi
+
+    return 0
+}
+
+function crowbar_fix_failed_prechecks_8to9
+{
+  # Delete proposals for removed barclamps
+  for proposal in aodh trove ceilometer; do
+    if crowbarctl proposal show $proposal default; then
+      crowbar_${proposal} delete default
+      crowbar_${proposal} proposal delete default
+    fi
+  done
+
+  # Make sure there are no nova-compute-xen role assignments
+  xen_elements=$(proposal_get_value nova default "['deployment']['nova']['elements']['nova-compute-kvm']")
+  if [ -n "$xen_elements" ]; then
+    local pfile=$(get_proposal_filename nova default)
+    proposal_set_value nova default "['deployment']['nova']['elements']['nova-compute-xen']" "[]"
+    crowbar nova proposal --file=${pfile} edit default
+    crowbar_proposal_commit nova
+  fi
+}
+
+function crowbar_fix_failed_prechecks
+{
+  if iscloudver 8; then
+    crowbar_fix_failed_prechecks_8to9
+  else
+    complain 11 "Precheck fixing for upgrades other than Cloud 8 to Cloud 9 is not implemented."
+  fi
+}
+
+
+
+function onadmin_upgrade_prechecks
+{
+    if ! crowbar_run_upgrade_prechecks; then
+        if [[ $fix_failed_prechecks = 1 ]] ; then
+          if iscloudver 8plus; then
+            crowbar_fix_failed_prechecks
+            if ! crowbar_run_upgrade_prechecks; then
+              complain 11 "Some necessary check before the upgrade has failed. A recovery attempt was made but failed as well."
+            fi
+          else
+              complain 11 "Some necessary check before the upgrade has failed. fix_failed_prechecks is enabled but not supported for Cloud versions older than Cloud 8."
+          fi
+        else
+          complain 11 "Some necessary check before the upgrade has failed"
+        fi
     fi
 }
 
