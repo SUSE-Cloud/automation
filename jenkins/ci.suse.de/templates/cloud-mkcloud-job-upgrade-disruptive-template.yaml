@@ -27,6 +27,7 @@
             want_database_sql_engine={database_engine}
             want_monasca_proposal={want_monasca_proposal|0}
             want_aodh_proposal={want_aodh_proposal|1}
+            want_barbican_proposal={want_barbican_proposal|0}
             controller_node_memory={controller_node_memory|7864320}
             label={label}
             job_name=cloud-mkcloud{version}-job-upgrade-disruptive-{arch}

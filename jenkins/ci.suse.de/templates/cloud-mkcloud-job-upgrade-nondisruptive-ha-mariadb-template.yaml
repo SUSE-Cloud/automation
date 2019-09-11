@@ -31,7 +31,7 @@
             want_ping_running_instances=1
             want_clustered_rabbitmq=1
             want_trove_proposal=0
-            want_barbican_proposal=0
+            want_barbican_proposal={want_barbican_proposal|0}
             want_sahara_proposal=0
             want_monasca_proposal={want_monasca_proposal|0}
             want_aodh_proposal={want_aodh_proposal|1}
