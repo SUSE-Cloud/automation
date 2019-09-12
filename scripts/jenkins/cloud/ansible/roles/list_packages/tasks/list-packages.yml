@@ -1,0 +1,47 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Collect list of installed packages in plaintext
+  shell: |
+    rpm -qa | sort
+  args:
+    warn: False
+  delegate_to: "{{ item_virtual_hosts }}"
+  loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
+  loop_control:
+    loop_var: item_virtual_hosts
+  register: result_packages_plain
+
+- name: Save packages from variable into file on ansible host
+  copy:
+   content: "{{ item_virtual_hosts.stdout }}"
+   dest: "{{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts._ansible_item_label }}_{{ suffix }}.txt"
+  delegate_to: localhost
+  loop: "{{ result_packages_plain.results }}"
+  loop_control:
+    loop_var: item_virtual_hosts
+    label: "{{ item_virtual_hosts._ansible_item_label }}"
+
+# TODO: Improvement - have files in yaml - this needs to be reworked
+#- name: Collect list of installed packages in yaml
+#  shell: |
+#    rpm -qa --qf "%{NAME}:\n  version: %{VERSION}\n  release: %{RELEASE}\n  disturl: %{DISTURL}\n" \
+#    | perl -pe 'chomp;$_.=($.%4)?"\n":"\0"' | sort -z -t' ' -k1 | tr '\0' '\n' \
+#    > /tmp/rpms/rpms_{{ inventory_hostname }}_{{ suffix }}.yaml
+#  args:
+#    warn: False
+#    creates: "/tmp/rpms/rpms_{{ inventory_hostname }}_{{ suffix }}.yaml"
