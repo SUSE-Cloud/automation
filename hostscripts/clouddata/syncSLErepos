@@ -320,7 +320,9 @@ if [ $SITE = "nue" ]; then
     for servicepack in 4 3; do
         # repos we need for our test automation (jenkins-swarm-client, github-status, jt_sync, cct)
         for obsrepo in devel:/tools:/building/SLE_12_SP$servicepack ; do
-            rsync_with_create rsync://ftp.gwdg.de/pub/opensuse/repositories/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/
+            for rsyncserver in rsync://stage.opensuse.org/buildservice-repos rsync://ftp.gwdg.de/pub/opensuse/repositories ; do
+                rsync_with_create $rsyncserver/$obsrepo/ /srv/nfs/repos/repositories/$obsrepo/ && break
+            done
         done
     done
 
