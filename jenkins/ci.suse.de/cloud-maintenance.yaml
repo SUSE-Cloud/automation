@@ -17,26 +17,26 @@
           cloudsource: GM8+up
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
-            designate,heat,manila,ceilometer,magnum,freezer,monasca"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
+            designate,heat,manila,ceilometer,magnum,freezer,monasca,lbaas"
       - cloud-ardana8-job-mu-entry-scale-kvm-update-x86_64:
           cloudsource: GM8+up
           update_after_deploy: true
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
-            designate,heat,ceilometer,magnum,freezer,monasca"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
+            designate,heat,ceilometer,magnum,freezer,monasca,lbaas"
       - cloud-ardana9-job-mu-entry-scale-kvm-deploy-x86_64:
           cloudsource: GM9+up
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            designate,heat,manila,magnum,monasca"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            designate,heat,manila,magnum,monasca,lbaas"
       - cloud-ardana9-job-mu-entry-scale-kvm-update-x86_64:
           cloudsource: GM9+up
           update_after_deploy: true
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            designate,heat,magnum,monasca"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            designate,heat,magnum,monasca,lbaas"
     jobs:
         - '{ardana_job}'
 
@@ -73,15 +73,15 @@
           ses_enabled: true
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            heat,magnum,manila"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
       - cloud-crowbar9-job-mu-no-ha-update-x86_64:
           cloudsource: GM9+up
           ses_enabled: true
           update_after_deploy: true
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            heat,magnum,manila"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
     jobs:
         - '{crowbar_job}'
 
@@ -118,14 +118,14 @@
           ses_enabled: true
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            heat,magnum,manila"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
       - cloud-crowbar9-job-mu-ha-update-x86_64:
           cloudsource: GM9+up
           ses_enabled: true
           update_after_deploy: true
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            heat,magnum,manila"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
     jobs:
         - '{crowbar_job}'
