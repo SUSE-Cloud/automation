@@ -47,28 +47,28 @@
           cloudsource: stagingcloud8
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
-            designate,heat,manila,ceilometer,magnum,freezer,monasca"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
+            designate,heat,manila,ceilometer,magnum,freezer,monasca,lbaas"
       - cloud-ardana8-job-gate-entry-scale-kvm-update-x86_64:
           cloudsource: develcloud8
           update_to_cloudsource: stagingcloud8
           update_after_deploy: true
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,lbaas,\
-            designate,heat,ceilometer,magnum,freezer,monasca"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
+            designate,heat,ceilometer,magnum,freezer,monasca,lbaas"
       - cloud-ardana9-job-gate-entry-scale-kvm-deploy-x86_64:
           cloudsource: stagingcloud9
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            designate,heat,manila,magnum,monasca"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            designate,heat,manila,magnum,monasca,lbaas"
       - cloud-ardana9-job-gate-entry-scale-kvm-update-x86_64:
           cloudsource: develcloud9
           update_to_cloudsource: stagingcloud9
           update_after_deploy: true
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            designate,heat,magnum,monasca"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            designate,heat,magnum,monasca,lbaas"
     jobs:
         - '{ardana_job}'
 
@@ -94,7 +94,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
-            fwaas,trove,aodh,lbaas,heat,magnum,manila"
+            fwaas,trove,aodh,heat,magnum,manila,lbaas"
           # Delete when adding to the cloud 8 gating job
           cloud_env: cloud-crowbar-test-slot
           reserve_env: true
@@ -105,8 +105,8 @@
           ses_enabled: true
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            heat,magnum,manila"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
           # Delete when adding to the cloud 9 gating job
           cloud_env: cloud-crowbar-test-slot
           reserve_env: true
@@ -137,7 +137,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
-            fwaas,trove,aodh,lbaas,heat,magnum,manila"
+            fwaas,trove,aodh,heat,magnum,manila,lbaas"
           # Delete when adding to the cloud 8 gating job
           cloud_env: cloud-crowbar-test-slot
           reserve_env: true
@@ -148,8 +148,8 @@
           ses_enabled: true
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            heat,magnum,manila"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
           # Delete when adding to the cloud 9 gating job
           cloud_env: cloud-crowbar-test-slot
           reserve_env: true
@@ -182,7 +182,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
-            fwaas,trove,aodh,lbaas,heat,magnum,manila"
+            fwaas,trove,aodh,heat,magnum,manila,lbaas"
           # Delete when adding to the cloud 8 gating job
           cloud_env: cloud-crowbar-test-slot
           reserve_env: true
@@ -193,8 +193,8 @@
           ses_enabled: true
           update_after_deploy: false
           tempest_filter_list: "\
-            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-            heat,magnum,manila"
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
           # Delete when adding to the cloud 9 gating job
           cloud_env: cloud-crowbar-test-slot
           reserve_env: true

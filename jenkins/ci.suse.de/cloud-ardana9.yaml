@@ -93,47 +93,6 @@
         - '{ardana_job}'
 
 - project:
-    name: cloud-ardana9-job-entry-scale-kvm-x86_64
-    ardana_job: '{name}'
-    cloud_env: cloud-ardana-ci-slot
-    cloudsource: stagingcloud9
-    scenario_name: entry-scale-kvm
-    clm_model: standalone
-    controllers: '3'
-    computes: '2'
-    rhel_computes: '0'
-    ses_enabled: true
-    ses_rgw_enabled: false
-    tempest_filter_list: "\
-      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-      designate,heat,manila,magnum,monasca"
-    triggers: []
-    jobs:
-        - '{ardana_job}'
-
-
-- project:
-    name: cloud-ardana9-job-entry-scale-kvm-update-x86_64
-    ardana_job: '{name}'
-    cloud_env: cloud-ardana-ci-slot
-    cloudsource: develcloud9
-    update_after_deploy: true
-    update_to_cloudsource: stagingcloud9
-    scenario_name: entry-scale-kvm
-    clm_model: standalone
-    controllers: '3'
-    computes: '2'
-    rhel_computes: '0'
-    ses_enabled: true
-    ses_rgw_enabled: false
-    tempest_filter_list: "\
-      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,lbaas,\
-      designate,heat,magnum,monasca"
-    triggers: []
-    jobs:
-        - '{ardana_job}'
-
-- project:
     name: cloud-ardana9-job-std-min-ipv6-x86_64
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
