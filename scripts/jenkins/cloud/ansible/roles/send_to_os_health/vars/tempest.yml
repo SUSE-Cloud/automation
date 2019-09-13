@@ -26,3 +26,4 @@ os_health_metadata:
   - "build_name:{{ os_health_build_name }}"
   - "openstack_service:{{ tempest_run_filter }}"
   - "build_version:{{ os_health_cloud_build }}"
+  - "job:{{ lookup('env', 'JOB_NAME') }}"
