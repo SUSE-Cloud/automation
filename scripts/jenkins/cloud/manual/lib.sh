@@ -261,9 +261,14 @@ function update_cloud {
 
 function run_tempest {
     if $(is_defined tempest_filter_list); then
+        if [ "$(get_cloud_product)" == "crowbar" ]; then
+            playbook_name=run-tempest-crowbar
+        else
+            playbook_name=run-tempest-ardana
+        fi
         tempest_filter_list=($(echo "$(get_from_input tempest_filter_list)" | tr ',' '\n'))
         for filter in "${tempest_filter_list[@]}"; do
-            ansible_playbook run-tempest.yml -e tempest_run_filter=$filter
+            ansible_playbook ${playbook_name}.yml -e tempest_run_filter=$filter
         done
     fi
 }
