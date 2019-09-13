@@ -248,13 +248,19 @@ pipeline {
           // This step does the following on the non-admin nodes:
           //  - runs tempest and other tests on the deployed cloud
           cloud_lib.ansible_playbook('run-crowbar-tests')
-          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-          junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+        }
+      }
+      post {
+        always {
+          script {
+            archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+            junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+          }
         }
       }
     }
 
-    stage ('Prepare tempest tests') {
+    stage('Prepare tempest tests') {
       when {
         expression { tempest_filter_list != '' }
       }
@@ -270,7 +276,7 @@ pipeline {
 
   post {
     always {
-      script{
+      script {
         sh('''
           source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
           run_python_script automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
@@ -282,7 +288,7 @@ pipeline {
         ''')
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
       }
-      script{
+      script {
         if (env.DEPLOYER_IP != null) {
           if (cloud_type == "virtual") {
             if (cleanup == "always" ||

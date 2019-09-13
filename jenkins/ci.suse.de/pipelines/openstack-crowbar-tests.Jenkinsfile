@@ -59,8 +59,14 @@ pipeline {
           // This step does the following on the non-admin nodes:
           //  - runs tempest (smoke) and other tests on the deployed cloud
           cloud_lib.ansible_playbook('run-crowbar-tests')
-          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-          junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+        }
+      }
+      post {
+        always {
+          script {
+            archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+            junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+          }
         }
       }
     }
