@@ -26,5 +26,6 @@ os_health_cloud_build: "{{ cloud_media_build_version['stdout'] | default('Not-av
 os_service_name: "{{ test_name.split('_')[0] }}"
 os_health_requires_state: "present"
 os_health_requires:
+  - "python-virtualenv"
   - "gcc"
   - "python-devel"

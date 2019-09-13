@@ -22,8 +22,9 @@
     repo: "http://{{ clouddata_server }}/repos/x86_64/{{ item.name }}/"
     runrefresh: yes
     priority: 9999
+    auto_import_keys: yes
     state: "{{ os_health_requires_state }}"
-  loop: "{{ sles_sdk_repos }}"
+  loop: "{{ sles_sdk_repos + (extra_requires_repo | default([])) }}"
   when: item.enabled | default(true)
   become: yes
 

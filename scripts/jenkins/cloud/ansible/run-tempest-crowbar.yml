@@ -65,6 +65,13 @@
               - src: "{{ subunit_html_results }}"
           when: lookup("env", "WORKSPACE")
 
+        - include_role:
+            name: send_to_os_health
+          vars:
+            extra_requires_repo:
+              - name: "leap/42.3/oss/suse"
+            test_results_subunit: "{{ tempest_results_subunit }}"
+
   post_tasks:
       - include_role:
           name: rocketchat_notify
