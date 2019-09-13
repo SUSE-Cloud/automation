@@ -91,9 +91,8 @@
       - choice:
           name: deployment
           choices:
-            - 'airship'
             - 'osh'
-          default: 'osh'
+            - 'airship'
           description: >-
             Which deployment mechanism?
       - choice:
