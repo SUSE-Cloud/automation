@@ -99,46 +99,6 @@
         - '{ardana_job}'
 
 - project:
-    name: cloud-ardana8-job-entry-scale-kvm-x86_64
-    ardana_job: '{name}'
-    cloud_env: cloud-ardana-ci-slot
-    cloudsource: stagingcloud8
-    scenario_name: entry-scale-kvm
-    clm_model: standalone
-    controllers: '3'
-    computes: '2'
-    rhel_computes: '0'
-    ses_enabled: true
-    ses_rgw_enabled: false
-    tempest_filter_list: "\
-      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
-      designate,heat,manila,ceilometer,magnum,freezer,monasca"
-    triggers: []
-    jobs:
-        - '{ardana_job}'
-
-- project:
-    name: cloud-ardana8-job-entry-scale-kvm-update-x86_64
-    ardana_job: '{name}'
-    cloud_env: cloud-ardana-ci-slot
-    cloudsource: develcloud8
-    update_after_deploy: true
-    update_to_cloudsource: stagingcloud8
-    scenario_name: entry-scale-kvm
-    clm_model: standalone
-    controllers: '3'
-    computes: '2'
-    rhel_computes: '0'
-    ses_enabled: true
-    ses_rgw_enabled: false
-    tempest_filter_list: "\
-      keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
-      designate,heat,ceilometer,magnum,freezer,monasca"
-    triggers: []
-    jobs:
-        - '{ardana_job}'
-
-- project:
     name: cloud-ardana8-job-entry-scale-kvm-test-maintenance-updates-x86_64
     ardana_job: '{name}'
     disabled: false
