@@ -74,5 +74,3 @@
     state: present
   when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
   loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
-  notify:
-    - Refresh all repos

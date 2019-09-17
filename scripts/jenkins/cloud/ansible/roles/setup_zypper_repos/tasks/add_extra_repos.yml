@@ -27,8 +27,6 @@
   until: rpm_download_status is succeeded
   retries: 5
   delay: 5
-  notify:
-    - Refresh all repos
 
 - name: Ensure createrepo tool installed
   zypper:
@@ -48,5 +46,3 @@
     repo: "{{ local_repos_base_dir }}/extra-repos"
     disable_gpg_check: true
     state: present
-  notify:
-    - Refresh all repos

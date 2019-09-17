@@ -66,5 +66,3 @@
     repo: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
     state: present
   loop: "{{ repos_to_add }}"
-  notify:
-    - Refresh all repos
