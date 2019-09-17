@@ -6014,7 +6014,7 @@ function onadmin_batch
     sed -i "s/##ironic_net_prefix##/$net_ironic/g" ${scenario}
     sed -i "s/##ironic_netmask##/$ironicnetmask/g" ${scenario}
 
-    local exclude="--exclude manila"
+    local exclude="--exclude manila --exclude tempest"
 
     if [[ -z $deployswift ]]; then
         echo "Excluding any swift proposal from batch run"
@@ -6040,6 +6040,9 @@ function onadmin_batch
     if grep -q "barclamp: magnum" ${scenario}; then
         get_novacontroller
         safely oncontroller magnum_service_setup
+    fi
+    if grep -q "barclamp: tempest" ${scenario}; then
+        safely crowbar batch --include tempest --timeout 3600 build ${scenario}
     fi
     return $?
 }
