@@ -98,11 +98,13 @@
       - choice:
           name: tempest_test_type
           choices:
+            # osh deployment runs its own tempest
+            - 'none'
             - 'all'
             - 'smoke'
           default: 'all'
           description: >-
-            Run all or smoke tempest tests?
+            Run all, smoke tempest tests or none of them?
 
       - string:
           name: git_socok8s_repo
