@@ -92,6 +92,7 @@ function libvirt_prepare()
         $sudo ${scripts_lib_dir}/libvirt/net-start /tmp/$cloud-ironic.net.xml || exit $?
     fi
     libvirt_net_start
+    $sudo sysctl -e net.ipv6.conf.$cloudbr.disable_ipv6=0
 }
 
 function libvirt_do_setupadmin()
