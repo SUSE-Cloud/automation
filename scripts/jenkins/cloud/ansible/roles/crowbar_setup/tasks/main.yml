@@ -1,5 +1,27 @@
 ---
 
+- name: Add override env vars to mkcloud.config
+  blockinfile:
+    path: "{{ admin_mkcloud_config_file }}"
+    marker: "# {mark} {{ override_vars_reason|default('') }} environment variable overrides "
+    block: |
+      {% for var_name, var_value in override_vars.items() %}
+      {%   if var_name == 'cloudsource' %}
+      {%     if var_value.startswith("stagingcloud") %}
+      export cloudsource=develcloud{{ var_value[-1] }}
+      export TESTHEAD=1
+      {%     else %}
+      export cloudsource={{ var_value }}
+      export TESTHEAD=
+      {%     endif %}
+      {%   else %}
+      export {{ var_name }}={{ var_value }}
+      {%   endif %}
+      {% endfor %}
+  delegate_to: "{{ cloud_env }}"
+  run_once: true
+  when: override_vars is defined
+
 - name: Run 'qa_crowbarsetup.sh {{ qa_crowbarsetup_cmd }}' on the admin node
   shell: |-
     . {{ admin_scripts_path }}/qa_crowbarsetup.sh
@@ -11,4 +33,3 @@
   delegate_to: "{{ cloud_env }}"
   register: _qa_crowbarsetup_result
   run_once: true
-

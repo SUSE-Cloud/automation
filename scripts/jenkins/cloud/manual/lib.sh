@@ -259,6 +259,14 @@ function update_cloud {
     fi
 }
 
+function upgrade_cloud {
+    if $(get_from_input deploy_cloud) && [[ -n $(get_from_input upgrade_cloudsource) ]]; then
+        if [ "$(get_cloud_product)" == "crowbar" ]; then
+            ansible_playbook crowbar-upgrade.yml
+        fi
+    fi
+}
+
 function run_tempest {
     if $(is_defined tempest_filter_list); then
         if [ "$(get_cloud_product)" == "crowbar" ]; then

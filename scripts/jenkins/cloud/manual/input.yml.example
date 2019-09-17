@@ -63,6 +63,11 @@ update_after_deploy: false
 # This opention takes the same values as cloudsource.
 update_to_cloudsource: ''
 
+# Only valid if update_after_deploy is true. The cloud repository to be used for
+# upgrade (Crowbar only).
+# This option takes the same values as cloudsource.
+upgrade_cloudsource: ''
+
 # List of maintenance update IDs separated by comma (eg. 7396,7487)
 maint_updates: ''
 

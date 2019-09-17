@@ -34,4 +34,5 @@ install_crowbar
 register_crowbar_nodes
 deploy_cloud
 update_cloud
+upgrade_cloud
 run_crowbar_tests
