@@ -98,6 +98,10 @@ export want_sbd=1
 export want_all_ssl=1
 {% endif %}
 
+{% if 'designate' in deployments %}
+export want_designate_proposal=1
+{% endif %}
+
 # export ironicnetmask=
 
 # Use this to override the crowbar node list order in qa_crowbarsetup.sh
