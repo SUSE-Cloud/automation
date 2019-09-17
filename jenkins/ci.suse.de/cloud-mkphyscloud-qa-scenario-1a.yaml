@@ -71,22 +71,15 @@
             - vlan
             - gre
 
-      - choice:
+      - string:
           name: tempest
           default: smoke
           description: Optional, specify what tempest test(s) to run, e.g. smoke, smoke|full or smoke|defcore
-          choices:
-            - smoke
-            - full
 
-      - choice:
+      - string:
           name: ssl_type
           default: no-ssl
           description: "Mandatory, set the SSL configuration for the cloud, available options: no-ssl, ssl-insecure, ssl"
-          choices:
-            - no-ssl
-            - ssl-insecure
-            - ssl
 
       - string:
           name: cloud_version
@@ -131,11 +124,10 @@
           name: want_ipmi
           default: "1"
 
-      - choice:
+      - string:
           name: commands
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
           description: All the steps that needs to be completed to have cloud installed:When deploying with SSL add "install_ca_certificates" before "batch" command
-          choices:
             - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
             - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases install_ca_certificates batch
 
@@ -207,14 +199,14 @@
               root@$admin:scenario.yml
           ret=0
 
-          #Copy CA files
+          #copy CA files
           if [[ $ssl_type = "ssl" ]]; then
              ssh root@crowbar$hw_number "mkdir ssl-certs"
              scp -r /home/jenkins/ssl-certs/qa$hw_number root@crowbar$hw_number:/root/ssl-certs/
           fi
 
           ssh root@$admin "
-          # Update certificate file paths
+          # update certificate file paths
           if [[ $ssl_type = "ssl" ]]; then
              sed -i -e "s,##certfile##,/etc/cloud/ssl/qa$hw_number/qa$hw_number.cloud.suse.de.crt," scenario.yml
              sed -i -e "s,##keyfile##,/etc/cloud/ssl/qa$hw_number/qa$hw_number.cloud.suse.de.pem," scenario.yml

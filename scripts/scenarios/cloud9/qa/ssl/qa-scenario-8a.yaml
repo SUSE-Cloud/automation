@@ -38,6 +38,13 @@ proposals:
       - "@@controller3@@"
 
 - barclamp: database
+  attributes:
+    mysql:
+      ssl:
+        enabled: true
+        certfile: ##certfile##
+        keyfile: ##keyfile##
+        ca_certs: ##cafile##
   deployment:
     elements:
       database-server:
@@ -45,6 +52,11 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
+    ssl:
+      enabled: true
+      certfile: ##certfile##
+      keyfile: ##keyfile##
+      client_ca_certs: ##cafile##
     client:
       enable_notifications: true
   deployment:
@@ -54,6 +66,12 @@ proposals:
 
 - barclamp: keystone
   attributes:
+    ssl:
+      certfile: ##certfile##
+      keyfile: ##keyfile##
+      ca_certs: ##cafile##
+    api:
+     protocol: https
   deployment:
     elements:
       keystone-server:
@@ -62,6 +80,9 @@ proposals:
 - barclamp: swift
   attributes:
     replicas: 2
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
     cluster_hash: 181d283256
     keystone_delay_auth_decision: true
     allow_versions: true
@@ -87,6 +108,10 @@ proposals:
 
 - barclamp: glance
   attributes:
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
     default_store: swift
   deployment:
     elements:
@@ -101,6 +126,12 @@ proposals:
       nfs:
         nfs_shares: ##cinder-storage-shares##
         nfs_snapshot: true
+    api:
+      protocol: https
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
   deployment:
     elements:
       cinder-controller:
@@ -117,6 +148,12 @@ proposals:
     num_vlans: 99
     ml2_type_drivers_default_provider_network: ##networkingmode##
     ml2_type_drivers_default_tenant_network: ##networkingmode##
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
+    api:
+      protocol: https
   deployment:
     elements:
       neutron-server:
@@ -131,6 +168,14 @@ proposals:
     vnc_keymap: de
     kvm:
       ksm_enabled: true
+    ssl:
+      enabled: true
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
+    novnc:
+      ssl:
+        enabled: true
     metadata:
       vendordata:
         json: '{"custom-key": "custom-value"}'
@@ -149,13 +194,24 @@ proposals:
 
 - barclamp: horizon
   attributes:
-  deployment:
+    apache:
+      ssl: true
+      ssl_crt_file: ##certfile##
+      ssl_key_file: ##keyfile##
+      ssl_crt_chain_file: ##cafile##
+  deployment:      
     elements:
       horizon-server:
       - cluster:services
 
 - barclamp: heat
   attributes:
+    api:
+      protocol: https
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
   deployment:
     elements:
       heat-server:
@@ -163,6 +219,12 @@ proposals:
 
 - barclamp: ceilometer
   attributes:
+    api:
+      protocol: https
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
   deployment:
     elements:
       ceilometer-agent:
@@ -181,6 +243,12 @@ proposals:
 
 - barclamp: monasca
   attributes:
+    api:
+      protocol: https
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
   deployment:
     elements:
       monasca-master:

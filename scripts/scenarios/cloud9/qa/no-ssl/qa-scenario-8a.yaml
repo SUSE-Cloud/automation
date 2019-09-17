@@ -38,13 +38,6 @@ proposals:
       - "@@controller3@@"
 
 - barclamp: database
-  attributes:
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_database##
-          fstype: nfs
-          options: nfsvers=3
   deployment:
     elements:
       database-server:
@@ -52,12 +45,6 @@ proposals:
 
 - barclamp: rabbitmq
   attributes:
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_rabbitmq##
-          fstype: nfs
-          options: nfsvers=3
     client:
       enable_notifications: true
   deployment:
@@ -95,8 +82,8 @@ proposals:
       swift-ring-compute:
       - "@@controller1@@"
       swift-storage:
-      - "@@storage-swift1@@"
-      - "@@storage-swift2@@"
+      - "@@storage-swift@@"
+      - "@@compute-kvm1@@"
 
 - barclamp: glance
   attributes:
@@ -141,6 +128,7 @@ proposals:
   attributes:
     itxt_instance: ''
     use_migration: true
+    vnc_keymap: de
     kvm:
       ksm_enabled: true
     metadata:
@@ -154,7 +142,8 @@ proposals:
       - cluster:services
       nova-compute-hyperv: []
       nova-compute-kvm:
-      - "@@compute-kvm@@"
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
       nova-compute-qemu: []
       nova-compute-xen: []
 
@@ -172,42 +161,48 @@ proposals:
       heat-server:
       - cluster:services
 
-- barclamp: monasca
-  attributes:
-  deployment:
-    elements:
-      monasca-server:
-      - "@@monasca-server@@"
-      monasca-log-agent:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@controller3@@"
-      - "@@compute-kvm@@"
-      - "@@storage-swift1@@"
-      - "@@storage-swift2@@"
-      - "@@monasca-server@@"
-      monasca-agent:
-      - "@@controller1@@"
-      - "@@controller2@@"
-      - "@@controller3@@"
-      - "@@compute-kvm@@"
-      - "@@storage-swift1@@"
-      - "@@storage-swift2@@"
-      - "@@monasca-server@@"
-
 - barclamp: ceilometer
   attributes:
   deployment:
     elements:
       ceilometer-agent:
-      - "@@compute-kvm@@"
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
       - "@@monasca-server@@"
       ceilometer-agent-hyperv: []
       ceilometer-central:
       - cluster:services
       ceilometer-server:
       - cluster:services
-      ceilometer-swift-proxy-middleware: []
+      ceilometer-swift-proxy-middleware:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+
+- barclamp: monasca
+  attributes:
+  deployment:
+    elements:
+      monasca-master:
+      - "@@crowbar@@"
+      monasca-server:
+      - "@@monasca-server@@"
+      monasca-log-agent:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+      - "@@storage-swift@@"
+      - "@@monasca-server@@"
+      monasca-agent:
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      - "@@compute-kvm1@@"
+      - "@@compute-kvm2@@"
+      - "@@storage-swift@@"
+      - "@@monasca-server@@"
 
 - barclamp: tempest
   attributes:

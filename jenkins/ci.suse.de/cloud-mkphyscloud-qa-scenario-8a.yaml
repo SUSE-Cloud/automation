@@ -125,8 +125,10 @@
 
       - string:
           name: commands
-          default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
-          description: All the steps that needs to be completed to have cloud installed
+          default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
+          description: All the steps that needs to be completed to have cloud installed:When deploying with SSL add "install_ca_certificates" before "batch" command
+            - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
+            - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases install_ca_certificates batch
 
       - string:
           name: want_test_updates
@@ -181,9 +183,21 @@
           scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
               root@$admin:scenario.yml
 
+          #copy CA files
+          if [[ $ssl_type = "ssl" ]]; then
+             ssh root@crowbar$hw_number "mkdir ssl-certs"
+             scp -r /home/jenkins/ssl-certs/qa$hw_number root@crowbar$hw_number:/root/ssl-certs/
+          fi
+
           ret=0
 
           ssh root@$admin "
+          # update certificate file paths
+          if [[ $ssl_type = "ssl" ]]; then
+             sed -i -e "s,##certfile##,/etc/cloud/ssl/qa$hw_number/qa$hw_number.cloud.suse.de.crt," scenario.yml
+             sed -i -e "s,##keyfile##,/etc/cloud/ssl/qa$hw_number/qa$hw_number.cloud.suse.de.pem," scenario.yml
+             sed -i -e "s,##cafile##,/etc/cloud/ssl/qa$hw_number/SUSE_CA_suse.de.chain.crt," scenario.yml
+          fi
           export cloud=$cloud ;
           export hw_number=$hw_number ;
           export UPDATEREPOS=$UPDATEREPOS ;
@@ -194,7 +208,7 @@
           export hacloud=$hacloud ;
           export clusterconfig=$clusterconfig ;
           export shared_storage_ip=$shared_storage_ip
-          export want_node_aliases=controller=3,compute-kvm=1,storage-swift=2,monasca-server=1 ;
+          export want_node_aliases=controller=3,compute-kvm=2,storage-swift=1,monasca-server=1 ;
           export networkingplugin=$networkingplugin ;
           export networkingmode=$networkingmode ;
           export want_swift=1 ;

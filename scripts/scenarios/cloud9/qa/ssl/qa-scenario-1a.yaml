@@ -38,6 +38,12 @@ proposals:
       - "@@controller3@@"
 - barclamp: database
   attributes:
+    mysql:
+      ssl:
+        enabled: true
+        certfile: ##certfile##
+        keyfile: ##keyfile##
+        ca_certs: ##cafile##    
   deployment:
     elements:
       database-server:
