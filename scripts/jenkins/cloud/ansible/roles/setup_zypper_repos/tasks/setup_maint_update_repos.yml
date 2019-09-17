@@ -28,15 +28,19 @@
 
 - name: Set cloud MU repo path based on product - Crowbar
   set_fact:
-    cloud_repo_path: "{{ (sles_cloud_version[ansible_distribution_version] == 7)| ternary ('OpenStack-Cloud', 'OpenStack-Cloud-Crowbar') }}"
+    cloud_repo_path: "{{ (sles_cloud_version[ansible_distribution_version] == 7) | ternary('OpenStack-Cloud', 'OpenStack-Cloud-Crowbar') }}"
   when: cloud_product == 'crowbar'
 
 - name: Check MU URL
   uri:
     url: "http://{{ maintenance_updates_server }}/ibs/SUSE:/Maintenance:/{{ item }}/"
     return_content: yes
+    timeout: 60
   loop: "{{ maint_updates_list }}"
   register: mu_url
+  retries: 6
+  delay: 5
+  until: mu_url is succeeded
 
 - name: Ensure MU directories exists
   file:
