@@ -4850,12 +4850,7 @@ function onadmin_testsetup
     get_horizon
     echo "openstack horizon server:  $horizonserver"
     echo "openstack horizon service: $horizonservice"
-    # Remove when SOC-10011 is fixed
-    retry=0
-    if iscloudver 9plus; then
-        retry=3
-    fi
-    curl -L -m 130 -s -S -k --retry $retry http://$horizonservice | tee simple_horizon.log | \
+    curl -L -m 130 -s -S -k http://$horizonservice | tee simple_horizon.log | \
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
         || complain 101 "simple horizon test failed"
 
