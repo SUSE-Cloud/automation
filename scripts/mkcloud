@@ -53,7 +53,7 @@ for script in $common_scripts; do
     source ${scripts_lib_dir}/$script
 done
 mkcconf=mkcloud.config
-rm -f $mkcconf # we dont want to source old info in the line below
+rm -f $mkcconf # we dont want to source old info
 
 : ${virtualcloud:=virtual}
 if (( $want_ipv6 > 0 )); then
@@ -292,78 +292,78 @@ function error_exit
 function sshrun
 {
     cat > $mkcconf <<EOF
-export drbdnode_mac_vol=$drbdnode_mac_vol ;
-export cloud=$virtualcloud ;
+export drbdnode_mac_vol=$drbdnode_mac_vol
+export cloud=$virtualcloud
 # hostnames of repo, nfs, rsync and smt servers
 # (*_ip and *_fqdn suffix variables are computed automatically)
-export reposerver=$reposerver ;
-export reposerver_ip=$reposerver_ip ;
-export reposerver_fqdn=$reposerver_fqdn ;
-export reposerver_base_path=$reposerver_base_path ;
-export reposerver_url=$reposerver_url ;
-export imageserver_url=$imageserver_url ;
-export nfsserver=$nfsserver ;
-export nfsserver_ip=$nfsserver_ip ;
-export nfsserver_fqdn=$nfsserver_fqdn ;
-export nfsserver_base_path=$nfsserver_base_path ;
-export rsyncserver=$rsyncserver ;
-export rsyncserver_ip=$rsyncserver_ip ;
-export rsyncserver_fqdn=$rsyncserver_fqdn ;
-export rsyncserver_images_dir=$rsyncserver_images_dir ;
-export susedownload=$susedownload ;
-export cloudfqdn=$cloudfqdn ;
-export cloudsource=$cloudsource ;
-export mkclouddriver=$mkclouddriver ;
-export adminip=$adminip ;
-export hacloud=$hacloud ;
-export libvirt_type=$libvirt_type ;
-export firmware_type=$firmware_type ;
-export networkingplugin=$networkingplugin ;
-export networkingmode=$networkingmode ;
-export nosetestparameters=${nosetestparameters} ;
-export tempestoptions='${tempestoptions}' ;
-export cephvolumenumber=$cephvolumenumber ;
-export controller_raid_volumes=$controller_raid_volumes ;
-export drbd_database_size=$drbd_database_size ;
-export drbd_rabbitmq_size=$drbd_rabbitmq_size ;
-export shell=$shell ;
-export keep_existing_hostname=$keep_existing_hostname ;
-export http_proxy=$http_proxy ;
-export https_proxy=$https_proxy ;
-export no_proxy=$no_proxy ;
-export cct_tests=$cct_tests ;
-export scenario=$scenario ;
-export host_mtu=$host_mtu ;
-export architectures='$architectures';
+export reposerver=$reposerver
+export reposerver_ip=$reposerver_ip
+export reposerver_fqdn=$reposerver_fqdn
+export reposerver_base_path=$reposerver_base_path
+export reposerver_url=$reposerver_url
+export imageserver_url=$imageserver_url
+export nfsserver=$nfsserver
+export nfsserver_ip=$nfsserver_ip
+export nfsserver_fqdn=$nfsserver_fqdn
+export nfsserver_base_path=$nfsserver_base_path
+export rsyncserver=$rsyncserver
+export rsyncserver_ip=$rsyncserver_ip
+export rsyncserver_fqdn=$rsyncserver_fqdn
+export rsyncserver_images_dir=$rsyncserver_images_dir
+export susedownload=$susedownload
+export cloudfqdn=$cloudfqdn
+export cloudsource=$cloudsource
+export mkclouddriver=$mkclouddriver
+export adminip=$adminip
+export hacloud=$hacloud
+export libvirt_type=$libvirt_type
+export firmware_type=$firmware_type
+export networkingplugin=$networkingplugin
+export networkingmode=$networkingmode
+export nosetestparameters=${nosetestparameters}
+export tempestoptions='${tempestoptions}'
+export cephvolumenumber=$cephvolumenumber
+export controller_raid_volumes=$controller_raid_volumes
+export drbd_database_size=$drbd_database_size
+export drbd_rabbitmq_size=$drbd_rabbitmq_size
+export shell=$shell
+export keep_existing_hostname=$keep_existing_hostname
+export http_proxy=$http_proxy
+export https_proxy=$https_proxy
+export no_proxy=$no_proxy
+export cct_tests=$cct_tests
+export scenario=$scenario
+export host_mtu=$host_mtu
+export architectures='$architectures'
 
-export crowbar_networkingmode=$crowbar_networkingmode;
+export crowbar_networkingmode=$crowbar_networkingmode
 
-export nova_shared_instance_storage=$nova_shared_instance_storage ;
+export nova_shared_instance_storage=$nova_shared_instance_storage
 
-export localreposdir_target=$localreposdir_target ;
+export localreposdir_target=$localreposdir_target
 
-export cinder_backend=$cinder_backend;
-export cinder_netapp_storage_protocol=$cinder_netapp_storage_protocol;
-export cinder_netapp_login=$cinder_netapp_login;
-export cinder_netapp_password=$cinder_netapp_password;
+export cinder_backend=$cinder_backend
+export cinder_netapp_storage_protocol=$cinder_netapp_storage_protocol
+export cinder_netapp_login=$cinder_netapp_login
+export cinder_netapp_password=$cinder_netapp_password
 
-export UPDATEREPOS=$UPDATEREPOS ;
-export UPDATEREPOS_UPGRADE=$UPDATEREPOS_UPGRADE ;
-export UPDATEREPOS_EXTRA=$UPDATEREPOS_EXTRA ;
-export TESTHEAD=$TESTHEAD ;
-export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN ;
+export UPDATEREPOS=$UPDATEREPOS
+export UPDATEREPOS_UPGRADE=$UPDATEREPOS_UPGRADE
+export UPDATEREPOS_EXTRA=$UPDATEREPOS_EXTRA
+export TESTHEAD=$TESTHEAD
+export NOINSTALLCLOUDPATTERN=$NOINSTALLCLOUDPATTERN
 
-export clouddescription='$clouddescription';
-export JENKINS_BUILD_URL=$BUILD_URL;
-export JENKINS_NODE_NAME=$NODE_NAME;
-export JENKINS_EXECUTOR_NUMBER=$EXECUTOR_NUMBER;
-export JENKINS_WORKSPACE=$WORKSPACE;
-export test_internet_url=$test_internet_url;
-export extraipmipw=$extraipmipw;
-export ipmi_ip_addrs=$ipmi_ip_addrs;
-export bmc_user=$bmc_user;
-export bmc_password=$bmc_password;
-export upgrade_progress_file=$upgrade_progress_file;
+export clouddescription='$clouddescription'
+export JENKINS_BUILD_URL=$BUILD_URL
+export JENKINS_NODE_NAME=$NODE_NAME
+export JENKINS_EXECUTOR_NUMBER=$EXECUTOR_NUMBER
+export JENKINS_WORKSPACE=$WORKSPACE
+export test_internet_url=$test_internet_url
+export extraipmipw=$extraipmipw
+export ipmi_ip_addrs=$ipmi_ip_addrs
+export bmc_user=$bmc_user
+export bmc_password=$bmc_password
+export upgrade_progress_file=$upgrade_progress_file
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
     export nodenumber nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask
