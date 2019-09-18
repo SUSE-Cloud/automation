@@ -367,7 +367,9 @@ export upgrade_progress_file=$upgrade_progress_file
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
     export nodenumber nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask
-    env|grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig -e ^ironicnetmask | sort >> $mkcconf
+    for v in $(env | grep -e ^debug_ -e ^pre_ -e ^vlan_ -e ^want_ -e ^net_ -e ^nodenumber -e ^clusterconfig -e ^ironicnetmask | sort); do
+        echo "export ${v}" >> $mkcconf
+    done
 
     cp -a $mkcconf $artifacts_dir/
     $scp -r $SCRIPTS_DIR $mkcconf root@$(wrap_ip $adminip):
