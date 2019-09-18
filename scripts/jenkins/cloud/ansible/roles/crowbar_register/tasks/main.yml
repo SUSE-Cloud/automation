@@ -56,12 +56,3 @@
   retries: "{{ 6 * ( groups['cloud_virt_hosts'] | length ) }}"
   until: _register_tmp.rc == 0 and crowbar_node_name in _register_tmp.stdout_lines
   delay: 10
-
-- name: Check that node is ready
-  delegate_to: "{{ cloud_env }}"
-  shell: "knife node show -a state {{ crowbar_node_name }} | awk '{ print $2 }'"
-  register: _register_tmp
-  # The more nodes we have, the longer this will take
-  retries: "{{ 6 * ( groups['cloud_virt_hosts'] | length ) }}"
-  until: _register_tmp.rc == 0 and _register_tmp.stdout == 'ready'
-  delay: 10
