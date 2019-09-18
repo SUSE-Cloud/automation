@@ -304,7 +304,7 @@ function setcloudnetvars
         p2)
             net=$netp.171
             net_public=$netp.164
-            net_fixed=44.0.0
+            net_fixed=44.12.0
             vlan_storage=563
             vlan_sdn=$vlan_storage
             vlan_public=564
