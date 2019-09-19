@@ -4,7 +4,7 @@
 tmpiso=/srv/nfs/repos/.tmp.iso
 if [[ $UID == 0 ]] ; then
     grep -q /mnt/cloud /etc/fstab ||
-        echo "$tmpiso /mnt/cloud iso9660 loop,ro,user" >> /etc/fstab
+        echo "$tmpiso /mnt/cloud iso9660 loop,ro,user,noauto,nofail" >> /etc/fstab
 
     grep -q ^jenkins: /etc/passwd &&
         exec sudo -u jenkins "$0" "$@"
