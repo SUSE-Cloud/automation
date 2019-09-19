@@ -444,14 +444,18 @@ function libvirt_do_setuplonelynodes()
 {
     local i
     for i in $(nodes ids lonely) ; do
-        local mac=$(macfunc $i)
+        local macaddress=$(macfunc $i)
+        local mac_params=""
+        for nicnumber in $(seq 1 $nics) ; do
+            mac_params+=" --macaddress $(macfunc $i $nicnumber)";
+        done
         local lonely_node
         lonely_node=$cloud-node$i
         safely ${scripts_lib_dir}/libvirt/compute-config $cloud $i \
-               --macaddress $mac \
+               $mac_params \
                --cephvolumenumber "$cephvolumenumber" \
                --drbdserial "$drbdvolume" \
-               --computenodememory $compute_node_memory\
+               --computenodememory $lonelynode_memory\
                --controllernodememory $controller_node_memory \
                --libvirttype $libvirt_type \
                --vcpus $vcpus \

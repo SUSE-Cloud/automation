@@ -98,6 +98,7 @@ needcvol=1
 iscloudver 7plus && : ${controller_node_memory:=12582912}
 : ${controller_node_memory:=6291456}
 : ${compute_node_memory:=2621440}
+: ${lonelynode_memory:=2621440}
 [[ "$libvirt_type" = "hyperv" ]] && \
     compute_node_memory=$(max $compute_node_memory ${hyperv_node_memory:-3000000})
 [[ "$libvirt_type" = "xen" ]] && \
@@ -1348,6 +1349,8 @@ Optional
         Set the memory in KB assigned to controller nodes
     compute_node_memory (default 2097152)
         Set the memory in KB assigned to compute nodes
+    lonelynode_memory (defeault 2097152)
+        Set the memory in KB assigned to lonely nodes
     drbd_hdd_size  (default 0, or 15 if hacloud is set)
         Set the size in GB of the DRBD data disks attached to the
         nodes in the cluster hosting the database and rabbitmq.
