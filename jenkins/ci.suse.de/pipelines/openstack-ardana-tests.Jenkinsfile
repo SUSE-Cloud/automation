@@ -4,7 +4,6 @@
  * This job runs tempest and ardana-qa-tests on a pre-deployed CLM cloud.
  */
 
-def ardana_lib = null
 
 pipeline {
 
