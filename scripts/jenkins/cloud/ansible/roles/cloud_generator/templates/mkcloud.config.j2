@@ -99,6 +99,10 @@ export want_sbd=1
 export want_all_ssl=1
 {% endif %}
 
+{% if 'monasca' in deployments %}
+export want_monasca_proposal=1
+{% endif %}
+
 {% if 'designate' in deployments %}
 export want_designate_proposal=1
 {% endif %}
