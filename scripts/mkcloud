@@ -413,6 +413,10 @@ function setupadmin
         done
         $sudo iptables -w -I FORWARD -p tcp --tcp-flags SYN,RST SYN -j TCPMSS --set-mss $mss
     fi
+
+    if [[ $want_designate_proposal = 1 ]]; then
+        setuppublicnet
+    fi
 }
 
 function wait_for_node_shutdown
