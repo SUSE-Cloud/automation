@@ -152,7 +152,10 @@
       - string:
           name: commands
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
-          description: All the steps that needs to be completed to have cloud installed
+          description: All the steps that needs to be completed to have cloud installed:When deploying with SSL add "install_ca_certificates" after "setup_aliases" command
+          choices:
+            - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases
+            - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases install_ca_certificates
 
       - string:
           name: want_test_updates
@@ -220,7 +223,19 @@
 
           ret=0
 
+          # copy CA files
+          if [[ $ssl_type = "ssl" ]]; then
+             ssh root@crowbar$hw_number "mkdir ssl-certs"
+             scp -r /home/jenkins/ssl-certs/qa$hw_number root@crowbar$hw_number:/root/ssl-certs/
+          fi
+
           ssh root@$admin "
+          # update certificate file paths
+          if [[ $ssl_type = "ssl" ]]; then
+             sed -i -e "s,##certfile##,/etc/cloud/ssl/qa$hw_number/qa$hw_number.cloud.suse.de.crt," scenario.yml
+             sed -i -e "s,##keyfile##,/etc/cloud/ssl/qa$hw_number/qa$hw_number.cloud.suse.de.pem," scenario.yml
+             sed -i -e "s,##cafile##,/etc/cloud/ssl/qa$hw_number/SUSE_CA_suse.de.chain.crt," scenario.yml
+          fi
           export cloud=$cloud ;
           export hw_number=$hw_number ;
           export sbd_ip=$sbd_ip ;

@@ -1,5 +1,5 @@
 ---
-# 2a - 8 nodes, HA (SBD 3x2), KVM x 1
+# 2a - 7 nodes, HA (SBD 3x2), KVM x 1
 proposals:
 - barclamp: pacemaker
   name: services
@@ -14,20 +14,27 @@ proposals:
           "@@controller2@@":
             devices:
             - "@@sbd_device_services@@"
+          "@@controller3@@":
+            devices:
+            - "@@sbd_device_services@@"
       per_node:
         nodes:
           "@@controller1@@":
             params: ''
           "@@controller2@@":
             params: ''
+          "@@controller3@@":
+            params: ''
   deployment:
     elements:
       pacemaker-cluster-member:
       - "@@controller1@@"
       - "@@controller2@@"
+      - "@@controller3@@"
       hawk-server:
       - "@@controller1@@"
       - "@@controller2@@"
+      - "@@controller3@@"
 
 - barclamp: pacemaker
   name: data
@@ -42,57 +49,30 @@ proposals:
           "@@data2@@":
             devices:
             - "@@sbd_device_data@@"
+          "@@data3@@":
+            devices:
+            - "@@sbd_device_data@@"
       per_node:
         nodes:
           "@@data1@@":
             params: ''
           "@@data2@@":
             params: ''
+          "@@data3@@":
+            params: ''
   deployment:
     elements:
       pacemaker-cluster-member:
       - "@@data1@@"
       - "@@data2@@"
+      - "@@data3@@"
       hawk-server:
       - "@@data1@@"
       - "@@data2@@"
-
-- barclamp: pacemaker
-  name: network
-  attributes:
-    stonith:
-      mode: sbd
-      sbd:
-        nodes:
-          "@@network1@@":
-            devices:
-            - "@@sbd_device_network@@"
-          "@@network2@@":
-            devices:
-            - "@@sbd_device_network@@"
-      per_node:
-        nodes:
-          "@@network1@@":
-            params: ''
-          "@@network2@@":
-            params: ''
-  deployment:
-    elements:
-      pacemaker-cluster-member:
-      - "@@network1@@"
-      - "@@network2@@"
-      hawk-server:
-      - "@@network1@@"
-      - "@@network2@@"
+      - "@@data3@@"
 
 - barclamp: database
   attributes:
-    sql_engine: postgresql
-    ha:
-      storage:
-        shared:
-          device: ##shared_nfs_for_database##
-          fstype: nfs
   deployment:
     elements:
       database-server:
@@ -151,11 +131,21 @@ proposals:
 - barclamp: cinder
   attributes:
     volumes:
-    - backend_driver: nfs
-      backend_name: nfs
-      nfs:
-        nfs_shares: ##cinder-storage-shares##
-        nfs_snapshot: true
+    - backend_driver: netapp
+      backend_name: netapp
+      netapp:
+        nfs_shares: ''
+        netapp_vfiler: ''
+        netapp_volume_list: ''
+        storage_family: ontap_cluster
+        storage_protocol: iscsi
+        vserver: 'cloud-openstack-svm '
+        netapp_server_hostname: ##netapp_server##
+        netapp_server_port: 80
+        netapp_login: admin
+        netapp_password: ##netapp_password##
+        netapp_transport_type: http
+        max_over_subscription_ratio: 20
   deployment:
     elements:
       cinder-controller:
@@ -178,7 +168,7 @@ proposals:
       neutron-server:
       - cluster:services
       neutron-network:
-      - cluster:network
+      - cluster:services
 
 - barclamp: nova
   attributes:
@@ -221,19 +211,6 @@ proposals:
     elements:
       heat-server:
       - cluster:services
-
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
 
 - barclamp: manila
   attributes:

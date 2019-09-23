@@ -73,25 +73,37 @@ proposals:
 
 - barclamp: database
   attributes:
+    mysql:
+      ssl:
+        enabled: true
+        certfile: ##certfile##
+        keyfile: ##keyfile##
+        ca_certs: ##cafile##
   deployment:
     elements:
       database-server:
-      - cluster:data
+      - cluster:services
 
 - barclamp: rabbitmq
   attributes:
+    ssl:
+      enabled: true
+      certfile: ##certfile##
+      keyfile: ##keyfile##
+      client_ca_certs: ##cafile##
     client:
       enable_notifications: true
   deployment:
     elements:
       rabbitmq-server:
-      - cluster:data
+      - cluster:services
 
 - barclamp: keystone
   attributes:
     ssl:
-      generate_certs: true
-      insecure: true
+      certfile: ##certfile##
+      keyfile: ##keyfile##
+      ca_certs: ##cafile##
     api:
       protocol: https
   deployment:
@@ -102,6 +114,9 @@ proposals:
 - barclamp: swift
   attributes:
     replicas: 2
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
     keystone_delay_auth_decision: true
     allow_versions: true
     middlewares:
@@ -113,76 +128,85 @@ proposals:
         enabled: true
       tempurl:
         enabled: true
-    ssl:
-      enabled: true
-      generate_certs: true
-      insecure: true
   deployment:
     elements:
       swift-dispersion:
-      - "@@controller1@@"
+      - "@@data1@@"
       swift-proxy:
-      - cluster:services
+      - cluster:data
       swift-ring-compute:
-      - "@@controller1@@"
+      - "@@data1@@"
       swift-storage:
       - "@@controller2@@"
       - "@@compute-kvm@@"
 
 - barclamp: glance
   attributes:
+    default_store: swift
     api:
       protocol: https
     ssl:
-      generate_certs: true
-      insecure: true
-    default_store: swift
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
   deployment:
     elements:
       glance-server:
-      - cluster:services
+      - cluster:data
 
 - barclamp: cinder
   attributes:
-    volumes:
-    - backend_driver: nfs
-      backend_name: nfs
-      nfs:
-        nfs_shares: ##cinder-storage-shares##
-        nfs_snapshot: true
     api:
       protocol: https
     ssl:
-      generate_certs: true
-      insecure: true
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
+    volumes:
+    - backend_driver: netapp
+      backend_name: netapp
+      netapp:
+        nfs_shares: ''
+        netapp_vfiler: ''
+        netapp_volume_list: ''
+        storage_family: ontap_cluster
+        storage_protocol: iscsi
+        vserver: 'cloud-openstack-svm '
+        netapp_server_hostname: ##netapp_server##
+        netapp_server_port: 80
+        netapp_login: admin
+        netapp_password: ##netapp_password##
+        netapp_transport_type: http
+        max_over_subscription_ratio: 20
   deployment:
     elements:
       cinder-controller:
-      - cluster:services
+      - cluster:data
       cinder-volume:
-      - cluster:services
+      - cluster:data
 
 - barclamp: neutron
   attributes:
+    ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
+    api:
+      protocol: https
     ml2_mechanism_drivers:
     - ##networkingplugin##
     ml2_type_drivers:
     - ##networkingmode##
     ml2_type_drivers_default_provider_network: ##networkingmode##
-    ml2_type_drivers_default_tenant_network: ##networkingmode##
-    num_vlans: 99
-    ssl:
-      generate_certs: true
-      insecure: true
-    api:
-      protocol: https
+    ml2_type_drivers_default_tenant_network:  ##networkingmode##
     use_lbaas: false
+    num_vlans: 99
   deployment:
     elements:
       neutron-server:
-      - cluster:services
+      - cluster:data
       neutron-network:
-      - cluster:services
+      - cluster:data
 
 - barclamp: nova
   attributes:
@@ -192,21 +216,20 @@ proposals:
     kvm:
       ksm_enabled: true
     ssl:
+      certfile: ##certfile##
+      keyfile:  ##keyfile##
+      ca_certs: ##cafile##
       enabled: true
-      generate_certs: true
-      insecure: true
-    novnc:
-      ssl:
-        enabled: true
+    metadata:
     metadata:
       vendordata:
         json: '{"custom-key": "custom-value"}'
   deployment:
     elements:
       ec2-api:
-      - cluster:services
+      - cluster:data
       nova-controller:
-      - cluster:services
+      - cluster:data
       nova-compute-hyperv: []
       nova-compute-kvm:
       - "@@compute-kvm@@"
@@ -223,31 +246,20 @@ proposals:
   attributes:
     apache:
       ssl: true
-      generate_certs: true
+      ssl_crt_file: ##certfile##
+      ssl_key_file: ##keyfile##
+      ssl_crt_chain_file: ##cafile##
   deployment:
     elements:
       horizon-server:
-      - cluster:services
+      - cluster:data
 
 - barclamp: heat
   attributes:
   deployment:
     elements:
       heat-server:
-      - cluster:services
-
-- barclamp: ceilometer
-  attributes:
-  deployment:
-    elements:
-      ceilometer-agent:
-      - "@@compute-kvm@@"
-      ceilometer-agent-hyperv: []
-      ceilometer-central:
-      - cluster:services
-      ceilometer-server:
-      - cluster:services
-      ceilometer-swift-proxy-middleware: []
+      - cluster:data
 
 - barclamp: manila
   attributes:
@@ -262,11 +274,11 @@ proposals:
         netapp_login: admin
         netapp_password: ##netapp_password##
         netapp_vserver: ##netapp_vserver##
-        netapp_transport_type: https
+        netapp_transport_type: http
   deployment:
     elements:
       manila-server:
-      - cluster:services
+      - cluster:data
       manila-share:
       - "@@data1@@"
       - "@@data2@@"
