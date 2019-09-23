@@ -26,12 +26,11 @@
 
   tasks:
     - block:
-        - name: Ensure SSH keys for ardana and root user are on deployer
+        - name: Create SSH keys for ardana and root (if needed) on deployer
           become: yes
           become_user: "{{ item_ssh_user }}"
-          shell: |
+          command: >
             ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
-            cat .ssh/id_rsa.pub >> .ssh/authorized_keys
           args:
             creates: "~/.ssh/id_rsa"
           loop:
@@ -49,6 +48,23 @@
           loop:
             - ardana
             - root
+          loop_control:
+            loop_var: item_ssh_user
+
+        - name: Add ardana and root user public keys to authorized_keys
+          become: yes
+          become_user: "{{ item_ssh_user.user }}"
+          lineinfile:
+            path: "{{ item_ssh_user.path }}/.ssh/authorized_keys"
+            line: "{{ ardana_pub_keys.results | selectattr('item_ssh_user', 'equalto', item_ssh_user.user) | map(attribute='content') | list | first | b64decode }}"
+            state: present
+            create: yes
+            owner: "{{ item_ssh_user.user }}"
+            group: "{{ item_ssh_user.user }}"
+            mode: 0600
+          loop:
+            - { user: 'ardana', path: '/var/lib/ardana' }
+            - { user: 'root', path: '/root' }
           loop_control:
             loop_var: item_ssh_user
 
