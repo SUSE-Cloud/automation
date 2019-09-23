@@ -59,6 +59,46 @@
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-mariadb-{arch}'
         - 'cloud-mkcloud{version}-job-upgrade-nondisruptive-ha-without-nodes-upgrade-{arch}'
 - project:
+    name: cloud-mkcloud9-retryprechecks-x86_64
+    disabled: false
+    version: 9
+    previous_version: 8
+    arch: x86_64
+    controller_node_memory: 12582912
+    tempestoptions: --smoke
+    magnumoptions: --regex '^magnum_tempest_plugin.tests.api'
+    label: openstack-mkcloud-SLE12-x86_64
+    database_engine: mysql
+    want_monasca_proposal: 0
+    want_barbican_proposal: 1
+    fix_failed_prechecks: 1
+    want_aodh_proposal: 1
+    want_trove_proposal: 1
+    want_ceilometer_proposal: 1
+    jobs:
+        - 'cloud-mkcloud{version}-job-upgrade-retryprechecks-disruptive-{arch}'
+- project:
+    name: cloud-mkcloud9-retryprechecks-ha-x86_64
+    disabled: false
+    version: 9
+    previous_version: 8
+    arch: x86_64
+    nodenumber: 5
+    nodenumber_controller: 3
+    tempestoptions: --smoke
+    label: openstack-mkcloud-ha-x86_64
+    storage_method_ha: swift
+    database_engine: mysql
+    want_all_ssl: 1
+    want_monasca_proposal: 0
+    want_barbican_proposal: 1
+    fix_failed_prechecks: 1
+    want_aodh_proposal: 1
+    want_trove_proposal: 1
+    want_ceilometer_proposal: 1
+    jobs:
+        - 'cloud-mkcloud{version}-job-upgrade-retryprechecks-nondisruptive-ha-mariadb-{arch}'
+- project:
     name: cloud-mkcloud9-tempestfull-x86_64
     disabled: false
     version: 9
