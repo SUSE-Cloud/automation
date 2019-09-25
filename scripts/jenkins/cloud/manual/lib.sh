@@ -114,7 +114,7 @@ function run_python_script {
 
 function is_physical_deploy {
     cloud_env=$(get_from_input cloud_env)
-    [[ $cloud_env == qe* ]] || [[ $cloud_env == pcloud* ]]
+    [[ $cloud_env == qe* ]] || [[ $cloud_env == pcloud* ]] || [[ $cloud_env == hw-* ]]
 }
 
 function get_cloud_product {

@@ -45,7 +45,7 @@ pipeline {
             }
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env}"
-          if ( cloud_env.startsWith("qe") || cloud_env.startsWith("pcloud") ) {
+          if ( cloud_env.startsWith("qe") || cloud_env.startsWith("pcloud") || cloud_env.startsWith("hw-") ) {
               env.cloud_type = "physical"
           }
           // Parameters of the type 'extended-choice' are set to null when the job
