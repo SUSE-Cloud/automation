@@ -4576,13 +4576,13 @@ y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin'] ||= {}
 y['proposals'].first['attributes']['admin']['password'] = '$updated_password'
 puts y.to_yaml" > /root/keystone-test-pw-update.yaml
-    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-update.yaml
+    safely crowbar batch build < /root/keystone-test-pw-update.yaml
     safely oncontroller test_keystone_password
     cat /root/keystone-test-pw-update.yaml | ruby -ryaml -e "
 y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin']['password'] = '$old_password'
 puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
-    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-reset.yaml
+    safely crowbar batch build < /root/keystone-test-pw-reset.yaml
 }
 
 function set_keystone_endpoint
@@ -4602,7 +4602,7 @@ if '$protocol' == 'https'
     a['ssl']['ca_certs'] = '/etc/ssl/ca-bundle.pem'
 end
 puts y.to_yaml" > /root/keystone-test-endpoint-update.yaml
-    safely crowbar batch --timeout 1500 build < /root/keystone-test-endpoint-update.yaml
+    safely crowbar batch build < /root/keystone-test-endpoint-update.yaml
 }
 
 function test_keystone_toggle_ssl
@@ -6026,7 +6026,7 @@ function onadmin_batch
         exclude="$exclude --exclude ceph"
     fi
 
-    safely crowbar batch $exclude --timeout 2400 build ${scenario}
+    safely crowbar batch $exclude build ${scenario}
     if grep -q "barclamp: manila" ${scenario}; then
         get_novacontroller
         safely oncontroller manila_generic_driver_setup
@@ -6035,7 +6035,7 @@ function onadmin_batch
                 s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g; \
                 s/##tenant_net_name_or_ip##/$manila_tenant_vm_ip/g" \
                 ${scenario}
-        safely crowbar batch --include manila --timeout 2400 build ${scenario}
+        safely crowbar batch --include manila build ${scenario}
     fi
     if grep -q "barclamp: magnum" ${scenario}; then
         get_novacontroller
