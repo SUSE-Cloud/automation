@@ -228,6 +228,6 @@ rc_notify: false
 # Set the Crowbar sync_mark_timeout multiplier. Can be used to increase/decrease
 # the crowbar sync mark timeout globally. This parameter is useful when sync
 # mark timeout failures occur frequently while deploying Crowbar. The default
-# 1.5 value has been proven experimentally to work best with virtual Crowbar
+# 2.0 value has been proven experimentally to work best with virtual Crowbar
 # deployments.
-sync_mark_timeout_multiplier: 1.5
+sync_mark_timeout_multiplier: 2.0
