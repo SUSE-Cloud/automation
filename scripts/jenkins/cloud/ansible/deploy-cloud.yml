@@ -70,6 +70,7 @@
       when:
         - rc_notify
         - not ses_enabled or (ses_enabled and not ses_rgw_enabled)
+        - "'manila' in disabled_services | default('')"
 
 - import_playbook: ardana-ses-rgw.yml
   when: ses_enabled and ses_rgw_enabled
