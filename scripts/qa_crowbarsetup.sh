@@ -2737,6 +2737,8 @@ function custom_configuration
             if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
                 proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-api']" "['cluster:$clusternameservices']"
             fi
+            # Add a passphrase or proposal will fail
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['passphrase']" "'foobar'"
         ;;
         neutron)
             if iscloudver 7plus; then
@@ -2745,6 +2747,9 @@ function custom_configuration
                 [[ $networkingplugin = linuxbridge ]] && networkingmode=vlan
             fi
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
+            if [[ $want_octavia_proposal > 0 ]]; then
+                proposal_set_value neutron default "['attributes']['neutron']['lbaasv2_driver']" "'octavia'"
+            fi
 
             if [[ $want_l3_ha = 1 ]]; then
                 if grep -q use_l3_ha /opt/dell/chef/data_bags/crowbar/template-neutron.json ; then
@@ -3332,6 +3337,14 @@ function onadmin_proposal
     done
 
     set_dashboard_alias
+
+    if [[ $want_octavia_proposal > 0 ]]; then
+        # now that all the proposals have been complete, let's do the next steps
+        # for octavia. That is, setup router to the lb_mgmt_net and generate octavia
+        # certs.
+        octavia_next_steps
+    fi
+
 }
 
 function set_node_alias
@@ -6131,6 +6144,51 @@ function onadmin_external_ceph
     else
         safely ${SCRIPTS_DIR}/build_ses.sh ${net_public}${net_end} ${net_storage}${net_end} ${ceph_cluster[@]}
     fi
+}
+
+function oncontroller_add_octavia_mgmt_to_router
+{
+    # There should already be a floating router defined in a standard deploy. So let's piggy back off that
+    openstack router add subnet router-floating lb-mgmt-net
+    if [[ $? > 0 ]]; then
+        complain 194 "Failed to attach lb-mgmt-net to router-floating"
+    fi
+
+    # return the router IP address
+    local router_ip=$(openstack router show router-floating -f value -c external_gateway_info \
+        | python -c "import json, sys; print(json.load(sys.stdin)['external_fixed_ips'][0]['ip_address'])")
+    test -n "$router_ip" || complain 195 "failed to find router-floating external ip"
+    echo "$router_ip"
+}
+
+function octavia_next_steps
+{
+    if [[ $want_octavia_proposal < 1 ]]; then
+        return
+    fi
+
+    # Get the octavia nodes.
+    backend_nodes=($(safely crowbar octavia show default |python -c \
+        "import sys, json; print(' '.join(json.load(sys.stdin)['deployment']['octavia']['elements']['octavia-backend']))"))
+
+    # Setup certs
+    mkdir -p ${SCRIPTS_DIR}/lib/octavia
+    cd ${SCRIPTS_DIR}/lib/octavia
+    safely ./build_certificates.sh "du" "nue" "suse" "foobar"
+    safely ./distribute_certificates.sh ${backend_nodes[@]}
+
+    # Attach the octavia mangement network to a router
+    test -n "$novacontroller" || get_controller
+    local router_ip=$(safely oncontroller "add_octavia_mgmt_to_router")
+
+    # Add a route to octavia-backend nodes.
+    for backend in ${backend_nodes[@]}; do
+        ssh $backend ip r add 172.31.0.0/16 via $router_ip
+        if [[ -z "$(ssh $backend grep '172.31.0.0' /etc/sysconfig/network/routes)" ]]; then
+            ssh $backend "echo \"172.31.0.0 $router_ip 255.255.0.0 -\" >> /etc/sysconfig/network/routes"
+        fi
+    done
+    cd -
 }
 
 #--
