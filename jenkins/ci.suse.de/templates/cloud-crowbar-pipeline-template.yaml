@@ -145,6 +145,24 @@
             NOTE: use this parameter only if you want to use a generated input model. To use an existing input model instead,
             leave this field empty and use the 'model' parameter instead.
 
+      - choice:
+          name: upgrade_cloudsource
+          choices:
+            - '{upgrade_cloudsource|}'
+            - stagingcloud8
+            - develcloud8
+            - GM8+up
+            - stagingcloud9
+            - develcloud9
+            - GM9+up
+          description: >-
+            The cloud repository to be used for a cloud upgrade.
+            This value can take the following form:
+
+               stagingcloud<X> (Devel:Cloud:X:Staging)
+               develcloud<X> (Devel:Cloud:X)
+               GM<X>+up (official GM plus Cloud-Updates)
+
       - extended-choice:
           name: enabled_services
           type: multi-select
@@ -279,7 +297,7 @@
           default-value: '{tempest_filter_list|}'
           value: >-
             smoke,keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,fwaas,
-            trove,aodh,lbaas,heat,magnum,manila
+            trove,aodh,heat,magnum,manila,lbaas,designate
           description: >-
             Name of the filter file to use for tempest. Selecting multiple values
             will run tempest for each selected value.
@@ -360,7 +378,7 @@
 
       - validating-string:
           name: sync_mark_timeout_multiplier
-          default: '{sync_mark_timeout_multiplier|1.5}'
+          default: '{sync_mark_timeout_multiplier|2.0}'
           regex: '[+-]?([0-9]*[.])[0-9]+'
           msg: The entered value failed validation - requires a floating point value
           description: >-

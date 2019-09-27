@@ -1,5 +1,4 @@
-#!/bin/bash
-
+#
 # (c) Copyright 2019 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
@@ -13,26 +12,26 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
+#
+---
 
-set -e
+- name: "Ensure {{ diff_tmp_dir }}/rpms/diffs artifacts dir exists"
+  delegate_to: localhost
+  run_once: yes
+  file:
+    path: "{{ diff_tmp_dir }}/rpms/diffs"
+    state: "directory"
+    mode: "6777"
 
-source lib.sh
+# List installed packages
+- include_tasks: list-packages.yml
+  vars:
+    suffix: "{{ (wanted_action == 'diff') | ternary(state2,state1) }}"
+  when: wanted_action == 'list' or wanted_action == 'diff'
 
-validate_input
-setup_ansible_venv
-mitogen_enable
-prepare_input_model
-prepare_infra
+# Diff of changes of packages
+- include_tasks: diff-packages.yml
+  delegate_to: "{{ cloud_env }}"
+  run_once: true
+  when: wanted_action == 'diff'
 
-trap exit_msg EXIT
-
-#build_test_packages
-bootstrap_crowbar
-deploy_ses_vcloud
-bootstrap_nodes
-install_crowbar
-register_crowbar_nodes
-deploy_cloud
-update_cloud
-upgrade_cloud
-run_crowbar_tests

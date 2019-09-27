@@ -114,7 +114,7 @@ function run_python_script {
 
 function is_physical_deploy {
     cloud_env=$(get_from_input cloud_env)
-    [[ $cloud_env == qe* ]] || [[ $cloud_env == pcloud* ]]
+    [[ $cloud_env == qe* ]] || [[ $cloud_env == pcloud* ]] || [[ $cloud_env == hw-* ]]
 }
 
 function get_cloud_product {
@@ -259,11 +259,24 @@ function update_cloud {
     fi
 }
 
+function upgrade_cloud {
+    if $(get_from_input deploy_cloud) && [[ -n $(get_from_input upgrade_cloudsource) ]]; then
+        if [ "$(get_cloud_product)" == "crowbar" ]; then
+            ansible_playbook crowbar-upgrade.yml
+        fi
+    fi
+}
+
 function run_tempest {
     if $(is_defined tempest_filter_list); then
+        if [ "$(get_cloud_product)" == "crowbar" ]; then
+            playbook_name=run-tempest-crowbar
+        else
+            playbook_name=run-tempest-ardana
+        fi
         tempest_filter_list=($(echo "$(get_from_input tempest_filter_list)" | tr ',' '\n'))
         for filter in "${tempest_filter_list[@]}"; do
-            ansible_playbook run-tempest.yml -e tempest_run_filter=$filter
+            ansible_playbook ${playbook_name}.yml -e tempest_run_filter=$filter
         done
     fi
 }

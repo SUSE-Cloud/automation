@@ -3,6 +3,15 @@
     node: cloud-trigger
 
     parameters:
+      - string:
+          name: prurl
+          default:
+          description: |
+            Only process this one PR with mode "all", irrespective of the below
+            mode selection.
+            Example:
+            https://github.com/SUSE-Cloud/automation/pull/0/commits/0000
+
       - choice:
           name: mode
           choices:
@@ -32,8 +41,14 @@
       - timed: 'H/10 * * * *'
 
     logrotate:
-      numToKeep: 48
-      daysToKeep: -1
+      numToKeep: -1
+      daysToKeep: 8
+
+    wrappers:
+      - timeout:
+          fail: true
+          timeout: 120
+      - timestamps
 
     builders:
       - shell: |
@@ -76,6 +91,11 @@
               repos="--only --org ${repositories%/*} --repo ${repositories##*/}"
               ;;
           esac
+
+          if [ $prurl ]; then
+            buildmode=all
+            repos="$repos --this $prurl"
+          fi
 
           # timeout should be less than the interval (currently 10m)
           timeout 500 ${ghpr} -a trigger-prs $repos --mode "$buildmode" --debugfilterchain --debugratelimit --config ${automationrepo}/scripts/github_pr/github_pr_crowbar.yaml

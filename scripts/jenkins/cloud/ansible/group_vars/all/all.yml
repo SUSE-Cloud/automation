@@ -18,6 +18,8 @@ cloud_env: localhost
 
 cloudsource: stagingcloud9
 
+upgrade_cloudsource: ""
+
 # cloud product can be ardana or crowbar
 cloud_product: "ardana"
 
@@ -26,7 +28,8 @@ cloud_admin_user:
   crowbar: root
 
 # The cloud release is encoded in the cloudsource value
-cloud_release: "cloud{{ cloudsource | regex_search('\\d') }}"
+cloud_release_number: "{{ cloudsource | regex_search('\\d') }}"
+cloud_release: "cloud{{ cloud_release_number }}"
 cloud_git_branch:
   cloud8: "stable/pike"
   cloud9: "master"
@@ -103,7 +106,7 @@ dns_servers:
   - 10.84.2.21
 
 rc_channels:
-  pcloud001: "cloud-qe-pcloud001"
+  hw-prv-01: "cloud-hw-prv-01"
   pcloud002: "cloud-qe-pcloud002"
   qe002: "cloud-qe-hlm002"
   qe007: "cloud-qe-hlm007"

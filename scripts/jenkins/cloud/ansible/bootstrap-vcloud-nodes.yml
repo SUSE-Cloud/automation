@@ -26,17 +26,47 @@
 
   tasks:
     - block:
-        - name: Ensure ardana SSH key on deployer
-          shell: |
+        - name: Create SSH keys for ardana and root (if needed) on deployer
+          become: yes
+          become_user: "{{ item_ssh_user }}"
+          command: >
             ssh-keygen -t rsa -f ~/.ssh/id_rsa -N ""
-            cat .ssh/id_rsa.pub >> .ssh/authorized_keys
           args:
             creates: "~/.ssh/id_rsa"
+          loop:
+            - ardana
+            - root
+          loop_control:
+            loop_var: item_ssh_user
 
-        - name: Get ardana public key
+        - name: Get ardana and root user public keys
+          become: yes
+          become_user: "{{ item_ssh_user }}"
           slurp:
             src: "~/.ssh/id_rsa.pub"
-          register: ardana_pub_key
+          register: ardana_pub_keys
+          loop:
+            - ardana
+            - root
+          loop_control:
+            loop_var: item_ssh_user
+
+        - name: Add ardana and root user public keys to authorized_keys
+          become: yes
+          become_user: "{{ item_ssh_user.user }}"
+          lineinfile:
+            path: "{{ item_ssh_user.path }}/.ssh/authorized_keys"
+            line: "{{ ardana_pub_keys.results | selectattr('item_ssh_user', 'equalto', item_ssh_user.user) | map(attribute='content') | list | first | b64decode }}"
+            state: present
+            create: yes
+            owner: "{{ item_ssh_user.user }}"
+            group: "{{ item_ssh_user.user }}"
+            mode: 0600
+          loop:
+            - { user: 'ardana', path: '/var/lib/ardana' }
+            - { user: 'root', path: '/root' }
+          loop_control:
+            loop_var: item_ssh_user
 
         - name: Enable skip_disk_config on deployer
           file:
@@ -49,6 +79,7 @@
               path: "/etc/openstack/skip_disk_config"
           become: yes
           when: not want_lvm
+
       rescue:
         - include_role:
             name: rocketchat_notify
@@ -127,18 +158,26 @@
             group: ardana
             mode: 0700
 
-        - name: Add ardana public key to authorized_keys
+        - name: Add ardana and root user public keys to authorized_keys
           lineinfile:
-            path: "/var/lib/ardana/.ssh/authorized_keys"
-            line: "{{ hostvars[cloud_env].ardana_pub_key.content | b64decode }}"
+            path: "{{ item_ssh_user.path }}/.ssh/authorized_keys"
+            line: "{{ hostvars[cloud_env].ardana_pub_keys.results | selectattr('item_ssh_user', 'equalto', item_ssh_user.user) | map(attribute='content') | list | first | b64decode }}"
             state: present
             create: yes
-            owner: ardana
-            group: ardana
+            owner: "{{ item_ssh_user.user }}"
+            group: "{{ item_ssh_user.user }}"
             mode: 0600
+          loop:
+            - { user: 'ardana', path: '/var/lib/ardana' }
+            - { user: 'root', path: '/root' }
+          loop_control:
+            loop_var: item_ssh_user
+
 
         - include_role:
             name: ssh_keys
+          become: yes
+          become_user: root
 
         - name: Enable skip_disk_config on non-deployer nodes
           file:

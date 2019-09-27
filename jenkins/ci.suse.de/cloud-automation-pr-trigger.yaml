@@ -21,7 +21,7 @@
             - all
           description: |
               normal: trigger unseen PRs
-              rebuild: trigger unseend and pending PRs
+              rebuild: trigger unseen and pending PRs
               forcerebuild: trigger unseen, pending and failed PRs
               all: trigger rebuild for all open PRs (even if status is successful)
       - choice:
@@ -39,8 +39,8 @@
       - timed: 'H/10 * * * *'
 
     logrotate:
-      numToKeep: 300
-      daysToKeep: -1
+      numToKeep: -1
+      daysToKeep: 8
 
     wrappers:
       - timeout:

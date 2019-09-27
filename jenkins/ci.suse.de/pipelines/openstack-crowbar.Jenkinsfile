@@ -40,7 +40,7 @@ pipeline {
             }
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env}"
-          if ( cloud_env.startsWith("qe") || cloud_env.startsWith("pcloud") ) {
+          if ( cloud_env.startsWith("qe") || cloud_env.startsWith("pcloud") || cloud_env.startsWith("hw-") ) {
               env.cloud_type = "physical"
           }
           // Parameters of the type 'extended-choice' are set to null when the job
@@ -217,17 +217,28 @@ pipeline {
           // This step does the following on the non-admin nodes:
           //  - deploys the crowbar batch scenario
           cloud_lib.ansible_playbook('deploy-crowbar')
+          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list")
         }
       }
     }
 
-    stage('Update cloud') {
+    stage('Update/upgrade cloud') {
       when {
-        expression { deploy_cloud == 'true' && update_after_deploy == 'true' }
+        expression { deploy_cloud == 'true' && (update_after_deploy == 'true' || upgrade_cloudsource != '') }
       }
       steps {
         script {
-          cloud_lib.ansible_playbook('crowbar-update')
+          // This is a mark for fail action 'collect list of installed packages'
+          // to distinguish stages after "Update/upgrade cloud" and do the diff of installed
+          // packages. Can be removed when jenkins feature (JENKINS-48315) is merged.
+          env.stage_after_update = "true"
+
+          if (upgrade_cloudsource == '') {
+            cloud_lib.ansible_playbook('crowbar-update')
+          } else {
+            cloud_lib.ansible_playbook('crowbar-upgrade')
+          }
+          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=diff")
         }
       }
     }
@@ -241,13 +252,19 @@ pipeline {
           // This step does the following on the non-admin nodes:
           //  - runs tempest and other tests on the deployed cloud
           cloud_lib.ansible_playbook('run-crowbar-tests')
-          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-          junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+        }
+      }
+      post {
+        always {
+          script {
+            archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
+            junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+          }
         }
       }
     }
 
-    stage ('Prepare tempest tests') {
+    stage('Prepare tempest tests') {
       when {
         expression { tempest_filter_list != '' }
       }
@@ -263,7 +280,7 @@ pipeline {
 
   post {
     always {
-      script{
+      script {
         sh('''
           source automation-git/scripts/jenkins/cloud/jenkins-helper.sh
           run_python_script automation-git/scripts/jenkins/jenkins-job-pipeline-report.py \
@@ -275,7 +292,7 @@ pipeline {
         ''')
         archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
       }
-      script{
+      script {
         if (env.DEPLOYER_IP != null) {
           if (cloud_type == "virtual") {
             if (cleanup == "always" ||
@@ -355,10 +372,15 @@ pipeline {
     failure {
       script {
         cloud_lib.track_failure()
+        if (env.stage_after_update != null) {
+          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list -e state1=after_update")
+        } else {
+          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list")
+        }
         if (collect_supportconfig == 'true') {
           cloud_lib.ansible_playbook('collect-supportconfig')
-          archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
         }
+        archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
       }
     }
     cleanup {

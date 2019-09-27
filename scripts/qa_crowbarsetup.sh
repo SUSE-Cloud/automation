@@ -3685,8 +3685,6 @@ id-f5dfcc22-45fd-409f-954c-5bd500d7890b
 id-301f5a30-1c6f-4ea0-be1a-91fd28d44354
 id-bdbb5441-9204-419d-a225-b4fdbfb1a1a8
 id-6bba729b-3fb6-494b-9e1e-82bbd89a1045
-manila_tempest_tests.tests.scenario.test_share_basic_ops.TestShareBasicOpsNFS.test_read_write_two_vms # bsc#1137262
-manila_tempest_tests.tests.scenario.test_share_basic_ops.TestShareBasicOpsCIFS.test_read_write_two_vms # bsc#1137262
 EOF
     fi
 
@@ -4143,10 +4141,6 @@ function oncontroller_testsetup
         fi
     fi
 
-    # this file is created by the designate barclamp
-    designate_pools="/etc/desigate/pools.crowbar.yaml"
-    [[ -e $designate_pools ]] && designate-manage pool update --file $designate_pools
-
     # Run Tempest Smoketests if configured to do so
     tempestret=0
     if [[ $want_tempest = 1 ]]; then
@@ -4582,13 +4576,13 @@ y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin'] ||= {}
 y['proposals'].first['attributes']['admin']['password'] = '$updated_password'
 puts y.to_yaml" > /root/keystone-test-pw-update.yaml
-    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-update.yaml
+    safely crowbar batch --timeout 3600 build < /root/keystone-test-pw-update.yaml
     safely oncontroller test_keystone_password
     cat /root/keystone-test-pw-update.yaml | ruby -ryaml -e "
 y = YAML.load(ARGF)
 y['proposals'].first['attributes']['admin']['password'] = '$old_password'
 puts y.to_yaml" > /root/keystone-test-pw-reset.yaml
-    safely crowbar batch --timeout 1500 build < /root/keystone-test-pw-reset.yaml
+    safely crowbar batch --timeout 3600 build < /root/keystone-test-pw-reset.yaml
 }
 
 function set_keystone_endpoint
@@ -4608,7 +4602,7 @@ if '$protocol' == 'https'
     a['ssl']['ca_certs'] = '/etc/ssl/ca-bundle.pem'
 end
 puts y.to_yaml" > /root/keystone-test-endpoint-update.yaml
-    safely crowbar batch --timeout 1500 build < /root/keystone-test-endpoint-update.yaml
+    safely crowbar batch --timeout 3600 build < /root/keystone-test-endpoint-update.yaml
 }
 
 function test_keystone_toggle_ssl
@@ -4856,7 +4850,12 @@ function onadmin_testsetup
     get_horizon
     echo "openstack horizon server:  $horizonserver"
     echo "openstack horizon service: $horizonservice"
-    curl -L -m 180 -s -S -k http://$horizonservice | tee simple_horizon.log | \
+    # Remove when SOC-10011 is fixed
+    retry=0
+    if iscloudver 9plus; then
+        retry=3
+    fi
+    curl -L -m 130 -s -S -k --retry $retry http://$horizonservice | tee simple_horizon.log | \
         grep -q -e csrfmiddlewaretoken -e "<title>302 Found</title>" \
         || complain 101 "simple horizon test failed"
 
@@ -6027,7 +6026,7 @@ function onadmin_batch
         exclude="$exclude --exclude ceph"
     fi
 
-    safely crowbar batch $exclude --timeout 2400 build ${scenario}
+    safely crowbar batch $exclude --timeout 3600 build ${scenario}
     if grep -q "barclamp: manila" ${scenario}; then
         get_novacontroller
         safely oncontroller manila_generic_driver_setup
@@ -6036,7 +6035,7 @@ function onadmin_batch
                 s/##service_net_name_or_ip##/$manila_tenant_vm_ip/g; \
                 s/##tenant_net_name_or_ip##/$manila_tenant_vm_ip/g" \
                 ${scenario}
-        safely crowbar batch --include manila --timeout 2400 build ${scenario}
+        safely crowbar batch --include manila --timeout 3600 build ${scenario}
     fi
     if grep -q "barclamp: magnum" ${scenario}; then
         get_novacontroller

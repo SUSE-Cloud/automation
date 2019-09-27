@@ -21,7 +21,7 @@
   gather_facts: no
   vars:
     task: "deploy"
-    ses_cluster_id: "{{ (cloud_env.startswith('pcloud') or cloud_env.startswith('qe')) | ternary('qe', 'virt') }}"
+    ses_cluster_id: "{{ (cloud_env.startswith('pcloud') or cloud_env.startswith('qe') or cloud_env.startswith('hw-')) | ternary('qe', 'virt') }}"
     ses_cloud_config_path: "/tmp/ses_config"
     ardana_openstack_path: "~/openstack/ardana/ansible"
     ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"

@@ -31,7 +31,6 @@
           type: user-defined
           name: project
           values:
-            - Devel:Cloud:6:Staging
             - Devel:Cloud:6:SAP:Staging
             - Devel:Cloud:7:Staging
             - Devel:Cloud:8:Staging
@@ -44,19 +43,6 @@
     execution-strategy:
       combination-filter: |
         !(
-          (
-            [
-              "Devel:Cloud:6:Staging"
-            ].contains(project) &&
-            [
-              "crowbar-init",
-              "openstack-dashboard-theme-HPE",
-              "documentation-suse-openstack-cloud",
-              "caasp-openstack-heat-templates",
-              "python-psql2mysql"
-            ].contains(component)
-          )
-          ||
           (
             [
               "Devel:Cloud:6:SAP:Staging"

@@ -11,11 +11,13 @@
     version: 9
     previous_version: 8
     arch: x86_64
+    controller_node_memory: 12582912
     tempestoptions: --smoke
     magnumoptions: --regex '^magnum_tempest_plugin.tests.api'
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: mysql
     want_monasca_proposal: 1
+    want_barbican_proposal: 1
     want_aodh_proposal: 0
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
@@ -44,6 +46,7 @@
     database_engine: mysql
     want_all_ssl: 1
     want_monasca_proposal: 1
+    want_barbican_proposal: 1
     want_aodh_proposal: 0
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'

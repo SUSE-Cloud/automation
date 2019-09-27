@@ -18,7 +18,8 @@
 heat_resource_name_prefix: "{{ cloud_env }}-cloud"
 rhel_distro_id: "rhel{{ rhel_os_version }}-x86_64"
 rhel_image: "centos{{ rhel_os_version }}"
-disk_size: 2
+# If SES is disabled, we need a greater disk size for swift
+disk_size: "{{ ses_enabled | ternary(2, 3) }}"
 
 # Versioned virtualized configuration artifacts
 virt_artifacts:

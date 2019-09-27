@@ -21,10 +21,20 @@
   poll: 0
   failed_when: false
   become: yes
+  when: not reboot_in_progress | default(False)
 
-- name: Wait for node after reboot
+- name: Wait node to go down
+  wait_for:
+    host: "{{ hostvars[cloud_env].ansible_host }}"
+    port: 22
+    search_regex: OpenSSH
+    state: stopped
+    sleep: 12
+    timeout: 1200
+  delegate_to: localhost
+
+- name: Wait for node to come back up
   wait_for_connection:
-    delay: 5
 
 - name: Get host uptime
   shell: cut -d " " -f 1 /proc/uptime

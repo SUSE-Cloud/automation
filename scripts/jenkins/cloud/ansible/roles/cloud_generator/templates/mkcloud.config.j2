@@ -1,5 +1,6 @@
 {% set ns = namespace() %}
 {% include 'barclamps/lib/common.yml.j2' %}
+{% set deployments = ns.deployments %}
 
 # export debug_qa_crowbarsetup=0
 # export debug_openstack=0
@@ -30,6 +31,7 @@ export cloudsource=develcloud{{ cloudsource[-1] }}
 export TESTHEAD=1
 {% else %}
 export cloudsource={{ cloudsource }}
+export TESTHEAD=
 {% endif %}
 
 # export mkclouddriver=
@@ -66,10 +68,10 @@ export crowbar_networkingmode={{ crowbar_networkingmode }}
 # export cinder_netapp_login=
 # export cinder_netapp_password=
 
-{% if extra_repos is defined and extra_repos | length > 0 != '' %}
+{% if extra_repos is defined and extra_repos | length > 0 %}
 export UPDATEREPOS={{ extra_repos.split(',') | join('+') }}
 {% endif %}
-# export UPDATEREPOS_UPGRADE=
+
 # export UPDATEREPOS_EXTRA=
 # export NOINSTALLCLOUDPATTERN=
 
@@ -95,6 +97,10 @@ export want_sbd=1
 {% endif %}
 {% if ssl_enabled %}
 export want_all_ssl=1
+{% endif %}
+
+{% if 'designate' in deployments %}
+export want_designate_proposal=1
 {% endif %}
 
 # export ironicnetmask=
