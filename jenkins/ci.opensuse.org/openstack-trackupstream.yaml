@@ -18,7 +18,7 @@
             - Cloud:OpenStack:Queens:Staging
             - Cloud:OpenStack:Rocky:Staging
             - Cloud:OpenStack:Stein:Staging
-            - Cloud:OpenStack:Master
+            - Cloud:OpenStack:Train:Staging
       - axis:
           type: user-defined
           name: component
@@ -93,7 +93,7 @@
             - cloud-trackupstream
     execution-strategy:
       combination-filter: |
-        ! ( [ "Cloud:OpenStack:Master" ].contains(project) &&
+        ! ( [ "Cloud:OpenStack:Train:Staging" ].contains(project) &&
             [
             "openstack-horizon-plugin-monasca-ui",
             "openstack-monasca-agent",
@@ -122,19 +122,19 @@
               "openstack-trove",
               "openstack-horizon-plugin-trove-ui",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master" ].contains(project) &&
+            [ "Cloud:OpenStack:Train:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-neutron-fwaas-ui",
               "openstack-horizon-plugin-neutron-vpnaas-ui",
               "openstack-neutron-vsphere",
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Train:Staging", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-murano-ui",
               "openstack-gnocchi",
               "openstack-monasca-transform"
             ].contains(component) ||
-            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
+            [ "Cloud:OpenStack:Train:Staging", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-freezer-ui",
               "openstack-nova-virt-zvm"

@@ -31,10 +31,7 @@ case $OBS_TYPE in
             Cloud:OpenStack:Rocky*)
                 OSC_BUILD_DIST=SLE_12_SP4
                 ;;
-            Cloud:OpenStack:Stein*)
-                OSC_BUILD_DIST=SLE_15
-                ;;
-            Cloud:OpenStack:Master)
+            Cloud:OpenStack:Stein*|Cloud:OpenStack:Train*)
                 OSC_BUILD_DIST=SLE_15
                 ;;
             Cloud:socok8s:master)
