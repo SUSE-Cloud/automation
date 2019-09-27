@@ -45,7 +45,7 @@ pipeline {
             }
           }
           currentBuild.displayName = "#${BUILD_NUMBER}: ${cloud_env}"
-          if ( cloud_env.startsWith("qe") || cloud_env.startsWith("pcloud") ) {
+          if ( cloud_env.startsWith("qe") || cloud_env.startsWith("pcloud") || cloud_env.startsWith("hw-") ) {
               env.cloud_type = "physical"
           }
           // Parameters of the type 'extended-choice' are set to null when the job
@@ -225,7 +225,10 @@ pipeline {
       steps {
         script {
           cloud_lib.ansible_playbook('deploy-cloud')
-          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list")
+          // list-or-diff-installed-packages does not physical deployments
+          if (cloud_type == 'virtual') {
+            cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list")
+          }
         }
       }
     }
@@ -242,7 +245,10 @@ pipeline {
           env.stage_after_update = "true"
 
           cloud_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
-          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=diff")
+          // list-or-diff-installed-packages does not physical deployments
+          if (cloud_type == 'virtual') {
+            cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=diff")
+          }
         }
       }
     }
@@ -374,9 +380,15 @@ pipeline {
       script {
         cloud_lib.track_failure()
         if (env.stage_after_update != null) {
-          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list -e state1=after_update")
+          // list-or-diff-installed-packages does not physical deployments
+          if (cloud_type == 'virtual') {
+            cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list -e state1=after_update")
+          }
         } else {
-          cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list")
+          // list-or-diff-installed-packages does not physical deployments
+          if (cloud_type == 'virtual') {
+            cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=list")
+          }
         }
         if (collect_supportconfig == 'true') {
           cloud_lib.ansible_playbook('collect-supportconfig')

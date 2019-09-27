@@ -20,7 +20,7 @@
   when: not is_physical_deploy
 
 - name: Configure SES for Cloud
-  hosts: "ses_{{ (cloud_env.startswith('pcloud') or cloud_env.startswith('qe')) | ternary('qe', 'virt') }}"
+  hosts: "ses_{{ (cloud_env.startswith('pcloud') or cloud_env.startswith('qe') or cloud_env.startswith('hw-')) | ternary('qe', 'virt') }}"
   remote_user: root
   gather_facts: no
   vars:
