@@ -44,6 +44,11 @@ function setup_ansible_venv {
 }
 
 function mitogen_enable {
+    if [[ "${NO_MITOGEN:+true}" == "true" ]]; then
+        mitogen_disable
+        return 0
+    fi
+
     if [ ! -d "mitogen" ]; then
         wget -qO- $MITOGEN_URL | tar -xz
         mv mitogen-* mitogen
@@ -300,6 +305,8 @@ function validate_input {
     if ! is_defined cloud_env; then
         echo "ERROR: cloud_env must be defined - please check all variables on input.yml"
         return 1
+    elif [[ "${NO_CONFIRM:+true}" == "true" ]]; then
+        return 0
     else
         echo "
 *****************************************************************************************

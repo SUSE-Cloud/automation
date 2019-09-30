@@ -281,6 +281,8 @@ def map_list_attrs(element, element_schema):
     schema_sub_elements = element_schema.get('elements', {})
     for sub_element_name, sub_element_schema in schema_sub_elements.items():
         input_model_subelements = element.get(sub_element_name, {})
+        if element.get(sub_element_name, None) is None:
+            continue
         convert_element_list_to_map(
             element, sub_element_name,
             sub_element_schema.get('key', 'name'))
@@ -374,6 +376,8 @@ def map_foreign_keys(root_element, element_name,
                     element_key)
 
     for sub_element_name, sub_element_schema in schema_sub_elements.items():
+        if element.get(sub_element_name, None) is None:
+            continue
         for input_model_element in element[sub_element_name].values():
             map_foreign_keys(
                 root_element, sub_element_name,
@@ -392,6 +396,8 @@ def prune_input_model(element, element_schema):
     """
     schema_sub_elements = element_schema.get('elements', {})
     for sub_element_name, sub_element_schema in schema_sub_elements.items():
+        if element.get(sub_element_name, None) is None:
+            continue
         if sub_element_schema.get('prune'):
             element[sub_element_name] = dict(filter(
                 lambda el_rec: el_rec[1].get('is-referenced'),
@@ -497,6 +503,8 @@ def enhance_input_model(input_model):
         # balancers, which we have to transform into object references
         # explicitly here
         for cp in input_model['control-planes'].values():
+            if cp.get('load-balancers', None) is None:
+                continue
             link_elements_by_foreign_key_list(
                 network_group, 'load-balancers',
                 cp['load-balancers'],

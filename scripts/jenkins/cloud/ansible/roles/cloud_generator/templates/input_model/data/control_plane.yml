@@ -25,18 +25,28 @@
         - AZ1
         - AZ2
         - AZ3
+{% set ns = namespace(config_data=[]) %}
+{% for config_service in ['designate', 'neutron', 'octavia'] %}
+{%   if not config_service in disabled_services %}
+{%     set ns.config_data = ns.config_data+[(config_service ~ '-CONFIG-CP1') | upper] %}
+{%   endif %}
+{% endfor %}
       configuration-data:
-        - DESIGNATE-CONFIG-CP1
-        - OCTAVIA-CONFIG-CP1
-        - NEUTRON-CONFIG-CP1
+{% if ns.config_data %}
+{%   for config_data in ns.config_data|unique|sort %}
+        - {{ config_data }}
+{%   endfor %}
+{% else %}
+        []
+{% endif %}
+
       common-service-components:
 {% set common_service_components = service_component_groups.COMMON | reject('match', disabled_services|ternary(disabled_services, '^$')) | list %}
 {% for service_component in common_service_components|unique|sort %}
         - {{ service_component }}
 {% endfor %}
-
+{% set sgt = namespace(header_printed=[]) %}
 {% for service_group_type in ['cluster', 'resource'] %}
-      {{ service_group_type }}s:
 {%   for service_group in scenario['service_groups'] if service_group.type == service_group_type and service_group['member_count']|int %}
 {%     set ns = namespace(service_components=[], service_component_groups=[]) %}
 {%     set ns.service_component_groups = service_group['service_components'] | reject('match', disabled_services|ternary(disabled_services, '^$')) | list %}
@@ -51,6 +61,11 @@
 {%     if ns.service_components %}
 {%       if 'ntp-server' not in ns.service_components %}
 {%         set ns.service_components = ns.service_components+['ntp-client'] %}
+{%       endif %}
+{%       if service_group_type not in sgt.header_printed %}
+
+      {{ service_group_type }}s:
+{%           set sgt.header_printed = sgt.header_printed + [service_group_type] %}
 {%       endif %}
 
         - name: {{ service_group.name }}
