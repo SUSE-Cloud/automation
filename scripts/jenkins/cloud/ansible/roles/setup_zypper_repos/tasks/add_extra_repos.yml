@@ -39,10 +39,11 @@
   args:
     creates: "{{ local_repos_base_dir }}/extra-repos/repodata/repomd.xml"
 
-- name: Add extra-repos repository
+- name: Manage extra-repos repository
   zypper_repository:
     name: "extra-repos"
     priority: 90
     repo: "{{ local_repos_base_dir }}/extra-repos"
     disable_gpg_check: true
-    state: present
+    enabled: "{{ zypper_repo_enabled }}"
+    state: "{{ zypper_repo_state }}"

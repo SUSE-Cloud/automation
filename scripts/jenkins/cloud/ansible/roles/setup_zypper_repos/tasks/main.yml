@@ -15,6 +15,9 @@
 #
 ---
 
+- name: Verify zypper repo state, enabled & delete settings
+  include_tasks: check_settings.yml
+
 - name: Gather variables when milestone cloudsousrce
   include_vars: "milestone.yml"
   when: is_milestone
@@ -30,7 +33,14 @@
     - include_maint_update
     - maint_updates_list | length
 
-- include_tasks: add_extra_repos.yml
+- block:
+    - include_tasks: add_extra_repos.yml
+      when:
+        - zypper_repo_state == "present"
+
+    - include_tasks: remove_extra_repos.yml
+      when:
+        - zypper_repo_state == "absent"
   when:
     - extra_repos_list | length
     - cloud_product == 'ardana'

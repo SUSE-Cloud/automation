@@ -15,19 +15,43 @@
 #
 ---
 
-- name: Download media "{{ media[cloud_release].name }}"
-  get_url:
-   url: "{{ media[cloud_release].url }}/{{ media[cloud_release].iso }}"
-   dest: "{{ media[cloud_release].dest }}"
-   mode: 0440
-  register: download_media
-  until: download_media is succeeded
-  retries: 5
-  delay: 3
+# Download ISO and add/enable/disable repo based on ISO
+- block:
+    - name: Download media "{{ media[cloud_release].name }}"
+      get_url:
+       url: "{{ media[cloud_release].url }}/{{ media[cloud_release].iso }}"
+       dest: "{{ media[cloud_release].dest }}"
+       mode: 0440
+      register: download_media
+      until: download_media is succeeded
+      retries: 5
+      delay: 3
 
-- name: Add media as zypper repository
-  zypper_repository:
-    name: "{{ media[cloud_release].name }}"
-    repo: "iso:///?iso={{ media[cloud_release].iso }}&url=dir:{{ media[cloud_release].dest }}"
-    auto_import_keys: yes
-    runrefresh: yes
+    - name: Manage media as zypper repository
+      zypper_repository:
+        name: "{{ media[cloud_release].name }}"
+        repo: "iso:///?iso={{ media[cloud_release].iso }}&url=dir:{{ media[cloud_release].dest }}"
+        auto_import_keys: yes
+        runrefresh: yes
+        state: "{{ zypper_repo_state }}"
+        enabled: "{{ zypper_repo_enabled }}"
+
+  when:
+    - zypper_repo_state == "present"
+
+# Remove ISO based repo definition and ISO if specified
+- block:
+    - name: Remove media as zypper repository
+      zypper_repository:
+        name: "{{ media[cloud_release].name }}"
+        state: "{{ zypper_repo_state }}"
+
+    - name: Delete media "{{ media[cloud_release].name }}"
+      file:
+        name: "{{ media[cloud_release].dest }}"
+        state: absent
+      when:
+        - zypper_repo_delete | bool
+
+  when:
+    - zypper_repo_state == "absent"

@@ -1,0 +1,45 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Fail if zypper repo enabled or state values not valid
+  fail:
+    msg: |
+      Valid values for zypper_repo_enabled and zypper_repo_state are
+        zypper_repo_enabled = [yes | no | true | false]
+        zypper_repo_state = [present | absent]
+  when:
+     # unquoted yes/no possibly converted to boolean values
+     - (zypper_repo_enabled not in ["yes", "no", true, false]) or
+       (zypper_repo_state not in ["present", "absent"])
+
+- name: Fail if zypper_repo_state preconditions not met
+  fail:
+    msg: |
+      zypper_repo_enabled should not be 'yes' when zypper_repo_state is
+      'absent'.
+  when:
+     - zypper_repo_enabled in ["yes", true]
+     - zypper_repo_state == "absent"
+
+- name: Fail if zypper_repo_delete preconditions not met
+  fail:
+    msg: |
+      zypper_repo_delete should not be true unless zypper_repo_state is
+      'absent' and zypper_repo_enabled is 'no'.
+  when:
+    - zypper_repo_delete | bool
+    - (zypper_repo_state != "absent") or (zypper_repo_enabled in ["yes", true])
