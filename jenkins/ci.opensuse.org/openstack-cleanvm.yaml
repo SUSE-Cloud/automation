@@ -49,6 +49,16 @@
       - 'openstack-cleanvm-{release}'
 
 - project:
+    name: openstack-cleanvm-Train
+    disabled: false
+    release: Train
+    image:
+      - SLE_15_SP1
+      - openSUSE-Leap-15.1
+    jobs:
+      - 'openstack-cleanvm-{release}'
+
+- project:
     name: openstack-cleanvm-Master
     disabled: false
     release: Master

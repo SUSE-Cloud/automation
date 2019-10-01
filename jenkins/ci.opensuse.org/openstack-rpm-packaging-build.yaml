@@ -15,3 +15,5 @@
             release: 'Rocky'
         - 'openstack-rpm-packaging-sles15-{release}':
             release: 'Stein'
+        - 'openstack-rpm-packaging-sles15-{release}':
+            release: 'Train'
