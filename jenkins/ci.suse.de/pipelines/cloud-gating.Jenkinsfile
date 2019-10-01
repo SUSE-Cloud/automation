@@ -110,8 +110,10 @@ pipeline {
             string(name: 'project', value: "Devel:Cloud:${version}"),
             string(name: 'starttime', value: "${starttime}"),
             string(name: 'subproject', value: "Staging"),
-            string(name: 'package_whitelist', value: "ardana venv"),
-            string(name: 'package_blacklist', value: "crowbar")
+            // for unified gated we want everything white listed
+            // and nothing black listed.
+            string(name: 'package_whitelist', value: ""),
+            string(name: 'package_blacklist', value: "")
           ])
         }
       }
