@@ -84,6 +84,7 @@
 
           pkg_white=$(awk '{$1=$1};1 {gsub(" ", "|");}1' <<< "${package_whitelist}")
           pkg_black=$(awk '{$1=$1};1 {gsub(" ", "|");}1' <<< "${package_blacklist}")
+          [ -n "$pkg_black" ] || pkg_black=there-was-no-blacklist
 
           for component in `$osc ls $coss 2>/dev/null | grep -E "^(${pkg_white})" | grep -Ev "^(${pkg_black})" | grep -v "^_product"` ; do
               cd $bs_checkout
