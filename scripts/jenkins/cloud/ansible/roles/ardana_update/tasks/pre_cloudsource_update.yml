@@ -27,27 +27,6 @@
     - '-b -a "rpm --import /tmp/content.key"'
   when: "'staging' in cloudsource or 'devel' in cloudsource"
 
-# This is needed to trick ardana repo check that the repository is a Cloud-Updates
-# repo.
-- name: Add cloud update tag to repomd when cloudsource is not a update repo
-  lineinfile:
-    path: "/srv/www/suse-{{ ansible_distribution_version }}/x86_64/repos/{{ cloud_update_repo_name }}/suse/repodata/repomd.xml"
-    insertafter: "<tags>"
-    line: "    <repo>obsrepository://build.suse.de/SUSE:Updates:{{ cloud_brand | replace('SUSE-', '') }}:{{ cloud_release[-1] }}:x86_64/update</repo>"
-  when: "'+up' not in cloudsource"
-  become: yes
-
-- name: Remove and add back Cloud update repo on all nodes to prevent repomd error
-  command: |
-    ansible -b -m zypper_repository -a "name={{ cloud_update_repo_name }}
-      repo={{ deployer_repo_base_url }}/{{ cloud_update_repo_name }} state={{ item }}"
-      'resources:!*rhel*:!ARD-SVC--first-member'
-  args:
-    chdir: "{{ ardana_scratch_path }}"
-  loop:
-    - "absent"
-    - "present"
-
 # Updating to another cloudsource may change the package vendor (SUSE LLC, obs)
 # disabling vendor stickiness allows the ardana update playbook to include those
 # packages on the update

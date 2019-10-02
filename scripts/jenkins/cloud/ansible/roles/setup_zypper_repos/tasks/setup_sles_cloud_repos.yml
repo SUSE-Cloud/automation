@@ -15,9 +15,16 @@
 #
 ---
 
+# If this task is included more than once as part of a single ansible-playbook
+# top-level command, the subsequent runs will inherit the list created/updated
+# by the earlier runs, which isn't always desirable.
+- name: Initialise repos_to_add as an empty list
+  set_fact:
+    repos_to_add: []
+
 - name: Gather repos to add
   set_fact:
-    repos_to_add: "{{ repos_to_add | default([]) + item.repo }}"
+    repos_to_add: "{{ repos_to_add + item.repo }}"
   when: "item.enabled | default(True)"
   loop:
     - repo: "{{ base_repos }}"
@@ -50,6 +57,24 @@
   retries: 5
   until: sync_result.rc != 24
   delay: 300
+
+- name: Add Pool tag to relevant rsync'd repos
+  lineinfile:
+    path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}/suse/repodata/repomd.xml"
+    insertafter: "<tags>"
+    line: "    <repo>obsproduct://build.suse.de/SUSE:{{ cloud_pool_tag }}</repo>"
+  loop: "{{ repos_to_sync }}"
+  when:
+    - item.endswith('-devel') or item.endswith('-devel-staging')
+
+- name: Add Updates tag to relevant rsync'd repos
+  lineinfile:
+    path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}/suse/repodata/repomd.xml"
+    insertafter: "<tags>"
+    line: "    <repo>obsrepository://build.suse.de/SUSE:{{ cloud_updates_tag }}</repo>"
+  loop: "{{ repos_to_sync }}"
+  when:
+    - item.endswith('-devel') or item.endswith('-devel-staging')
 
 - name: Mount repos that are not frequently updated
   mount:
