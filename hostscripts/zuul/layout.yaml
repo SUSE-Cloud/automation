@@ -85,6 +85,11 @@ jobs:
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Stein-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Stein-{build.build_set.commit}
 
+  - name: openstack-rpm-packaging-sles15-Train
+    branch: stable/train
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Train-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Train-{build.build_set.commit}
+
   - name: openstack-rpm-packaging-update-Master
     branch: master
 
