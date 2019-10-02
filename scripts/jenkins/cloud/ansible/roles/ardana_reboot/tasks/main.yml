@@ -15,17 +15,43 @@
 #
 ---
 
-- name: Get list of non-deployer nodes
-  shell: |
-    deployer=`grep -A 1 ARD-SVC--first-member hosts/verb_hosts | tail -1`
-    for line in $(awk '/resources/' RS= hosts/verb_hosts); do
-      if [[ $deployer != *$line* ]]; then
-        echo $line
-      fi
-    done
+- name: Get deployer node
+  command: |
+    ansible 'OPS-LM--first-member' --list-hosts
   args:
     chdir: "{{ ardana_scratch_path }}"
-  register: ardana_nodes
+  register: ardana_deployer_result
+  changed_when: False
+
+- name: Get list of non-deployer non-compute i.e. controller nodes
+  command: |
+    ansible 'resources:!OPS-LM--first-member:!NOV-CMP' --list-hosts
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  register: ardana_controllers_result
+  changed_when: False
+
+- name: Get list of non-deployer compute nodes
+  command: |
+    ansible 'resources:!OPS-LM--first-member:&NOV-CMP' --list-hosts
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  register: ardana_computes_result
+  changed_when: False
+
+- name: Set node variables
+  set_fact:
+    ardana_deployer: "{{ ardana_deployer_result.stdout | trim }}"
+    ardana_controllers: "{{ ardana_controllers_result.stdout_lines | map('trim') | list }}"
+    ardana_computes: "{{ ardana_computes_result.stdout_lines | map('trim') | list }}"
+
+- debug:
+    var: "{{ item }}"
+    verbosity: 1
+  with_items:
+    - ardana_deployer
+    - ardana_controllers
+    - ardana_computes
 
 - include_tasks: reboot_nodes.yml
 

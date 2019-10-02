@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2018 SUSE LLC
+# (c) Copyright 2020 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -20,6 +20,18 @@
   environment:
     ARDANA_INIT_AUTO: 1
 
+- name: Copy up input model upgrade script
+  copy:
+    src: "{{ cloud_release }}-input-model-upgrade"
+    dest: "~/cloud-input-model-upgrade"
+    mode: 0755
+  register: ansible_copy_input_model_upgrade
+
+- name: Run input model upgrade script
+  shell: >-
+    ~/cloud-input-model-upgrade
+  register: ansible_input_model_upgrade
+
 - name: Run playbooks from "{{ ardana_openstack_path }}"
   command: |
     ansible-playbook -i hosts/localhost {{ item.play }}
@@ -30,6 +42,8 @@
   when:
     - item.when | default(True)
     - not (ansible_openstack_plays | default({})) is failed
+
+- include_tasks: update_status.yml
 
 - name: Clear pending CLM update status
   command: |

@@ -1,5 +1,6 @@
-#
-# (c) Copyright 2019 SUSE LLC
+#!/bin/bash
+
+# (c) Copyright 2020 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -12,15 +13,15 @@
 # WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
 # License for the specific language governing permissions and limitations
 # under the License.
-#
----
 
-- name: Run ardana-update playbook to update services on all nodes serially
-  command: |
-    ansible-playbook ardana-update.yml \
-      --limit {{ item }} -e '{{ ardana_extra_vars|to_json }}'
-  args:
-    chdir: "{{ ardana_scratch_path }}"
-  environment:
-    SKIP_REPO_CHECKS: 1
-  loop: "['OPS-LM--first-member:tempest_all'] + {{ ardana_nodes.stdout_lines }}"
+set -e
+
+source lib.sh
+
+validate_input
+setup_ansible_venv
+mitogen_enable
+
+trap exit_msg EXIT
+
+upgrade_cloud

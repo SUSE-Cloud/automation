@@ -22,6 +22,11 @@ debug: False
 
 upgrade_cloudsource: ""
 
+# The upgrade release is encoded in the upgrade_cloudsource value
+upgrade_release_number: "{{ upgrade_cloudsource | regex_search('\\d') }}"
+upgrade_release: "{{ (upgrade_release_number | length) |
+                     ternary('cloud' ~ upgrade_release_number, '') }}"
+
 # cloud product can be ardana or crowbar
 cloud_product: "ardana"
 

@@ -32,5 +32,6 @@ deploy_ses_vcloud
 bootstrap_nodes
 deploy_cloud
 update_cloud
+upgrade_cloud
 run_tempest
 run_qa_tests

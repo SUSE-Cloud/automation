@@ -28,13 +28,22 @@
 
 - name: Run post-reboot playbook on deployer
   command: |
-    ansible-playbook _ardana-post-reboot.yml --limit ARD-SVC--first-member  -e '{{ ardana_extra_vars|to_json }}'
+    ansible-playbook _ardana-post-reboot.yml --limit {{ ardana_deployer }}  -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"
 
-- name: Reboot non-deployer nodes serially
+- name: Reboot non-deployer controller nodes serially, if any
   command: |
     ansible-playbook ardana-reboot.yml --limit {{ item }} -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"
-  loop: "{{ ardana_nodes.stdout_lines }}"
+  loop: "{{ ardana_controllers }}"
+  when: (ardana_controllers | count) > 0
+
+- name: Reboot compute nodes serially, if any
+  command: |
+    ansible-playbook ardana-reboot.yml --limit {{ item }} -e '{{ ardana_extra_vars|to_json }}'
+  args:
+    chdir: "{{ ardana_scratch_path }}"
+  loop: "{{ ardana_computes }}"
+  when: (ardana_computes | count) > 0

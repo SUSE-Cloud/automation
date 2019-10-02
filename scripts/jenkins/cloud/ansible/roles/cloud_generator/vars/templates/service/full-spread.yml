@@ -37,7 +37,7 @@ service_groups:
   - name: clm
     type: cluster
     prefix: clm
-    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
     member_count: '{{ (clm_model == "standalone") | ternary(1, 0) }}'
     service_components:
       - CLM
@@ -53,14 +53,14 @@ service_groups:
   - name: lmm
     type: cluster
     prefix: lmm
-    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-controller"
     member_count: '{{ lmm_nodes|default(3) }}'
     service_components:
       - LMM
   - name: dbmq
     type: cluster
     prefix: dbmq
-    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-minimal"
+    heat_flavor_id: "{{ vcloud_flavor_name_prefix }}-compute"
     member_count: '{{ dbmq_nodes|default(3) }}'
     service_components:
       - DBMQ
