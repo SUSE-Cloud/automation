@@ -21,7 +21,6 @@
     cloud_gating_job:
       - cloud-7-gating:
           version: '7'
-          skip_submit_project: 'true'
       - cloud-8-gating:
           version: '8'
       - cloud-9-gating:
