@@ -2463,7 +2463,7 @@ function custom_configuration
         ;;
         dns)
             [ "$want_multidnstest" = 1 ] || return 0
-            local cmachines=$(get_all_suse_nodes | head -n 3)
+            local cmachines=$(get_all_suse_nodes | head -n 3 | tail -n 2)
             local dnsnodes=`echo \"$cmachines\" | sed 's/ /", "/g'`
             proposal_set_value dns default "['attributes']['dns']['records']['multi-dns']" "{}"
             [[ $want_designate_proposal = 1 ]] && proposal_set_value dns default "['attributes']['dns']['enable_designate']" true
