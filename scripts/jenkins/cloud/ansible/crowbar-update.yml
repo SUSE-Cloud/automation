@@ -72,10 +72,16 @@
           when:
             - reboot_after_deploy
 
-        - include_role:
-            name: crowbar_setup
-          vars:
-            qa_crowbarsetup_cmd: "crowbar batch export | crowbar batch --timeout 2400 build"
+        - name: Run chef-client on all nodes
+          command: "chef-client"
+          delegate_to: "{{ item }}"
+          loop: "{{ groups['cloud_virt_hosts'] + [cloud_env] }}"
+
+        - name: Run 'crowbar batch export | crowbar batch --timeout 2400 build' on the admin node
+          shell: |
+            set -o pipefail
+            crowbar batch export | crowbar batch --timeout 2400 build 2>&1 |\
+              tee -a {{ qa_crowbarsetup_log }}
 
       rescue:
         - include_role:

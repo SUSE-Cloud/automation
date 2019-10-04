@@ -35,5 +35,11 @@
     - extra_repos_list | length
     - cloud_product == 'ardana'
 
+- name: Refresh all repositories
+  zypper_repository:
+    repo: '*'
+    runrefresh: yes
+    auto_import_keys: "{{ 'devel' in cloudsource or 'staging' in cloudsource or extra_repos_list | length > 0 }}"
+
 - include_tasks: set_motd.yml
   when: task == 'deploy'

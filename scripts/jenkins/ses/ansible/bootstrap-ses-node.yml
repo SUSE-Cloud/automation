@@ -14,7 +14,7 @@
 # under the License.
 #
 ---
-  
+
 - name: Bootstrap SES node
   hosts: ses
   remote_user: root
@@ -59,6 +59,10 @@
           repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-Pool/"
         - name: "SUSE-OpenStack-Cloud-8-Updates"
           repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-Updates/"
+      register: _base_repos
+      retries: 6
+      delay: 5
+      until: _base_repos is succeeded
 
     - name: Install packages
       zypper:
