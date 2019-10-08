@@ -15,8 +15,6 @@
 #
 ---
 
-- include_tasks: os_health_requires.yml
-
 - name: Setup subunit2sql
   pip:
     name: "{{ item }}"

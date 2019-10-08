@@ -37,9 +37,3 @@
       --run_meta "{{ os_health_metadata | join(',') }}" --artifacts "{{ jenkins_artifacts_url }}" {{ test_results_subunit }}
   changed_when: false
 
-# NOTE: Removing SLE-SDK repos and packages required for subunit2sql
-# as they were affecting maintenance updates
-- include_tasks: os_health_requires.yml
-  vars:
-    os_health_requires_state: "absent"
-  when: not _subunit2sql.stat.exists
