@@ -78,3 +78,8 @@
     state: present
   when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
   loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
+  register: add_mu_repos_output
+
+- fail:
+    msg: No repositories added
+  when: not add_mu_repos_output.changed
