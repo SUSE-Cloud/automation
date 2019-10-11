@@ -61,6 +61,9 @@
     - rhel_enabled
     - ses_enabled
 
+- include_tasks: setup_openid_connect.yml
+  when: openid_connect_enabled
+
 - include_tasks: reimage_nodes.yml
   when: is_physical_deploy
 

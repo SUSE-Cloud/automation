@@ -206,6 +206,10 @@ ses_enabled: true
 # if ses_enabled is set to true.
 ses_rgw_enabled: false
 
+#============= OpenID Connect =============#
+# Enable OpenID Connect feature in Keystone and configure it with a bogus IdP
+# for validation purposes (i.e. make sure nothing breaks by default).
+openid_connect_enabled: true
 
 #============= Tests =============#
 # Name of the filter file to use for tempest in Ardana.

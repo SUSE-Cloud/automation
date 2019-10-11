@@ -312,6 +312,11 @@
             NOTE: tempest does not support testing RADOS Gateway, so failures on object_storage
             tempest tests are expected when ses_rgw_enabled is set to true.
 
+      - bool:
+          name: openid_connect_enabled
+          default: '{openid_connect_enabled|true}'
+          description: Enable OpenID Connect feature in keystone and configure it with a bogus IdP for testing purposes.
+
       - choice:
           name: rhel_os
           choices:
