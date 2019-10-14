@@ -7,12 +7,23 @@
     cloud_url_trigger_job:
       - cloud-7-gating-trigger:
           version: '7'
+    jobs:
+      - '{cloud_url_trigger_job}'
+
+- project:
+    name: cloud-unified-gating-trigger
+    soc_url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-{version}-devel-staging/media.1/build'
+    socc_url: 'http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-Crowbar-{version}-devel-staging/media.1/build'
+    projects:
+      project: 'cloud-{version}-gating'
+      threshold: SUCCESS
+    cloud_unified_url_trigger_job:
       - cloud-8-gating-trigger:
           version: '8'
       - cloud-9-gating-trigger:
           version: '9'
     jobs:
-        - '{cloud_url_trigger_job}'
+      - '{cloud_unified_url_trigger_job}'
 
 - project:
     name: cloud-gating
