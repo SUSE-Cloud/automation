@@ -1,0 +1,38 @@
+- job-template:
+    name: '{cloud_unified_url_trigger_job}'
+    project-type: multijob
+    node: cloud-ci-trigger
+
+    triggers:
+      - pollurl:
+          cron: 'H/5 * * * *'
+          polling-node: cloud-ci-trigger
+          urls:
+            - url: '{soc_url}'
+              check-date: '{check_date|false}'
+              check-content:
+                - simple: true
+            - url: '{socc_url}'
+              check-date: '{check_date|false}'
+              check-content:
+                - simple: true
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 14
+
+    builders:
+      - shell:
+          command: |
+            # Check if Ardana and Crowbar has the same build number and if not,
+            # set the job status to unstable consequently not triggering the
+            # cloud-gating job
+
+            soc_build=$(curl -s {soc_url} | cut -d'-' -f6)
+            socc_build=$(curl -s {socc_url} | cut -d'-' -f7)
+
+            [[ $soc_build == $socc_build ]]
+          unstable-return: 1
+
+    publishers:
+      - trigger: '{projects}'
