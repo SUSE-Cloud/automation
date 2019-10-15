@@ -18,6 +18,14 @@ proposals:
   attributes:
     api:
       region: 'CustomRegion'
+    federation:
+      openidc:
+        enabled: true
+        identity_provider: 'google'
+        metadata_url: 'https://accounts.google.com/.well-known/openid-configuration'
+        client_id: 'bogusclientid'
+        client_secret: 'bogusclientsecret'
+        redirect_uri: 'https://www.myenterprise.com:5000/v3/OS-FEDERATION/identity_providers/google/protocols/openid/auth'
   deployment:
     elements:
       keystone-server:
