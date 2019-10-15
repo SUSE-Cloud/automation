@@ -40,6 +40,7 @@ projects:
       - openstack-rpm-packaging-sles12-Queens
       - openstack-rpm-packaging-sles12-Rocky
       - openstack-rpm-packaging-sles15-Stein
+      - openstack-rpm-packaging-sles15-Train
     post-rpm-packaging:
       - openstack-rpm-packaging-update-Master
       - openstack-rpm-packaging-update-Newton
@@ -48,6 +49,7 @@ projects:
       - openstack-rpm-packaging-update-Queens
       - openstack-rpm-packaging-update-Rocky
       - openstack-rpm-packaging-update-Stein
+      - openstack-rpm-packaging-update-Train
 
 jobs:
   - name: openstack-rpm-packaging-sles15-Master
