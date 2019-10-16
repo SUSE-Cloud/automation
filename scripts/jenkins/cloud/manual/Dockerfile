@@ -20,6 +20,8 @@ RUN zypper addrepo --refresh http://download.suse.de/ibs/SUSE:/Factory:/Head/sta
 
 RUN zypper --gpg-auto-import-keys refresh
 
+RUN zypper --non-interactive remove kubic-locale-archive
+
 RUN zypper --non-interactive --gpg-auto-import-keys install \
         autoconf \
         automake \
