@@ -1,0 +1,39 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Enable OpenID Connect in Keystone
+  blockinfile:
+    path: "{{ ardana_openstack_path }}/roles/keystone-common/vars/keystone_deploy_config.yml" 
+    block: |
+      keystone_openid_connect_conf:
+          identity_provider: google
+          response_type: id_token
+          scope: "openid email profile"
+          metadata_url: https://accounts.google.com/.well-known/openid-configuration
+          client_id: bogusclientid
+          client_secret: bogusclientsecret
+          redirect_uri: https://www.myenterprise.com:5000/v3/OS-FEDERATION/identity_providers/google/protocols/openid/auth
+          crypto_passphrase: ""
+  register: openid_connect_bogus_idp_config
+
+- name: Commit Keystone OpenID Connect config changes
+  shell: >-
+    git add -A &&
+    git commit -m 'Configure OpenID Connect'
+  args:
+    chdir: "{{ ardana_openstack_path }}"
+  when: openid_connect_bogus_idp_config is changed
