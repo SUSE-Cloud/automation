@@ -22,23 +22,22 @@ RUN zypper --gpg-auto-import-keys refresh
 
 RUN zypper --non-interactive remove kubic-locale-archive
 
-RUN zypper --non-interactive --gpg-auto-import-keys install \
-        autoconf \
-        automake \
-        ca-certificates-suse \
-        gcc \
-        git-core \
-        python-devel \
-        python-virtualenv \
-        python3 \
-        python3-devel \
-        python3-virtualenv \
-        sudo \
-        sshpass \
-        tar \
-        vim \
-        vim-data \
-        wget
+RUN zypper --non-interactive --gpg-auto-import-keys install autoconf
+RUN zypper --non-interactive --gpg-auto-import-keys install automake
+RUN zypper --non-interactive --gpg-auto-import-keys install ca-certificates-suse
+RUN zypper --non-interactive --gpg-auto-import-keys install gcc
+RUN zypper --non-interactive --gpg-auto-import-keys install git-core
+RUN zypper --non-interactive --gpg-auto-import-keys install python-devel
+RUN zypper --non-interactive --gpg-auto-import-keys install python-virtualenv
+RUN zypper --non-interactive --gpg-auto-import-keys install python3
+RUN zypper --non-interactive --gpg-auto-import-keys install python3-devel
+RUN zypper --non-interactive --gpg-auto-import-keys install python3-virtualenv
+RUN zypper --non-interactive --gpg-auto-import-keys install sudo
+RUN zypper --non-interactive --gpg-auto-import-keys install sshpass
+RUN zypper --non-interactive --gpg-auto-import-keys install tar
+RUN zypper --non-interactive --gpg-auto-import-keys install vim
+RUN zypper --non-interactive --gpg-auto-import-keys install vim-data
+RUN zypper --non-interactive --gpg-auto-import-keys install wget
 
 COPY requirements.txt /tmp/requirements.txt
 
