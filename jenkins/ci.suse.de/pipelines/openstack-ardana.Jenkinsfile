@@ -9,11 +9,11 @@ pipeline {
     // skip the default checkout, because we want to use a custom path
     skipDefaultCheckout()
     timestamps()
-    // reserve a resource if instructed to do so, otherwise use a dummy resource
-    // and a zero quantity to fool Jenkins into thinking it reserved a resource when in fact it didn't
-    lock(label: reserve_env == 'true' ? cloud_env:'dummy-resource',
-         variable: 'reserved_env',
-         quantity: reserve_env == 'true' ? 1:0 )
+    // reserve a resource if instructed to do so, otherwise use an empty resource list
+    lock(
+      variable: 'reserved_env',
+      extra: (reserve_env == 'true' ? [[label: cloud_env, quantity: 1]] : [])
+    )
   }
 
   agent {
