@@ -121,6 +121,7 @@ export want_ipv6={{ ipv6 | ternary (1, 0) }}
 
 {% set ipsep = ipv6 | ternary (':', '.') %}
 {% set subnet_prefix = ipv6 | ternary (subnet_prefix.ipv6, subnet_prefix.ipv4) %}
+{% set neutron_subnet_prefix = ipv6 | ternary (neutron_subnet_prefix.ipv6, neutron_subnet_prefix.ipv4) %}
 
 export net_public={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+1 }}
 export net_sdn={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+2 }}
@@ -133,5 +134,10 @@ export vlan_sdn={{ gen_subnet_start+2 }}
 export vlan_storage={{ gen_subnet_start+3 }}
 export vlan_fixed={{ gen_subnet_start+4 }}
 export vlan_ceph={{ gen_subnet_start+5 }}
+
+{% if 'octavia' in deployments %}
+export net_octavia={{ neutron_subnet_prefix }}{{ ipsep }}30{{ ipsep }}1
+export vlan_octavia={{ gen_subnet_start+4 }}
+{% endif %}
 
 # NOTE: might also need some of the other variables starting with vlan_ , want_ and net_

@@ -9,6 +9,7 @@ network_groups:
       - MANAGEMENT
       - INTERNAL-API
       - EXTERNAL-API
+      - NEUTRON-VLAN
 
   - name: PUBLIC
     hostname_suffix: public

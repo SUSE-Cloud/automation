@@ -2040,8 +2040,9 @@ function proposal_append_value
 
 function setup_trusted_cert
 {
-    local certfile=$1
-    local keyfile=$2
+    local certtype=$1
+    local certfile=$2
+    local keyfile=$3
 
     if [[ $hacloud = 1 ]] ; then
         cluster_node_assignment
@@ -2053,40 +2054,108 @@ function setup_trusted_cert
         local cn=$controller_nodes
     fi
 
-    if [ ! -f $cn.pem ] ; then
+    if [ ! -f rootca.pem ] ; then
+        # Generate Root CA key
+        openssl genrsa -aes256 -out rootca.key -passout pass:"crowbar" 4096
         # Generate Root CA
-        openssl req -x509 -newkey rsa:2048 -keyout rootca.key -out rootca.pem \
+        openssl req -x509 -key rootca.key -out rootca.pem \
+            -passin pass:"crowbar" \
             -days 365 -nodes \
             -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
-        # Generate CSR
-        subj_alt="DNS:${cn},DNS:public-${cn},DNS:public.${cn}"
+    fi
+
+    subj_alt="DNS:${cn},DNS:public-${cn},DNS:public.${cn}"
+
+    if [ "$certtype" == "server" ] && [ ! -f $cn.server.pem ] ; then
+        # Generate server CSR
         # openssl 1.1.1 supports setting the subjectAltName directly in the command line,
         # but SLES 12 SP4 only has 1.0.2 so we need to read in the config like this
-        openssl req -new -newkey rsa:2048 -keyout $cn.key -out $cn.csr \
+        openssl req -new -newkey rsa:2048 -keyout $cn.server.key -out $cn.server.csr \
             -days 365 -nodes \
             -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=${cn}" \
             -config <(sed -e "/^\[ req \]/areq_extensions = v3_req" \
                         -e "/^\[ v3_req \]/asubjectAltName=${subj_alt}" \
                         /etc/ssl/openssl.cnf )
-        # Generate Cert
-        openssl x509 -req -in $cn.csr -CA rootca.pem -CAkey rootca.key \
-            -CAcreateserial -days 365 -out $cn.pem \
+        # Generate server Cert
+        openssl x509 -req -in $cn.server.csr -CA rootca.pem -CAkey rootca.key \
+            -passin pass:"crowbar" \
+            -CAcreateserial -days 365 -out $cn.server.pem \
             -extensions v3_ca \
             -extfile <(sed -e "/^\[ v3_ca \]/asubjectAltName=${subj_alt}" \
                         /etc/ssl/openssl.cnf )
+    fi
 
+    if [ "$certtype" == "client" ] && [ ! -f $cn.client.pem ] ; then
+        # Generate CSR for client cert
+        subj_alt="DNS:${cn},DNS:public-${cn},DNS:public.${cn}"
+        # openssl 1.1.1 supports setting the subjectAltName directly in the command line,
+        # but SLES 12 SP4 only has 1.0.2 so we need to read in the config like this
+        openssl req -new -newkey rsa:2048 -keyout $cn.client.key -out $cn.client.csr \
+            -days 365 -nodes \
+            -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=${cn}" \
+            -config <(sed -e "/^\[ req \]/areq_extensions = v3_req" \
+                        -e "/^\[ v3_req \]/asubjectAltName=${subj_alt}" \
+                        /etc/ssl/openssl.cnf )
+        # Generate client Cert
+        openssl x509 -req -in $cn.client.csr -CA rootca.pem -CAkey rootca.key \
+            -passin pass:"crowbar" \
+            -CAcreateserial -days 365 -out $cn.client.cert.pem \
+            -extensions usr_cert \
+            -extfile <(sed -e "/^\[ req \]/areq_extensions = usr_cert" \
+                        -e "/^\[ usr_cert \]/asubjectAltName=${subj_alt}" \
+                        /etc/ssl/openssl.cnf )
+        # Include key and certificate together in the same file
+        openssl rsa -in $cn.client.key -out $cn.client.pem -passin pass:"crowbar"
+        cat $cn.client.cert.pem >> $cn.client.pem
     fi
 
     local node
     for node in $controller_nodes; do
         ssh $node mkdir -p $(dirname $certfile)
-        ssh $node mkdir -p $(dirname $keyfile)
-        scp $cn.pem $node:$certfile
-        scp $cn.key $node:$keyfile
+        scp $cn.$certtype.pem $node:$certfile
+        # Client certificate already includes key, so this isn't needed
+        if [ "$certtype" == "server" ]; then
+            ssh $node mkdir -p $(dirname $keyfile)
+            scp $cn.$certtype.key $node:$keyfile
+        fi
     done
     for node in $(get_all_discovered_nodes); do
         cat rootca.pem | ssh $node 'cat >> /etc/pki/trust/anchors/rootca.pem'
         ssh $node update-ca-certificates
+    done
+}
+
+function setup_octavia_cert
+{
+    local certpath=$1
+
+    if [[ $hacloud = 1 ]] ; then
+        cluster_node_assignment
+        local clusternodes_var=$(echo clusternodes${clusternameservices})
+        local controller_nodes=${!clusternodes_var}
+    else
+        local controller_nodes=($(get_all_discovered_nodes | head -n 1))
+    fi
+
+    for controller in $controller_nodes ; do
+        ssh $controller sh << EOF
+mkdir -p $certpath/private
+chmod 700 $certpath/private
+groupadd octavia
+useradd -G octavia octavia
+EOF
+    done
+
+    setup_trusted_cert client $certpath/private/client.cert-and-key.pem
+
+    for controller in $controller_nodes ; do
+        scp rootca.pem $controller:$certpath/ca.cert.pem
+        scp rootca.key $controller:$certpath/private/ca.key.pem
+        ssh $controller sh << EOF
+chown -R octavia:octavia $certpath
+chmod 400 $certpath/private/ca.key.pem
+chmod 700 $certpath/private/client.cert-and-key.pem
+EOF
     done
 }
 
@@ -2140,7 +2209,7 @@ function enable_ssl_generic
             $p "$a['apache']['ssl']" true
             local certfile=$(proposal_get_value $service default "$a['apache']['ssl_crt_file']")
             local keyfile=$(proposal_get_value $service default "$a['apache']['ssl_key_file']")
-            setup_trusted_cert $certfile $keyfile
+            setup_trusted_cert server $certfile $keyfile
             return
         ;;
         heat)
@@ -2174,7 +2243,7 @@ function enable_ssl_generic
     esac
     local certfile=$(proposal_get_value $service default "$a['ssl']['certfile']")
     local keyfile=$(proposal_get_value $service default "$a['ssl']['keyfile']")
-    setup_trusted_cert $certfile $keyfile
+    setup_trusted_cert server $certfile $keyfile
 }
 
 function enable_debug_generic
@@ -2734,6 +2803,11 @@ function custom_configuration
             fi
         ;;
         octavia)
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['passphrase']" "crowbar"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['server_ca_cert_path']" "ca.cert.pem"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['server_ca_key_path']" "private/ca.key.pem"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['client_ca_cert_path']" "ca.cert.pem"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['client_cert_and_key_path']" "private/client.cert-and-key.pem"
             if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
                 proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-api']" "['cluster:$clusternameservices']"
             fi
@@ -2745,6 +2819,9 @@ function custom_configuration
                 [[ $networkingplugin = linuxbridge ]] && networkingmode=vlan
             fi
             proposal_set_value neutron default "['attributes']['neutron']['use_lbaas']" "true"
+            if [[ $want_octavia_proposal > 0 ]]; then
+                proposal_set_value neutron default "['attributes']['neutron']['lbaasv2_driver']" "'octavia'"
+            fi
 
             if [[ $want_l3_ha = 1 ]]; then
                 if grep -q use_l3_ha /opt/dell/chef/data_bags/crowbar/template-neutron.json ; then
@@ -3263,6 +3340,9 @@ function deploy_single_proposal
                 echo "Octavia is SOC 9+ only. Skipping"
                 return
             fi
+            setup_octavia_cert /etc/octavia/certs
+            get_novacontroller
+            safely oncontroller octavia_network_setup
             ;;
         ironic)
             [[ $want_ironic = 1 ]] || return
@@ -4057,6 +4137,30 @@ function nova_services_up
     fi
 }
 
+function oncontroller_octavia_network_setup
+{
+    local octavia_network_name="lb-mgmt-net"
+    local octavia_subnet_name=$octavia_network_name
+
+    . ~/.openrc
+    if ! openstack network list --format value -c Name | grep -q "^${octavia_network_name}$"; then
+        openstack network create --project service \
+            --provider-network-type vlan \
+            --provider-segment $vlan_octavia \
+            --provider-physical-network physnet1 \
+            --external \
+            $octavia_network_name
+    fi
+
+    if ! openstack subnet list --format value -c Name | grep -q "^${octavia_subnet_name}$"; then
+        openstack subnet create --project service \
+            --network $octavia_network_name \
+            --subnet-range $net_octavia.0/24 \
+            --gateway $net_octavia.1 \
+            $octavia_subnet_name
+    fi
+}
+
 function oncontroller_check_crm_failcounts
 {
     if iscloudver 7plus && [[ $hacloud = 1 && ( $1 = "disallowskipfailcount" || $want_crm_failcount_skip != 1 ) ]] ; then
@@ -4591,7 +4695,7 @@ function set_keystone_endpoint
     if [ "$protocol" == "https" ] ; then
         local certfile=$(proposal_get_value keystone default "['attributes']['keystone']['ssl']['certfile']")
         local keyfile=$(proposal_get_value keystone default "['attributes']['keystone']['ssl']['keyfile']")
-        setup_trusted_cert $certfile $keyfile
+        setup_trusted_cert server $certfile $keyfile
     fi
     crowbar batch export keystone | ruby -ryaml -e "
 y = YAML.load(ARGF)
@@ -6026,7 +6130,18 @@ function onadmin_batch
         exclude="$exclude --exclude ceph"
     fi
 
+    if grep -q "barclamp: octavia" ${scenario}; then
+        # Need neutron deployed first to create the Octavia management network
+        exclude="$exclude --exclude octavia"
+    fi
+
     safely crowbar batch $exclude --timeout 3600 build ${scenario}
+    if grep -q "barclamp: octavia" ${scenario}; then
+        get_novacontroller
+        setup_octavia_cert /etc/octavia/certs
+        safely oncontroller octavia_network_setup
+        safely crowbar batch --include octavia --timeout 3600 build ${scenario}
+    fi
     if grep -q "barclamp: manila" ${scenario}; then
         get_novacontroller
         safely oncontroller manila_generic_driver_setup
