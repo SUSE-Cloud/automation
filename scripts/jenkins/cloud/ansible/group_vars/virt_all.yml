@@ -28,6 +28,7 @@ ardana_common_extra_vars:
   # flush operations, to account for its high latency and prevent performance
   # issues
   innodb_flush_log_at_trx_commit: "{{ ardana_dbmq_use_root_volume | ternary(1, 2) }}"
+  local_image_mirror_url: "http://{{ clouddata_server }}/images/x86_64/openstack/"
 
 ardana_process_count_overrides:
   keystone_wsgi_admin_process_count: 2
