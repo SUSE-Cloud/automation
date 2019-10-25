@@ -210,7 +210,11 @@ pipeline {
       steps{
         script {
           if (cloud_type == 'virtual') {
-            cloud_lib.ansible_playbook('bootstrap-vcloud-nodes')
+            if (pxe_boot_enabled == 'true') {
+              cloud_lib.ansible_playbook('bootstrap-osbmc-nodes')
+            } else {
+              cloud_lib.ansible_playbook('bootstrap-vcloud-nodes')
+            }
           } else {
             cloud_lib.ansible_playbook('bootstrap-pcloud-nodes')
           }

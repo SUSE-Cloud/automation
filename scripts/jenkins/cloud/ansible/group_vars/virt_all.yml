@@ -18,6 +18,9 @@
 ses_cluster_id: "virt"
 ses_rgw_port: 8081
 
+cobbler_root_device: "/dev/vda"
+pxe_boot_enabled: False
+
 ardana_common_extra_vars:
   nova_migrate_enabled: "{{ ardana_nova_migrate_enabled }}"
   nova_cpu_mode: custom

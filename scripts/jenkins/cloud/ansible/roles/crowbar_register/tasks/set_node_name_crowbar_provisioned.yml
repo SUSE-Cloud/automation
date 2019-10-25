@@ -1,0 +1,15 @@
+---
+
+- name: Get nodes MAC addresses
+  command: |
+    openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
+      port list --network {{ cloud_env }}-cloud_management_net --fixed-ip \
+      ip-address={{ hostvars[item].ansible_host }} -c MAC\ Address -f value
+  loop: "{{ groups['cloud_virt_hosts'] }}"
+  register: _nodes_macs
+  delegate_to: localhost
+  run_once: True
+
+- name: set crowbar_node_name fact
+  set_fact:
+    crowbar_node_name: "d{{ _nodes_macs.results | selectattr('item', 'equalto', inventory_hostname) | map(attribute='stdout') | list | join(',') | replace(':', '-') }}.{{ cloud_fqdn }}"

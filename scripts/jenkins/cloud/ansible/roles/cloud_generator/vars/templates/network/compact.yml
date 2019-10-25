@@ -49,6 +49,6 @@ network_groups:
     component_endpoints:
       - NEUTRON-VXLAN
 
-  - name: ILO
-    hostname_suffix: ilo
+  - name: BMC
+    hostname_suffix: bmc
     component_endpoints: []

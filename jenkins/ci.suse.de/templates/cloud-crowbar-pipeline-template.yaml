@@ -96,6 +96,12 @@
             repositories, but skip the actual cloud deployment, e.g. for testing purposes.
 
       - bool:
+          name: pxe_boot_enabled
+          default: '{pxe_boot_enabled|false}'
+          description:
+            Infra nodes (besides the admin) will be provisioned by crowbar.
+
+      - bool:
           name: test_cloud
           default: '{test|true}'
           description: >-

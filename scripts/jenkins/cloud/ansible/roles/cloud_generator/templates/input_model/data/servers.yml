@@ -14,7 +14,7 @@
 # under the License.
 #
 ---
-{% set ns = namespace(clm_net_id=0, server_idx=0) %}
+{% set ns = namespace(clm_net_id=0, bmc_net_id=0, server_idx=0) %}
 {% for network_group in scenario['network_groups'] %}
 {%   if 'CLM' in network_group['component_endpoints'] %}
 {%     set ns.clm_net_id = loop.index0+gen_subnet_start %}
@@ -26,6 +26,17 @@
 {%       set ns.clm_net_id = loop.index0+gen_subnet_start %}
 {%     endif %}
 {%   endfor  %}
+{% endif %}
+{% if ns.bmc_net_id == 0 %}
+{%   if not scenario['network_groups'] | selectattr('name', 'equalto', 'BMC') | map(attribute='name') | list  %}
+{%     set ns.bmc_net_id = ns.clm_net_id %}
+{%   else %}
+{%     for network_group in scenario['network_groups'] %}
+{%       if network_group['name'] == 'BMC' %}
+{%         set ns.bmc_net_id = loop.index0+gen_subnet_start %}
+{%       endif %}
+{%     endfor  %}
+{%   endif %}
 {% endif %}
   product:
     version: 2
@@ -48,8 +59,13 @@
       ilo-password: {{ bm_info.servers[ns.server_idx].ilo_password }}
       ilo-ip: {{ bm_info.servers[ns.server_idx].ilo_ip }}
       mac-addr: {{ bm_info.servers[ns.server_idx].mac_addr }}
-{% elif bm_info is not defined %}
-      # Generate dummy iLO credentials until bsc#1091459 is fixed
+{% elif bm_info is not defined and pxe_boot_enabled and (idx != 0 or 'CLM' not in service_group['service_components']) %}
+      ilo-user: 'admin'
+      ilo-password: 'password'
+      ilo-ip: {{ subnet_prefix.ipv4 }}.{{ ns.bmc_net_id }}.{{ ns.server_idx + gen_ip_start + bmc_ip_gap }}
+      mac-addr: "{{ (subnet_prefix.ipv4 ~ '.' ~ ns.clm_net_id ~ '.' ~ ns.server_idx) | ip4_hex(':') | random_mac }}"
+{% elif 'CLM' not in service_group.service_components %}
+      # Generate dummy iLO credentials for NON-CLM nodes (required by osconfig)
       ilo-user: 'ilouser'
       ilo-password: 'ilopasswd'
       ilo-ip: 10.1.1.{{ ns.server_idx + gen_ip_start }}

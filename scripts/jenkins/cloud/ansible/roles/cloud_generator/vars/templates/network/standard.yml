@@ -66,3 +66,8 @@ network_groups:
     hostname_suffix: storage
     tagged_vlan: true
     component_endpoints: []
+
+  - name: BMC
+    hostname_suffix: bmc
+    component_endpoints: []
+

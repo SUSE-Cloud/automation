@@ -87,6 +87,12 @@
             If true then cloud will be rebooted after deployment.
 
       - bool:
+          name: pxe_boot_enabled
+          default: '{pxe_boot_enabled|false}'
+          description:
+            Infra nodes (besides the CLM) will be provisioned by cobbler.
+
+      - bool:
           name: updates_test_enabled
           default: '{updates_test_enabled|true}'
           description: >-
