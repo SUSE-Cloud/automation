@@ -38,7 +38,7 @@
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
             designate,heat,magnum,monasca,lbaas"
     jobs:
-        - '{ardana_job}'
+      - '{ardana_job}'
 
 
 - project:
@@ -89,8 +89,7 @@
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
             heat,magnum,manila,lbaas"
     jobs:
-        - '{crowbar_job}'
-
+      - '{crowbar_job}'
 
 - project:
     name: cloud-crowbar-job-mu-ha-x86_64
@@ -140,4 +139,56 @@
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
             heat,magnum,manila,lbaas"
     jobs:
-        - '{crowbar_job}'
+      - '{crowbar_job}'
+
+- project:
+    name: cloud-crowbar-job-mu-linuxbridge-x86_64
+    reserve_env: false
+    updates_test_enabled: false
+    reboot_after_deploy: true
+    tempest_retry_failed: 'true'
+    neutron_networkingplugin: linuxbridge
+    crowbar_networkingmode: team
+    scenario_name: standard
+    controllers: '1'
+    computes: '2'
+    triggers: []
+    crowbar_job:
+      - cloud-crowbar7-job-mu-linuxbridge-deploy-x86_64:
+          cloudsource: GM7+up
+          ses_enabled: false
+          update_after_deploy: false
+      - cloud-crowbar7-job-mu-linuxbridge-update-x86_64:
+          cloudsource: GM7+up
+          ses_enabled: false
+          update_after_deploy: true
+      - cloud-crowbar8-job-mu-linuxbridge-deploy-x86_64:
+          cloudsource: GM8+up
+          ses_enabled: false
+          update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
+            fwaas,trove,aodh,heat,magnum,manila,lbaas"
+      - cloud-crowbar8-job-mu-linuxbridge-update-x86_64:
+          cloudsource: GM8+up
+          ses_enabled: false
+          update_after_deploy: true
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
+            fwaas,trove,aodh,heat,magnum,manila,lbaas"
+      - cloud-crowbar9-job-mu-linuxbridge-deploy-x86_64:
+          cloudsource: GM9+up
+          ses_enabled: true
+          update_after_deploy: false
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
+      - cloud-crowbar9-job-mu-linuxbridge-update-x86_64:
+          cloudsource: GM9+up
+          ses_enabled: true
+          update_after_deploy: true
+          tempest_filter_list: "\
+            keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
+            heat,magnum,manila,lbaas"
+    jobs:
+      - '{crowbar_job}'
