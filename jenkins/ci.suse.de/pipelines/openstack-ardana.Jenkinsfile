@@ -2,13 +2,12 @@
  * The openstack-ardana Jenkins Pipeline
  */
 
-def ardana_lib = null
-
 pipeline {
   options {
     // skip the default checkout, because we want to use a custom path
     skipDefaultCheckout()
     timestamps()
+    timeout(time: 8, unit: 'HOURS', activity: true)
     // reserve a resource if instructed to do so, otherwise use an empty resource list
     lock(
       variable: 'reserved_env',
