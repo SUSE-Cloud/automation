@@ -28,6 +28,7 @@ jenkins_worker_zypp_repos:
 
 jenkins_worker_zypp_requires:
   - ca-certificates-suse
+  - cronie
   - gcc
   - git-core
   - jenkins-swarm-client

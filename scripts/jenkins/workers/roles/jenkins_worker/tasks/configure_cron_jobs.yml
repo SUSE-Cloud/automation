@@ -15,14 +15,9 @@
 #
 ---
 
-- include_tasks: update.yml
-- include_tasks: install_packages.yml
-- include_tasks: configure_swarm_client.yml
-- include_tasks: copy_files.yml
-- include_tasks: setup_venv.yml
-  when:
-    - jenkins_worker_ansible_version is defined
-    - jenkins_worker_ansible_version | length
-- include_tasks: authorized_keys.yml
-- include_tasks: configure_git.yml
-- include_tasks: configure_cron_jobs.yml
+- name: Ensure cron job for deleting old jenkins workspaces
+  cron:
+    name: "Delete jenkins workspaces"
+    special_time: "daily"
+    user: "jenkins"
+    job: "find /home/jenkins/workspace -maxdepth 1 -type d -mtime +6 | xargs rm -rf"
