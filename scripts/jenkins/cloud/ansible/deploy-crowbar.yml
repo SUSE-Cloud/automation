@@ -29,7 +29,7 @@
         - include_role:
             name: crowbar_setup
           vars:
-            qa_crowbarsetup_cmd: "setup_trusted_cert {{ ssl_certfile }} {{ ssl_keyfile }}"
+            qa_crowbarsetup_cmd: "setup_trusted_cert server {{ ssl_certfile }} {{ ssl_keyfile }}"
           when:
             - ssl_enabled
             - not ssl_insecure

@@ -227,6 +227,7 @@ barclamps:
       - ec2-api
     octavia:
       - octavia-api
+      - octavia-backend
     sahara:
       - sahara-server
     tempest:

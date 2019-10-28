@@ -21,6 +21,9 @@
       ml2_type_drivers_default_provider_network: {{ neutron_networkingmode }}
       ml2_type_drivers_default_tenant_network: {{ neutron_networkingmode }}
       use_lbaas: true
+{% if 'octavia' in deployments %}
+      lbaasv2_driver: octavia
+{% endif %}
 {% if neutron_use_l3_ha %}
       l3_ha:
         use_l3_ha: true
