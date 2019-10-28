@@ -1,0 +1,41 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Collect list of available barclamps
+  shell: |
+    crowbarctl barclamp list --plain
+  failed_when: false
+  register: crowbar_barclamp_list
+  when: not crowbar_barclamp_list is defined
+
+- name: Collect list of proposals
+  shell: |
+    crowbarctl proposal list {{ item }} --plain
+  failed_when: false
+  register: crowbar_proposal_list
+  loop: "{{ crowbar_barclamp_list.stdout_lines }}"
+
+- name: Create barclamp - proposals dictionary
+  set_fact:
+    barclamp_proposal_dict: "{{ barclamp_proposal_dict | default([]) + [{'barclamp': item.item, 'proposals': item.stdout_lines}] }}"
+  when: item.stdout_lines | length > 0
+  loop: "{{ crowbar_proposal_list.results }}"
+  loop_control:
+    label: "{{ item.item }}: {{ item.stdout_lines }}"
+
+- include_tasks: reapply_barclamp.yml
+  loop: "{{ barclamp_proposal_dict | subelements('proposals') }}"

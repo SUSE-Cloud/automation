@@ -77,11 +77,8 @@
           delegate_to: "{{ item }}"
           loop: "{{ groups['cloud_virt_hosts'] + [cloud_env] }}"
 
-        - name: Run 'crowbar batch export | crowbar batch --timeout 2400 build' on the admin node
-          shell: |
-            set -o pipefail
-            crowbar batch export | crowbar batch --timeout 2400 build 2>&1 |\
-              tee -a {{ qa_crowbarsetup_log }}
+        - include_role:
+            name: crowbar_reapply_barclamps
 
       rescue:
         - include_role:
