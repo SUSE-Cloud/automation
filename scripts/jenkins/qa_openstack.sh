@@ -473,6 +473,9 @@ id-3fb3ca3a-8e3a-4565-ba73-16413d445e25
 __EOF__
         blacklistoptions="--blacklist-file tempest-blacklist.txt"
         ;;
+    openstackmaster)
+        blacklistoptions="--black-regex negative"
+        ;;
     esac
 
     # check that test listing works - otherwise we run 0 tests and everything seems to be fine
