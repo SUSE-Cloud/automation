@@ -7,6 +7,7 @@
       - Queens
       - Rocky
       - Stein
+      - Train
       - Master
     jobs:
       - 'openstack-staging-{release}'
