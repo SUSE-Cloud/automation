@@ -2055,13 +2055,19 @@ function setup_trusted_cert
     fi
 
     if [ ! -f rootca.pem ] ; then
-        # Generate Root CA key
-        openssl genrsa -aes256 -out rootca.key -passout pass:"crowbar" 4096
-        # Generate Root CA
-        openssl req -x509 -key rootca.key -out rootca.pem \
-            -passin pass:"crowbar" \
-            -days 365 -nodes \
-            -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
+        if iscloudver 9plus ; then
+            # Generate Root CA key
+            openssl genrsa -aes256 -out rootca.key -passout pass:"crowbar" 4096
+            # Generate Root CA
+            openssl req -x509 -key rootca.key -out rootca.pem \
+                -passin pass:"crowbar" \
+                -days 365 -nodes \
+                -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
+        else
+            openssl req -x509 -newkey rsa:2048 -keyout rootca.key -out rootca.pem \
+                -days 365 -nodes \
+                -subj "/C=DE/ST=Bayern/L=Nuernberg/O=CI/CN=root"
+        fi
     fi
 
     subj_alt="DNS:${cn},DNS:public-${cn},DNS:public.${cn}"
