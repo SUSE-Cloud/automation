@@ -284,10 +284,6 @@ non_clustered_roles:
   ceilometer-agent:
   ceilometer-swift-proxy-middleware:
   cinder-volume:
-  designate-worker:
-    max: 1
-  designate-server:
-    max: 1
   manila-share:
   monasca-server:
     max: 1
