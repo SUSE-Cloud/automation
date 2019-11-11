@@ -5509,7 +5509,9 @@ function onadmin_prepare_cloudupgrade_admin_repos
     # Pool repositories presence are required for nodes repocheck step during upgrade
     addcloudpool
     addcloudmaintupdates
-    onadmin_add_cloud_repo
+
+    # Cloud repo should not be required for the upgrade (Pool+Updates should be good)
+    # onadmin_add_cloud_repo
 
     # create skeleton for PTF repositories
     # during installation, this would be done by install-suse-cloud
