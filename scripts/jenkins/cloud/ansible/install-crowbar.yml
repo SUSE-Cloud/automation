@@ -24,30 +24,11 @@
           debug:
             msg: "http://{{ ansible_host }}:9091/"
 
-        - name: Sync automation scripts onto the admin node
-          synchronize:
-            src: "{{ automation_scripts_path }}"
-            dest: "{{ admin_scripts_path }}"
-            delete: yes
-            recursive: yes
-
-        - name: Copy generated mkcloud.config to admin node
-          copy:
-            src: "{{ mkcloud_config_file }}"
-            dest: "{{ admin_mkcloud_config_file }}"
-
-        - name: Copy generated scenario to admin node
-          copy:
-            src: "{{ crowbar_batch_file }}"
-            dest: "{{ admin_crowbar_batch_file }}"
-
         - include_role:
             name: crowbar_setup
           vars:
             qa_crowbarsetup_cmd: "onadmin_{{ command }}"
           loop:
-            - addupdaterepo
-            - prepareinstallcrowbar
             - bootstrapcrowbar
             - installcrowbar
           loop_control:

@@ -30,6 +30,7 @@ trap exit_msg EXIT
 bootstrap_crowbar
 deploy_ses_vcloud
 bootstrap_nodes
+prepare_install_crowbar
 install_crowbar
 register_crowbar_nodes
 deploy_cloud

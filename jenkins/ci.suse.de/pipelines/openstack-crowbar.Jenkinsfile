@@ -175,6 +175,17 @@ pipeline {
 
         stage('Crowbar') {
           stages {
+            stage('Prepare install crowbar') {
+              steps {
+                script {
+                   // This step does the following on the admin node:
+                   //  - sets up SLES and Cloud repositories
+                   //  - installs the Crowbar packages
+                   cloud_lib.ansible_playbook('prepare-install-crowbar')
+                }
+              }
+            }
+
             stage('Install crowbar') {
               when {
                 expression { deploy_cloud == 'true' }
@@ -182,7 +193,6 @@ pipeline {
               steps {
                 script {
                    // This step does the following on the admin node:
-                   //  - sets up SLES and Cloud repositories
                    //  - installs crowbar
                    cloud_lib.ansible_playbook('install-crowbar')
                 }
@@ -206,7 +216,6 @@ pipeline {
         }
       }
     }
-
 
     stage('Deploy cloud') {
       when {
