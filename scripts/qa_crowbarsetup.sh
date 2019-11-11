@@ -649,7 +649,7 @@ function onadmin_prepare_sles_other_repos
     done
     # FIXME LTSS repo empty for SLE12-SP3/SP4, do not add it as zypper does not like empty repos
     if iscloudver 7minus ; then
-        add_mount "repos/$arch/SLES$slesversion-LTSS-Updates" "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates"
+        add_mount "repos/$arch/SLES$slesversion-LTSS-Updates" "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates" "SLES$slesversion-LTSS-Updates"
     fi
 }
 
