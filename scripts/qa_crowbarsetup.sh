@@ -5047,11 +5047,19 @@ function ping_fips
 # Use heat_stack_params to provide parameters to heat template
 function oncontroller_testpreupgrade
 {
-    local image=cirros-0.3.4-x86_64-tempest-machine
-    iscloudver 8plus && image=cirros-0.4.0-x86_64-tempest-machine
+    local tempest_image=$(openstack image list -f value | cut -d ' ' -f 2 | grep '^cirros-.*-tempest$' | head -n 1)
+    if [ -z "$tempest_image" ]; then
+        # Depending on URL in the tempest barclamp, the image's name may differ
+        # from the one matched by the regex above. In that case the regex below
+        # should match:
+        tempest_image=$(openstack image list -f value | cut -d ' ' -f 2 | grep '^cirros-.*-tempest-machine$' | head -n 1)
+        if [ -z "$tempest_image" ]; then
+            complain 11 "No tempest image found. Please make sure the tempest barclamp created its images."
+        fi
+    fi
     openstack stack create upgrade_test -t \
         /root/scripts/heat/2-instances-cinder.yaml \
-        --parameter image=$image $heat_stack_params
+        --parameter image=$tempest_image $heat_stack_params
     wait_for 15 20 "openstack stack list | grep upgrade_test | grep CREATE_COMPLETE" \
              "heat stack for upgrade tests to complete"
     ping_fips && \
