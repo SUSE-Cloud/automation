@@ -277,7 +277,7 @@ function addslestestupdates
             "$tftpboot_repos_dir/SLES$slesversion-Updates-test/" "slestup"
     fi
 
-    if iscloudver 7minus && isrepoworking SLES$slesversion-LTSS-Updates-test ; then
+    if iscloudver 8minus && isrepoworking SLES$slesversion-LTSS-Updates-test ; then
         add_mount "repos/$arch/SLES$slesversion-LTSS-Updates-test/" \
             "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates-test/" "slesltup"
     fi
@@ -647,9 +647,9 @@ function onadmin_prepare_sles_other_repos
     for repo in SLES$slesversion-{Pool,Updates}; do
         add_mount "repos/$arch/$repo" "$tftpboot_repos_dir/$repo"
     done
-    # FIXME LTSS repo empty for SLE12-SP3/SP4, do not add it as zypper does not like empty repos
-    if iscloudver 7minus ; then
-        add_mount "repos/$arch/SLES$slesversion-LTSS-Updates" "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates"
+    # FIXME LTSS repo empty for SLE12-SP4, do not add it as zypper does not like empty repos
+    if iscloudver 8minus ; then
+        add_mount "repos/$arch/SLES$slesversion-LTSS-Updates" "$tftpboot_repos_dir/SLES$slesversion-LTSS-Updates" "SLES$slesversion-LTSS-Updates"
     fi
 }
 
@@ -826,8 +826,8 @@ function create_repos_yml
 
     grep -q SLES$slesversion-Updates-test /etc/fstab && \
         additional_repos+=" SLES$slesversion-Updates-test=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-Updates-test"
-    # FIXME LTSS repo empty for SLE12-SP3/SP4, do not add it as zypper does not like empty repos
-    if iscloudver 7minus ; then
+    # FIXME LTSS repo empty for SLE12-SP4, do not add it as zypper does not like empty repos
+    if iscloudver 8minus ; then
         grep -q SLES$slesversion-LTSS-Updates /etc/fstab && \
             additional_repos+=" SLES$slesversion-LTSS-Updates=$baseurl/suse-$suseversion/$arch/repos/SLES$slesversion-LTSS-Updates"
         grep -q SLES$slesversion-LTSS-Updates-test /etc/fstab && \
