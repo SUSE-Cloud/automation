@@ -18,6 +18,7 @@
 - name: Report known failures to Jira
   hosts: "localhost"
   gather_facts: no
+  ignore_errors: yes
 
   roles:
     - jira_issue_report
