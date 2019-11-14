@@ -2141,8 +2141,6 @@ function setup_octavia_cert
         ssh $controller sh << EOF
 mkdir -p $certpath/private
 chmod 700 $certpath/private
-groupadd octavia
-useradd -G octavia octavia
 EOF
     done
 
@@ -2152,7 +2150,6 @@ EOF
         scp rootca.pem $controller:$certpath/ca.cert.pem
         scp rootca.key $controller:$certpath/private/ca.key.pem
         ssh $controller sh << EOF
-chown -R octavia:octavia $certpath
 chmod 400 $certpath/private/ca.key.pem
 chmod 700 $certpath/private/client.cert-and-key.pem
 EOF
