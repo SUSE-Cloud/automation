@@ -4164,7 +4164,7 @@ function oncontroller_octavia_network_setup
 function oncontroller_check_crm_failcounts
 {
     if iscloudver 7plus && [[ $hacloud = 1 && ( $1 = "disallowskipfailcount" || $want_crm_failcount_skip != 1 ) ]] ; then
-        crm_mon --failcounts -1 | grep "fail-count=" && complain 55 "Cluster resources' failures detected"
+        crm_mon --failcounts -1 | grep "fail-count=[^1]" && complain 55 "Cluster resources' failures detected"
     fi
     return 0
 }
