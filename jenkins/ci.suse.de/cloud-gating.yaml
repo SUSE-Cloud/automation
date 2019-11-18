@@ -53,32 +53,44 @@
     update_services_serial: 'false'
     triggers: []
     ardana_job:
+      - cloud-ardana8-job-gate-entry-scale-kvm-monasca-x86_64:
+          cloudsource: stagingcloud8
+          update_after_deploy: false
+          tempest_filter_list: "smoke,monasca,ceilometer,freezer"
       - cloud-ardana8-job-gate-entry-scale-kvm-deploy-x86_64:
           cloudsource: stagingcloud8
           update_after_deploy: false
+          disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
-            designate,heat,manila,ceilometer,magnum,freezer,monasca,lbaas"
+            designate,heat,manila,magnum,lbaas"
       - cloud-ardana8-job-gate-entry-scale-kvm-update-x86_64:
           cloudsource: develcloud8
           update_to_cloudsource: stagingcloud8
           update_after_deploy: true
+          disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
-            designate,heat,ceilometer,magnum,freezer,monasca,lbaas"
+            designate,heat,magnum,lbaas"
+      - cloud-ardana9-job-gate-entry-scale-kvm-monasca-x86_64:
+          cloudsource: stagingcloud9
+          update_after_deploy: false
+          tempest_filter_list: "smoke,monasca"
       - cloud-ardana9-job-gate-entry-scale-kvm-deploy-x86_64:
           cloudsource: stagingcloud9
           update_after_deploy: false
+          disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            designate,heat,manila,magnum,monasca,lbaas"
+            designate,heat,manila,magnum,lbaas"
       - cloud-ardana9-job-gate-entry-scale-kvm-update-x86_64:
           cloudsource: develcloud9
           update_to_cloudsource: stagingcloud9
           update_after_deploy: true
+          disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            designate,heat,magnum,monasca,lbaas"
+            designate,heat,magnum,lbaas"
     jobs:
         - '{ardana_job}'
 

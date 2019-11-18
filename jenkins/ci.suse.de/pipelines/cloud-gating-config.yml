@@ -1,4 +1,7 @@
 SOC8:
+  ardana8-monasca:
+    job_name: cloud-ardana8-job-gate-entry-scale-kvm-monasca-x86_64
+    job_params: []
   ardana8-deploy:
     job_name: cloud-ardana8-job-gate-entry-scale-kvm-deploy-x86_64
     job_params: []
@@ -15,6 +18,9 @@ SOC8:
     job_name: cloud-crowbar8-job-gate-linuxbridge-deploy-x86_64
     job_params: []
 SOC9:
+  ardana9-monasca:
+    job_name: cloud-ardana9-job-gate-entry-scale-kvm-monasca-x86_64
+    job_params: []
   ardana9-deploy:
     job_name: cloud-ardana9-job-gate-entry-scale-kvm-deploy-x86_64
     job_params: []
@@ -40,5 +46,3 @@ SOCC7:
   crowbar7-linuxbridge-deploy:
     job_name: cloud-crowbar7-job-gate-linuxbridge-deploy-x86_64
     job_params: []
-
-
