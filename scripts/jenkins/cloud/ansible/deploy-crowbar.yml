@@ -37,6 +37,15 @@
         - include_role:
             name: crowbar_setup
           vars:
+            qa_crowbarsetup_cmd: "{{ item }} dns default"
+          loop:
+            - "custom_configuration"
+            - "crowbar_proposal_commit"
+          when: "'designate' in enabled_services"
+
+        - include_role:
+            name: crowbar_setup
+          vars:
             qa_crowbarsetup_cmd: onadmin_batch
 
         - include_role:
