@@ -256,6 +256,9 @@ unless ( -e "$ENV{HOME}/.obs/tar_scm")
 {
   system("mkdir -p $ENV{HOME}/.obs/cache/tar_scm/{incoming,repo,repourl}");
   system(qq(echo 'CACHEDIRECTORY="$ENV{HOME}/.obs/cache/tar_scm"' > ~/.obs/tar_scm));
+} else {
+  # make sure we remove the [tar_scm] group it has already accounted for
+  system(qq(sed -i.bak /^\\\\[tar_scm\\\\]/d $ENV{HOME}/.obs/tar_scm))
 }
 
 die "Error: can not find .osc project in this directory: " unless ( -d '.osc');
