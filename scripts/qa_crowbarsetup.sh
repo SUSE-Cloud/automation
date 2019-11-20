@@ -3761,6 +3761,23 @@ id-301f5a30-1c6f-4ea0-be1a-91fd28d44354
 id-bdbb5441-9204-419d-a225-b4fdbfb1a1a8
 id-6bba729b-3fb6-494b-9e1e-82bbd89a1045
 EOF
+
+        if [[ $want_octavia_proposal > 0 ]]; then
+            cat - > $blacklistfile << EOF
+# The lbaasv2-proxy service plugin doesn't handle the `http_method` attribute correctly (SOC-10965)
+# Upstream bug https://storyboard.openstack.org/#!/story/2006909
+neutron_lbaas.tests.tempest.v2.api.test_health_monitors_non_admin.TestHealthMonitors.test_list_health_monitors_two
+
+# There is no Octavia counterpart for neutron service flavors and flavors
+# cannot be transparently handled by the lbaasv2-proxy service plugin
+neutron_lbaas.tests.tempest.v2.api.test_load_balancers_non_admin.LoadBalancersTestJSON.test_create_load_balancer_invalid_flavor_field
+
+# Updating a load balancer with an empty body is not handled by the lbaasv2-proxy service plugin
+neutron_lbaas.tests.tempest.v2.api.test_load_balancers_non_admin.LoadBalancersTestJSON.test_update_load_balancer_missing_admin_state_up
+neutron_lbaas.tests.tempest.v2.api.test_load_balancers_non_admin.LoadBalancersTestJSON.test_update_load_balancer_missing_description
+neutron_lbaas.tests.tempest.v2.api.test_load_balancers_non_admin.LoadBalancersTestJSON.test_update_load_balancer_missing_name
+EOF
+        fi
     fi
 
     tempest cleanup --init-saved-state
