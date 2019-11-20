@@ -1295,7 +1295,7 @@ function onadmin_bootstrapcrowbar
         if ! grep -q /var/lib/glance/images $f; then
             echo "/var/lib/glance/images     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
         fi
-        mkdir -p /srv/nfs/{database,rabbitmq}
+        mkdir -p /srv/nfs/{database,rabbitmq,glance}
         if ! grep -q /srv/nfs $f; then
             echo "/srv/nfs     <%= @admin_subnet %>/<%= @admin_netmask %>(rw,async,no_root_squash,no_subtree_check)" >> $f
         fi
@@ -2424,12 +2424,16 @@ function custom_configuration
 
     local adminfqdn=`get_crowbar_node`
     local controllernode=($(get_all_discovered_nodes | head -n 1))
+    local nfs_server=$adminfqdn
+    if ping -c1 -w1 nfsserver > /dev/null ; then
+        nfs_server="nfsserver"
+    fi
 
     case "$proposal" in
         nfs_client)
             proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']" "{}"
-            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['nfs_server']" "'$adminfqdn'"
-            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['export']" "'/var/lib/glance/images'"
+            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['nfs_server']" "'$nfs_server'"
+            proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['export']" "'/srv/nfs/glance'"
             proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['mount_path']" "'/var/lib/glance/images'"
             proposal_set_value nfs_client $proposaltype "['attributes']['nfs_client']['exports']['glance-images']['mount_options']" "['']"
 
@@ -2499,10 +2503,6 @@ function custom_configuration
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['mode']" "'drbd'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['drbd']['size']" "$drbd_rabbitmq_size"
                     else
-                        local nfs_server=$adminfqdn
-                        if ping -c1 -w1 nfsserver > /dev/null ; then
-                            nfs_server="nfsserver"
-                        fi
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['device']" "'$nfs_server:/srv/nfs/rabbitmq'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['fstype']" "'nfs'"
                         proposal_set_value rabbitmq default "['attributes']['rabbitmq']['ha']['storage']['shared']['options']" "'rw,async,nofail'"
