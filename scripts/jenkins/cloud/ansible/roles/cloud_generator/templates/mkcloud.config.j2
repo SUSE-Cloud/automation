@@ -28,9 +28,15 @@ export cloudfqdn={{ cloud_fqdn }}
 
 {% if cloudsource.startswith("stagingcloud") %}
 export cloudsource=develcloud{{ cloudsource[-1] }}
+export want_cloud{{ cloudsource[-1] }}_iso_url={{ clouddata_server }}/repos/x86_64/
+export want_cloud{{ cloudsource[-1] }}_iso={{ cloud_iso_name }}-devel-staging.iso
 export TESTHEAD=1
 {% else %}
 export cloudsource={{ cloudsource }}
+{% if cloudsource.startswith("develcloud") %}
+export want_cloud{{ cloudsource[-1] }}_iso_url={{ clouddata_server }}/repos/x86_64/
+export want_cloud{{ cloudsource[-1] }}_iso={{ cloud_iso_name }}-devel.iso
+{% endif %}
 export TESTHEAD=
 {% endif %}
 
