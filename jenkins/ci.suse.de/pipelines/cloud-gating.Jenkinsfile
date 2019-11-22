@@ -84,7 +84,7 @@ pipeline {
               if (!combined_extra_params.isEmpty()) {
                  job_params.extra_params = combined_extra_params
               }
-              cloud_lib.trigger_build(job_def.job_name, cloud_lib.convert_to_build_params(job_params))
+              cloud_lib.trigger_build(job_def.job_name, cloud_lib.convert_to_build_params(job_params), false)
             }
           }
 
