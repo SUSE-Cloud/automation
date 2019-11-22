@@ -66,6 +66,6 @@ versioned_barclamps:
   aodh:
     enabled: "{{ not when_cloud9 }}"
   designate:
-    enabled: "{{ when_cloud9 }}"
+    enabled: "{{ not when_cloud7 }}"
   octavia:
     enabled: "{{ when_cloud9 }}"
