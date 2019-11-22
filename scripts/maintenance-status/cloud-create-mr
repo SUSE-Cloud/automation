@@ -1,0 +1,165 @@
+#!/usr/bin/env python3
+
+
+import configargparse
+import re
+import subprocess
+import time
+import yaml
+
+from textwrap import indent
+
+
+DESCRIPTION = "Compares IBS Devel to Released and create a maintenance request \
+               with packages that were updated."
+
+parser = configargparse.ArgParser(description=DESCRIPTION)
+parser.add("-v", "--version", type=int, help="cloud version (7/8/9)",
+           nargs='?', default=9, const=9)
+parser.add("-e", "--exclude", help="list of regex for excluding packages",
+           nargs='?', type=str)
+
+CLOUD_VERSION = parser.parse_args().version
+EXCLUDE = parser.parse_args().exclude
+if (EXCLUDE):
+    EXCLUDE = parser.parse_args().exclude.split()
+
+CLOUD_SLESSP_VERSION = {
+    9: 4,
+    8: 3,
+    7: 2
+}
+
+IOSC = "osc -A https://api.suse.de"
+SOURCES = [f"Devel:Cloud:{CLOUD_VERSION}", "Devel:Cloud:Shared:Rubygem"]
+PRODUCT = (f"SUSE:SLE-12-SP{CLOUD_SLESSP_VERSION[CLOUD_VERSION]}:Update:"
+           f"Products:Cloud{CLOUD_VERSION}")
+UPDATE = f"{PRODUCT}:Update"
+DEFAULT_EXCLUDES = [
+    "^_product",           # ignore _product
+    ".*-doc$",             # ignore docs packages
+    "ardana-qa.*",          # ardana-qa packages are internal only
+    "sles12sp2-docker-image"
+]
+EXCLUDES = EXCLUDE or DEFAULT_EXCLUDES
+
+
+def run_cmd(command):
+    return subprocess.run(command.split(), stdout=subprocess.PIPE,
+                          stderr=subprocess.PIPE, check=True).stdout.decode()
+
+
+def iosc_cat(project, src_file):
+    return run_cmd(f"{IOSC} cat {project}/{src_file}")
+
+
+def iosc_ls(project):
+    return run_cmd(f"{IOSC} ls {project}")
+
+
+def iosc_rdiff(old_prj, pkg, new_prj):
+    return run_cmd(f"{IOSC} rdiff {old_prj} {pkg} {new_prj}")
+
+
+def iosc_results(project, pkg):
+    return run_cmd(f"{IOSC} results -r "
+                   f"SLE_12_SP{CLOUD_SLESSP_VERSION[CLOUD_VERSION]} "
+                   f"-a x86_64 {project} {pkg}")
+
+
+def get_product_all(project):
+    product = ''
+    for f in iosc_ls(f"{project}/_product").split():
+        product += iosc_cat(f"{project}/_product", f)
+    return product
+
+
+def get_build_status(project, package):
+    build_status = iosc_results(project, package).split()[-1]
+    while(build_status not in ['succeeded*', 'failed', 'unresolvable',
+                               'unresolvable*', 'locked', 'disabled']):
+        print(build_status)
+        if(build_status in ['scheduled', 'building*', 'building', 'blocked']):
+            build_status = iosc_results(project, package).split()[-1]
+            print(f"  Waiting for package to build: {build_status}")
+            time.sleep(30)
+    return build_status
+
+
+exclude_regex = "(" + ")|(".join(EXCLUDES) + ")"
+
+product_pkgs = {i for i in iosc_ls(
+    PRODUCT).split() if not re.match(exclude_regex, i)}
+update_pkgs = {i for i in iosc_ls(
+    UPDATE).split() if not re.match(exclude_regex, i)}
+
+
+updated_pkgs = {}
+new_pkgs = {}
+build_failed_pkgs = []
+not_in_product_pkgs = []
+
+product_all = get_product_all(f"Devel:Cloud:{CLOUD_VERSION}")
+
+for source in SOURCES:
+    source_pkgs = {i for i in iosc_ls(
+        source).split() if not re.match(exclude_regex, i)}
+    common_product_pkgs = source_pkgs & product_pkgs
+    common_update_pkgs = source_pkgs & update_pkgs
+    new_pkgs[source] = list((source_pkgs - product_pkgs) - update_pkgs)
+
+    for pkg in sorted(common_product_pkgs | common_update_pkgs):
+        if pkg in common_update_pkgs:
+            old_prj = UPDATE
+        else:
+            old_prj = PRODUCT
+        print(f"processing package: {pkg}")
+        if not bool(re.search(rf'".*{pkg}.*" supportstatus="', product_all)):
+            print("  - not in _product")
+            not_in_product_pkgs.append(pkg)
+            continue
+        diff = iosc_rdiff(old_prj, pkg, source)
+        diff_changes = re.search(
+            fr"^Index:\s{pkg}.changes.+^[\+\s]------+", diff,
+            re.MULTILINE | re.DOTALL)
+        if (not(diff and diff_changes)):
+            continue
+        build_status = get_build_status(source, pkg)
+        if ('succeeded' in build_status):
+            if source not in updated_pkgs:
+                updated_pkgs[source] = {}
+            updated_pkgs[source][pkg] = diff_changes.group()
+        else:
+            build_failed_pkgs.append(pkg)
+        print(f"  - updated (build: {build_status})")
+
+updated_pkgs_list = sorted(list({k: v for l in updated_pkgs.values()
+                                 for k, v in l.items()}))
+print(f"""
+####################################################################################################
+                      Summary for: {SOURCES}
+####################################################################################################
+
+    Updated:
+{indent(yaml.dump(updated_pkgs_list, default_flow_style=False), 6 * ' ')}
+    Updated but failing to build:
+{indent(yaml.dump(build_failed_pkgs, default_flow_style=False), 6 * ' ')}
+    New:
+{indent(yaml.dump(new_pkgs, default_flow_style=False), 6 * ' ')}
+    Excluded:
+{indent(yaml.dump(EXCLUDES, default_flow_style=False), 6 * ' ')}
+    Not in _product:
+{indent(yaml.dump(not_in_product_pkgs, default_flow_style=False), 6 * ' ')}
+""")
+
+option = input("Show diff of updated packages? (y/n) ")
+
+if (option.lower().startswith("y")):
+    for src in updated_pkgs:
+        print(indent(f"- {src}:", 2 * ' '))
+        for pkg in updated_pkgs[src]:
+            print(indent(f"- {pkg}:", 4 * ' '))
+            print(indent(f"{updated_pkgs[src][pkg]}", 8 * ' '))
+
+for src in updated_pkgs:
+    print(f"iosc mr {src} {' '.join(updated_pkgs[src])} {UPDATE}")
