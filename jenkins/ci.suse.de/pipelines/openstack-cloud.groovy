@@ -73,7 +73,10 @@ def trigger_build(job_name, parameters, propagate=true, wait=true) {
     def jobResult = slaveJob.getResult()
     def jobUrl = slaveJob.buildVariables.blue_ocean_buildurl
     def jobMsg = "Build ${jobUrl} completed with: ${jobResult}"
-    echo jobMsg
+    sh(
+      script: "echo '"+jobMsg+"'",
+      label: jobUrl
+    )
     if (jobResult != 'SUCCESS') {
       error(jobMsg)
     }
