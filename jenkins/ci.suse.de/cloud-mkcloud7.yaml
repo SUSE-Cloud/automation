@@ -1,11 +1,4 @@
 - project:
-    name: cloud-mkcloud7-gating
-    version: 7
-    previous_version: 6
-    label: cloud-trigger
-    jobs:
-        - 'cloud-mkcloud{version}-gating'
-- project:
     name: cloud-mkcloud7-x86_64
     disabled: false
     version: 7
