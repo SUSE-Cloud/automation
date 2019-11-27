@@ -39,24 +39,32 @@ function update_repo_cache() {
     automation/scripts/mkcloud prepare
 }
 
+function get_all_controllers() {
+    awk '{print $2}' all_controllers.txt
+}
+
 function poweroff_all_controllers() {
     # NOTE: make sure all nodes are off to avoid IP conflicts.
     # if needed, power off the nodes
-    awk '{print $2}' all_controllers.txt | tr -d '#' | xargs -i sh -c 'echo -n "{} "; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+    get_all_controllers | tr -d '#' | xargs -i sh -c 'echo -n "{} "; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
     # give the nodes some time to poweroff
     sleep 10
     # check the power status with:
-    awk '{print $2}' all_controllers.txt | tr -d '#' | xargs -i sh -c 'echo -n "{} "; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+    get_all_controllers | tr -d '#' | xargs -i sh -c 'echo -n "{} "; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+}
+
+function get_all_computes() {
+    awk '{print $1}' all_computes.txt
 }
 
 function poweroff_all_computes() {
     # NOTE: make sure all nodes are off to avoid IP conflicts.
     # if needed, power off the nodes
-    awk '{print $1}' all_computes.txt | tr -d '#' | xargs -i sh -c 'echo -n "{} "; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
+    get_all_computes | tr -d '#' | xargs -i sh -c 'echo -n "{} "; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
     # give the nodes some time to poweroff
     sleep 10
     # check the power status with:
-    awk '{print $1}' all_computes.txt | tr -d '#' | xargs -i sh -c 'echo -n "{} "; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
+    get_all_computes | tr -d '#' | xargs -i sh -c 'echo -n "{} "; ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power status'
 }
 
 function setup_crowbar() {
@@ -107,12 +115,12 @@ function install_controllers() {
     # NOTE: make sure all controllers / DL360s are set to Legacy BIOS boot mode. UEFI sometimes causes weird problems.
     # pxe boot all controller nodes listed in the ~/all_controllers.txt file
     # NOTE: this is one-time boot override, don't use options=persistent as it causes undesired side effects (e.g. switch from UEFI to Legacy boot)
-    awk '{print $2}' all_controllers.txt | xargs -i sh -c 'echo {}; \
+    get_all_controllers | xargs -i sh -c 'echo {}; \
       ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
       ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 
     # wait until nodes are discovered
-    controller_count=$(wc -l all_controllers.txt | cut -d' ' -f1)
+    controller_count=$(get_all_controllers | wc -l | cut -d' ' -f1)
     set +x
     while [[ $(ssh crowbaru1 crowbarctl node list | grep pending -c) -lt $controller_count ]]; do sleep 10; echo -n 'D'; done
     set -x
@@ -152,7 +160,7 @@ function install_first_n_computes() {
     # note that n should be greater than number of non-compute nodes below plus nodes used in nova proposal (see batch files)
     n=10
     # install first n compute-class nodes for non-compute use and some initial computes
-    awk '{print $1}' all_computes.txt | head -n$n | xargs -i sh -c 'echo {}; \
+    get_all_computes | head -n$n | xargs -i sh -c 'echo {}; \
         ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
         ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
     # wait until nodes are discovered
@@ -228,7 +236,7 @@ function save_all_known_ipmi() {
 
 function poweroff_unknown_nodes() {
     # power off all unused compute nodes
-    awk '{ print$1 }' all_computes.txt | tr -d '#' | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
+    get_all_computes | tr -d '#' | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
         ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power off'
 }
 
@@ -241,7 +249,7 @@ function install_remaining_computes() {
     sleep 10
 
     # trigger discovery of all unused compute nodes
-    awk '{ print$1 }' all_computes.txt | grep -v '#' | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
+    get_all_computes | grep -v '#' | xargs -i sh -c 'grep -q {} all_known_ipmi.txt || echo {}' | xargs -i  sh -c 'echo {}; \
         ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw chassis bootdev pxe; \
         ipmitool -I lanplus -H {} -U $want_ipmi_username -P $extraipmipw power on'
 
