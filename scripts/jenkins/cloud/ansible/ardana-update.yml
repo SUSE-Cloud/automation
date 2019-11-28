@@ -40,6 +40,10 @@
 
         - include_role:
             name: ardana_update
+
+        # Call this role to also update the Octavia amphora image
+        - include_role:
+            name: setup_amphora_image
       rescue:
         - include_role:
             name: rocketchat_notify

@@ -45,6 +45,9 @@
 
         - include_role:
             name: ardana_deploy
+
+        - include_role:
+            name: setup_amphora_image
       rescue:
         - include_role:
             name: rocketchat_notify

@@ -34,5 +34,3 @@ defcore_refstack_url: "https://10.86.0.98"
 defcore_results: "~/refstack_results.subunit"
 subunit_html_results: "~/testr_results_region1.html"
 subunit_xml_results: "~/testr_results_region1.xml"
-
-octavia_amphora_image_rpm: "find /srv/www/*/x86_64/repos/*OpenStack*/ -name '*octavia-amphora-image*' | tail -n1"
