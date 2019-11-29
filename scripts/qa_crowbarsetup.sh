@@ -2795,6 +2795,7 @@ function custom_configuration
         designate)
             if [[ $hacloud = 1 ]] && iscloudver 8plus ; then
                 proposal_set_value designate default "['deployment']['designate']['elements']['designate-server']" "['cluster:$clusternameservices']"
+                proposal_set_value designate default "['deployment']['designate']['elements']['designate-worker']" "['cluster:$clusternameservices']"
             fi
         ;;
         octavia)
