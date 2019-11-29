@@ -1,0 +1,169 @@
+
+heat_template_version: 2015-10-15
+
+
+parameters:
+  floating_network:
+    type: string
+    default: floating
+  image:
+    type: string
+    default: cirros-0.4.0-x86_64-disk
+    # wget http://download.cirros-cloud.net/0.4.0/cirros-0.4.0-x86_64-disk.img
+    # openstack image create --public --container-format bare --disk-format qcow2 --file cirros-0.4.0-x86_64-disk.img cirros-0.4.0-x86_64-disk
+  flavor:
+    type: string
+    default: m1.tiny
+  outside_ip:
+    type: string
+    default: 8.8.8.8
+
+resources:
+
+  keypair:
+    type: OS::Nova::KeyPair
+    properties:
+      name: testkey
+      public_key: { get_file: /root/.ssh/id_rsa.pub }
+
+  mynetwork:
+    type: OS::Neutron::Net
+    properties:
+      name: mynet
+
+
+  mysubnet:
+    type: OS::Neutron::Subnet
+    properties:
+      cidr: 10.0.0.1/24
+      name: mysubnet
+      network:
+        get_resource: mynetwork
+
+  myserver1:
+    type: OS::Nova::Server
+    properties:
+      name: myserver1_mixedvolumes
+      config_drive: true
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_resource: keypair }
+      networks:
+        - port: { get_resource: myport1 }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: ping_template.sh }
+          params:
+            "@outside_ip@": { get_param: outside_ip }
+            "@neighbour_ip@": { get_attr: [ myfloatingip2, floating_ip_address ] }
+
+  myserver2:
+    type: OS::Nova::Server
+    properties:
+      name: myserver2_mixedvolumes
+      config_drive: true
+      flavor: { get_param: flavor }
+      image: { get_param: image }
+      key_name: { get_resource: keypair }
+      networks:
+        - port: { get_resource: myport2 }
+      user_data_format: RAW
+      user_data:
+        str_replace:
+          template: { get_file: ping_template.sh }
+          params:
+            "@outside_ip@": { get_param: outside_ip }
+            "@neighbour_ip@": { get_attr: [ myfloatingip1, floating_ip_address ] }
+
+  router:
+    type: OS::Neutron::Router
+    properties:
+      external_gateway_info:
+        network:
+          get_param: floating_network
+
+
+  router_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router: { get_resource: router }
+      subnet: { get_resource: mysubnet }
+
+
+  myfloatingip1:
+    type: OS::Neutron::FloatingIP
+    depends_on: router_interface
+    properties:
+      port_id: { get_resource: myport1 }
+      floating_network:
+        get_param: floating_network
+
+  myfloatingip2:
+    type: OS::Neutron::FloatingIP
+    depends_on: router_interface
+    properties:
+      port_id: { get_resource: myport2 }
+      floating_network:
+        get_param: floating_network
+
+  allow_inbound:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: "Allow inbound SSH and ICMP traffic"
+      name: allow SSH and ICMP from anywhere
+      rules:
+        - direction: ingress
+          remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+
+
+  myport1:
+    type: OS::Neutron::Port
+    properties:
+      network:
+        get_resource: mynetwork
+      security_groups:
+        - get_resource: allow_inbound
+
+  myport2:
+    type: OS::Neutron::Port
+    properties:
+      network:
+        get_resource: mynetwork
+      security_groups:
+        - get_resource: allow_inbound
+
+  volume1:
+    type: OS::Cinder::Volume
+    properties:
+      name:
+        list_join:
+          - "_"
+          - - { get_param: 'OS::stack_name' }
+            - volume1
+      size: 1
+
+  volume1_attachment:
+    type: OS::Cinder::VolumeAttachment
+    properties:
+      instance_uuid: { get_resource: myserver1 }
+      volume_id: { get_resource: volume1 }
+
+
+outputs:
+  floating_ip1:
+    value:
+      get_attr:
+        - myfloatingip1
+        - floating_ip_address
+
+  floating_ip2:
+    value:
+      get_attr:
+        - myfloatingip2
+        - floating_ip_address
