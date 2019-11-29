@@ -168,9 +168,9 @@
           type: multi-select
           visible-items: 10
           multi-select-delimiter: ','
-          # NOTE: keeping designate and octavia disabled by default, until their
+          # NOTE: keeping designate disabled by default, until their
           # implementation is complete
-          default-value: '{enabled_services|database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,horizon,ceilometer,heat,manila,trove,barbican,magnum,sahara,aodh,tempest}'
+          default-value: '{enabled_services|database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,horizon,ceilometer,heat,manila,trove,barbican,octavia,magnum,sahara,aodh,tempest}'
           value: >-
             database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,
             horizon,ceilometer,heat,manila,trove,designate,barbican,octavia,

@@ -123,7 +123,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas"
+            heat,magnum,manila,lbaas-octavia"
     jobs:
         - '{crowbar_job}'
 
@@ -156,7 +156,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas"
+            heat,magnum,manila,lbaas-octavia"
     jobs:
         - '{crowbar_job}'
 
@@ -191,6 +191,6 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas"
+            heat,magnum,manila,lbaas-octavia"
     jobs:
         - '{crowbar_job}'
