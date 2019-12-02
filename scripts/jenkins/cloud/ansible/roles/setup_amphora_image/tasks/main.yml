@@ -15,11 +15,6 @@
 #
 ---
 
-- name: Check if octavia service is deployed
-  shell: source ~/service.osrc;openstack service show octavia
-  register: octavia_service_is_present
-  ignore_errors: yes
-
 - name: Import octavia amphora image
   shell: |
     ansible-playbook -i hosts/verb_hosts service-guest-image.yml \
@@ -27,5 +22,4 @@
                  -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"
-  when:
-    - octavia_service_is_present.rc == 0
+  when: "'octavia' not in disabled_services | default('')"
