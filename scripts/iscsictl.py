@@ -301,10 +301,11 @@ class Target(ISCSI):
 
         # Detecting IP
         print("Looking for host IP ...")
-        ip = str(self.ssh.ip('a', 's', 'eth0'))
-        ip = re.findall(r'inet (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})/\d+', ip)
-        if ip:
-            ip = ip[0]
+        out = str(self.ssh.ip('route', 'get', '240.0.0.1'))
+        found = re.findall(r'src (\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}) ',
+                           out)
+        if found:
+            ip = found[0]
         else:
             raise Exception('IP address not found')
 
