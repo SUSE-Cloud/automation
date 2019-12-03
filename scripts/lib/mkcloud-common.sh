@@ -399,7 +399,6 @@ function setcloudnetvars
     vlan_public=${vlan_public:-300}
     vlan_fixed=${vlan_fixed:-500}
     vlan_sdn=${vlan_sdn:-400}
-    vlan_octavia=${vlan_octavia:-700}
     if (( ${want_ipv6} > 0 )); then
         net_fixed=${net_fixed:-'fd00:0:0:2'}
         net_public=${net_public:-'fd00:0:0:1'}
@@ -407,7 +406,6 @@ function setcloudnetvars
         net_ceph=${net_ceph:-'fd00:0:0:5'}
         net_ironic=${net_ironic:-'fd00:0:0:6'}
         net_sdn=${net_sdn:-'fd00:0:0:7'}
-        net_octavia=${net_octavia:-'fd00:0:0:8'}
         : ${adminnetmask:=64}
         : ${ironicnetmask:=64}
         : ${defaultnetmask:=64}
@@ -423,7 +421,6 @@ function setcloudnetvars
         net_ceph=${net_ceph:-192.168.127}
         net_ironic=${net_ironic:-192.168.128}
         net_sdn=${net_sdn:-192.168.130}
-        net_octavia=${net_octavia:-192.168.131}
         : ${adminnetmask:=255.255.248.0}
         : ${ironicnetmask:=255.255.255.0}
         : ${defaultnetmask:=255.255.255.0}

@@ -145,9 +145,4 @@ export vlan_storage={{ gen_subnet_start+3 }}
 export vlan_fixed={{ gen_subnet_start+4 }}
 export vlan_ceph={{ gen_subnet_start+5 }}
 
-{% if 'octavia' in deployments %}
-export net_octavia={{ neutron_subnet_prefix }}{{ ipsep }}30{{ ipsep }}1
-export vlan_octavia={{ gen_subnet_start+4 }}
-{% endif %}
-
 # NOTE: might also need some of the other variables starting with vlan_ , want_ and net_

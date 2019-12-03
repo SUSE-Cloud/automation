@@ -3337,8 +3337,6 @@ function deploy_single_proposal
                 return
             fi
             setup_octavia_cert /etc/octavia/certs
-            get_novacontroller
-            safely oncontroller octavia_network_setup
             ;;
         ironic)
             [[ $want_ironic = 1 ]] || return
@@ -3777,6 +3775,9 @@ neutron_lbaas.tests.tempest.v2.api.test_load_balancers_non_admin.LoadBalancersTe
 neutron_lbaas.tests.tempest.v2.api.test_load_balancers_non_admin.LoadBalancersTestJSON.test_update_load_balancer_missing_admin_state_up
 neutron_lbaas.tests.tempest.v2.api.test_load_balancers_non_admin.LoadBalancersTestJSON.test_update_load_balancer_missing_description
 neutron_lbaas.tests.tempest.v2.api.test_load_balancers_non_admin.LoadBalancersTestJSON.test_update_load_balancer_missing_name
+
+# Updating a pool with a null session_persistence value is not handled by the lbaasv2-proxy service plugin
+neutron_lbaas.tests.tempest.v2.scenario.test_session_persistence.TestSessionPersistence.test_session_persistence
 EOF
         fi
     fi
@@ -4147,30 +4148,6 @@ function nova_services_up
         test $(openstack compute service list -f value -c State | grep -c down) -eq 0
     else
         test $(nova-manage service list  | fgrep -cv -- \:\-\)) -lt 2
-    fi
-}
-
-function oncontroller_octavia_network_setup
-{
-    local octavia_network_name="lb-mgmt-net"
-    local octavia_subnet_name=$octavia_network_name
-
-    . ~/.openrc
-    if ! openstack network list --format value -c Name | grep -q "^${octavia_network_name}$"; then
-        openstack network create --project service \
-            --provider-network-type vlan \
-            --provider-segment $vlan_octavia \
-            --provider-physical-network physnet1 \
-            --external \
-            $octavia_network_name
-    fi
-
-    if ! openstack subnet list --format value -c Name | grep -q "^${octavia_subnet_name}$"; then
-        openstack subnet create --project service \
-            --network $octavia_network_name \
-            --subnet-range $net_octavia.0/24 \
-            --gateway $net_octavia.1 \
-            $octavia_subnet_name
     fi
 }
 
@@ -6154,17 +6131,10 @@ function onadmin_batch
     fi
 
     if grep -q "barclamp: octavia" ${scenario}; then
-        # Need neutron deployed first to create the Octavia management network
-        exclude="$exclude --exclude octavia"
+        setup_octavia_cert /etc/octavia/certs
     fi
 
     safely crowbar batch $exclude --timeout 3600 build ${scenario}
-    if grep -q "barclamp: octavia" ${scenario}; then
-        get_novacontroller
-        setup_octavia_cert /etc/octavia/certs
-        safely oncontroller octavia_network_setup
-        safely crowbar batch --include octavia --timeout 3600 build ${scenario}
-    fi
     if grep -q "barclamp: manila" ${scenario}; then
         get_novacontroller
         safely oncontroller manila_generic_driver_setup
