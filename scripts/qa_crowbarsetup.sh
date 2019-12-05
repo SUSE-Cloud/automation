@@ -5533,6 +5533,8 @@ function onadmin_prepare_cloudupgrade_admin_repos
 
     # Cloud repo should not be required for the upgrade (Pool+Updates should be good)
     # onadmin_add_cloud_repo
+    # But we need to delete existing one
+    $zypper rr Cloud
 
     # create skeleton for PTF repositories
     # during installation, this would be done by install-suse-cloud
@@ -5551,6 +5553,7 @@ function onadmin_prepare_cloudupgrade_admin_repos
     elif iscloudver 9; then
         $zypper rr SLES12-SP3-Pool
         $zypper rr SLES12-SP3-Updates
+        $zypper rr SLES12-SP3-LTSS-Updates
     fi
     # remove old PTF repo
     $zypper rr cloud-ptf
