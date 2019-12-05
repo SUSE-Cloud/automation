@@ -45,7 +45,7 @@
     wget {{ crowbar_register_url }} -O {{ crowbar_register_path }}
     chmod +x {{ crowbar_register_path }}
 
-    SSH_CONNECTION= {{ crowbar_register_path }} -f --interface {{ admin_interface }} --gpg-auto-import-keys --no-gpg-checks 2>&1 | tee {{ crowbar_register_log }}
+    SSH_CONNECTION= {{ crowbar_register_path }} -f --interface {{ admin_interface }} --gpg-auto-import-keys 2>&1 | tee {{ crowbar_register_log }}
     exit ${PIPESTATUS[0]}
 
 - name: Check that node has registered
