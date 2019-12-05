@@ -43,6 +43,7 @@ fi
 : ${want_s390:=''}
 : ${want_horizon_integration_test:=''}
 : ${want_batch_dir:="${SCRIPTS_DIR}/scenarios"}
+: ${upgrade_test_stack_count:=1}
 if iscloudver 8plus; then
     : ${want_cinder_rbd_flatten_snaps:=1}
     : ${want_clustered_rabbitmq:=1}
@@ -5204,11 +5205,16 @@ function oncontroller_testpreupgrade_simple
             complain 11 "No tempest image found. Please make sure the tempest barclamp created its images."
         fi
     fi
-    openstack stack create upgrade_test -t \
-        /root/scripts/heat/2-instances-cinder.yaml \
-        --parameter image=$tempest_image $heat_stack_params
-    wait_for 15 20  "openstack stack list | grep upgrade_test | grep CREATE_COMPLETE" \
-                    "heat stack for upgrade tests to complete"
+    echo "starting $upgrade_test_stack_count test stack(s)..."
+    suffix=''
+    for i in $(seq 1 $upgrade_test_stack_count); do
+        openstack stack create "upgrade_test$suffix" -t \
+            /root/scripts/heat/2-instances-cinder.yaml \
+            --parameter image=$tempest_image --parameter suffix="$suffix" $heat_stack_params
+        wait_for 15 20 "openstack stack show \"upgrade_test$suffix\" | grep CREATE_COMPLETE" \
+                 "heat stack for upgrade tests to complete"
+        suffix="_$i"
+    done
     ping_fips && \
     echo "test pre-upgrade successful."
 }
@@ -5247,10 +5253,14 @@ function oncontroller_testpostupgrade_simple_data
 
 function oncontroller_testpostupgrade_simple_delete_stack
 {
-    openstack stack delete --yes upgrade_test
-    wait_for 15 20 "! openstack stack show upgrade_test" \
-             "heat stack for upgrade tests to be deleted"
-    echo "test post-upgrade stack deletion successful."
+    suffix=''
+    for i in $(seq 1 $upgrade_test_stack_count); do
+        openstack stack delete --yes "upgrade_test$suffix"
+        wait_for 15 20 "! openstack stack show \"upgrade_test$suffix\"" \
+                 "heat stack for upgrade tests to be deleted"
+        suffix="_$i"
+    done
+    echo "test post-upgrade successful."
 }
 
 function oncontroller_testpostupgrade_extended_data
