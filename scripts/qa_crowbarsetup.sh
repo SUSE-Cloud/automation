@@ -5530,11 +5530,7 @@ function onadmin_prepare_cloudupgrade_admin_repos
     # Pool repositories presence are required for nodes repocheck step during upgrade
     addcloudpool
     addcloudmaintupdates
-
-    # Cloud repo should not be required for the upgrade (Pool+Updates should be good)
-    # onadmin_add_cloud_repo
-    # But we need to delete existing one
-    $zypper rr Cloud
+    onadmin_add_cloud_repo
 
     # create skeleton for PTF repositories
     # during installation, this would be done by install-suse-cloud
