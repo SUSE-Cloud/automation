@@ -108,7 +108,7 @@
           default-value: ''
           value: >-
             ci,smoke,keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,
-            vpnaas,designate,heat,ceilometer,magnum,manila,freezer,monasca,lbaas
+            vpnaas,designate,heat,ceilometer,magnum,manila,freezer,monasca,lbaas,octavia
           description: >-
             Name of the filter file to use for tempest. Selecting multiple values
             will run tempest for each selected value.
