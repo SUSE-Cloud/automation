@@ -29,6 +29,7 @@ if (( $want_ipv6 > 0 )); then
 else
     export net_admin=$(cloudadminnet $n)
     export net_ironic=$(cloudironicnet $n)
+    export net_octavia=$(cloudoctavianet $n)
     export net_public=$(routedcloudpublicnet $n)
     export adminnetmask=255.255.255.0
 fi

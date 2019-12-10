@@ -4154,6 +4154,7 @@ function oncontroller_octavia_network_setup
 {
     local octavia_network_name="lb-mgmt-net"
     local octavia_subnet_name=$octavia_network_name
+    setcloudnetvars $cloud
 
     . ~/.openrc
     if ! openstack network list --format value -c Name | grep -q "^${octavia_network_name}$"; then
