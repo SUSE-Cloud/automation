@@ -4,3 +4,5 @@
 {% set regexp = '.*\(|\)$' %}
 {% endif %}
 +{{ test | regex_replace(regexp, '') }}
+
+{{ _filter_blacklist.stdout }}
