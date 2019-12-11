@@ -19,6 +19,7 @@ import argparse
 import os
 import re
 import sys
+import time
 
 import sh
 
@@ -180,6 +181,9 @@ class ISCSI(object):
     STOP = 'stop'
     RESTART = 'restart'
 
+    ZYPPER_ATTEMPTS = 5
+    ZYPPER_RETRY_DELAY = 10
+
     def __init__(self, ssh):
         self.ssh = ssh
 
@@ -196,8 +200,21 @@ class ISCSI(object):
             raise Exception('Service action not recognized.')
 
     def zypper(self, package):
-        self.ssh.zypper('--non-interactive', 'install',
-                        '--no-recommends', package)
+        for attempt in range(ISCSI.ZYPPER_ATTEMPTS, 0, -1):
+            try:
+                self.ssh.zypper('--non-interactive', 'install',
+                                '--no-recommends', package)
+                break
+            # It could happen that the chef-client process running on
+            # the target node is trying to install some zypper package at
+            # the same time as us. A error code value of 7 indicates this.
+            except sh.ErrorReturnCode_7:
+                if attempt == 1:
+                    raise
+                print("The zypp library is currently locked by another "
+                      "process. Waiting for {}s and trying {} more times "
+                      "...".format(ISCSI.ZYPPER_RETRY_DELAY, attempt))
+                time.sleep(ISCSI.ZYPPER_RETRY_DELAY)
 
     def append_cfg(self, fname, lines):
         """Append only new lines in a configuration file."""
