@@ -47,6 +47,7 @@
             - openstack-horizon-plugin-magnum-ui
             - openstack-horizon-plugin-monasca-ui
             - openstack-horizon-plugin-murano-ui
+            - openstack-horizon-plugin-octavia-ui
             - openstack-horizon-plugin-sahara-ui
             - openstack-horizon-plugin-trove-ui
             - openstack-ironic
@@ -142,6 +143,10 @@
             [ "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
               "openstack-horizon-plugin-heat-ui"
+            ].contains(component) ||
+            [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
+            [
+              "openstack-horizon-plugin-octavia-ui"
             ].contains(component)
             )
       sequential: true
