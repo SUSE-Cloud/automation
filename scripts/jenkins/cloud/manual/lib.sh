@@ -232,6 +232,10 @@ function bootstrap_nodes {
     fi
 }
 
+function prepare_install_crowbar {
+    ansible_playbook prepare-install-crowbar.yml
+}
+
 function install_crowbar {
     ansible_playbook install-crowbar.yml
 }
