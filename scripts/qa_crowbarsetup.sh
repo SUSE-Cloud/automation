@@ -78,6 +78,7 @@ crowbar_install_log=/var/log/crowbar/install.log
 crowbar_init_api=http://localhost:4567/api
 crowbar_lib_dir=/var/lib/crowbar
 crowbar_api_v2_header="Accept: application/vnd.crowbar.v2.0+json"
+extended_upgrade_templates="2-instances-upgrade-bothvolumes.yaml 2-instances-upgrade-mixedvolumes.yaml 2-instances-upgrade-novolumes.yaml"
 declare -a unclustered_nodes
 export magnum_k8s_image_name=openstack-magnum-k8s-image
 
@@ -5056,10 +5057,143 @@ function ping_fips
     done
 }
 
+function get_stack_fips
+{
+    local stack=$1
+    local fip_file=$2
+    local all_fips=$(mktemp)
+    local fip_uuids=$(openstack stack resource list $stack -f value -c physical_resource_id --filter type=OS::Neutron::FloatingIP)
+    openstack floating ip list -f value > $all_fips
+
+    for uuid in $fip_uuids
+        do
+        echo $(awk "\$1 ~ /${uuid}/ { print \$2 }" $all_fips) >> $fip_file
+        done
+
+    rm $all_fips
+}
+
+
+function ping_stack_fips
+{
+    . .openrc
+
+    local stack=$1
+    local fips=$(mktemp)
+
+    get_stack_fips $stack $fips
+
+    for fip in $(cat $fips)
+        do
+        ping -c 1 -w 60 $fip || complain 120 "cannot reach stack $stack floating IP $fip."
+        done
+
+    rm $fips
+}
+
+# Disable all but 3 compute nodes (these are the ones we will deploy the
+# pre-upgrade Heat stack on)
+function oncontroller_reduce_to_3_computes
+{
+    . .openrc
+    echo "Reducing cloud to 3 active compute nodes..."
+    local enable_computes=$(nova service-list | grep nova-compute | awk '{print $2}' | head -n 3)
+    local disable_computes=$(nova service-list | grep nova-compute | awk '{print $2}' | tail -n +4)
+
+    echo "Nodes to enable (first 3):"
+    for node in $enable_computes; do
+        echo "  $node"
+    done
+
+    echo "Nodes to disable: $disable_computes"
+    for node in $disable_computes; do
+        echo "  $node"
+    done
+
+    echo
+    echo "Enabling first 3 nodes..."
+
+    for service in $enable_computes; do
+        nova service-enable $service
+    done
+
+    echo "First 3 nodes enabled."
+
+    echo "Disabling remaining nodes..."
+
+    for service in $disable_computes; do
+        nova service-disable $service
+    done
+
+    echo "Remaining nodes disabled."
+}
+
+# Re-enable the compute nodes we disabled
+function oncontroller_reenable_computes
+{
+    . .openrc
+
+    echo "Re-enabling disabled compute nodes..."
+    for service in $(nova service-list | grep nova-compute | grep disabled | awk '{print $2}'); do
+        nova service-enable $service
+    done
+}
 
 # Use heat_stack_params to provide parameters to heat template
-function oncontroller_testpreupgrade
+function oncontroller_testpreupgrade_extended
 {
+    echo "Running extended pre-upgrade test..."
+
+    local tempest_image=$(openstack image list -f value | cut -d ' ' -f 2 | grep '^cirros-.*-tempest$' | head -n 1)
+    local nodes_enabled=$(nova service-list | grep nova-compute | grep enabled | awk '{print $2}')
+    local enabled_count=$(echo $nodes_enabled | wc -w)
+    if [ $enabled_count -lt 3 ]; then
+        complain 11 "testpreupgrade_extended: not enough compute nodes (${enabled_count}). please ensure there are at least 3 enabled compute nodes."
+    fi
+    if [ $enabled_count -gt 3 ]; then
+        complain 11 "testpreupgrade_extended: too many compute nodes (${enabled_count}). please ensure there are only 3 enabled compute nodes."
+    fi
+
+    if [ -z "$tempest_image" ]; then
+        # Depending on URL in the tempest barclamp, the image's name may differ
+        # from the one matched by the regex above. In that case the regex below
+        # should match:
+        tempest_image=$(openstack image list -f value | cut -d ' ' -f 2 | grep '^cirros-.*-tempest-machine$' | head -n 1)
+        if [ -z "$tempest_image" ]; then
+            complain 11 "No tempest image found. Please make sure the tempest barclamp created its images."
+        fi
+    fi
+
+    for i in $(seq 1 3); do
+        local template=$(echo $extended_upgrade_templates | cut -d ' ' -f $i)
+        local stack_name=$(echo $template | sed -e s/^2-instances-upgrade-// -e 's/\.yaml$//')
+        local compute_node=$(echo $nodes_enabled | cut -d ' ' -f $i)
+        local nodes_disable=$(echo $nodes_enabled | sed "s/$compute_node//")
+
+        # enable only the target compute node and disable all other active nova-compute services
+        echo "Enabling compute service $compute_node"
+        nova service-enable $compute_node
+        echo "Disabling the following nova-compute services: $nodes_disable"
+        for node in $nodes_disable; do
+            nova service-disable $node
+        done
+
+        openstack stack create $stack_name \
+            -t /root/scripts/heat/${template} \
+            --wait \
+            --parameter image=$tempest_image $heat_stack_params || \
+                    complain 11 "testpreupgrade_extended: stack create failed for ${stack_name}."
+
+        ping_stack_fips $stack_name && \
+        echo "test pre-upgrade successful."
+    done
+}
+
+# Use heat_stack_params to provide parameters to heat template
+function oncontroller_testpreupgrade_simple
+{
+    echo "Running simple pre-upgrade test."
+
     local tempest_image=$(openstack image list -f value | cut -d ' ' -f 2 | grep '^cirros-.*-tempest$' | head -n 1)
     if [ -z "$tempest_image" ]; then
         # Depending on URL in the tempest barclamp, the image's name may differ
@@ -5073,16 +5207,17 @@ function oncontroller_testpreupgrade
     openstack stack create upgrade_test -t \
         /root/scripts/heat/2-instances-cinder.yaml \
         --parameter image=$tempest_image $heat_stack_params
-    wait_for 15 20 "openstack stack list | grep upgrade_test | grep CREATE_COMPLETE" \
-             "heat stack for upgrade tests to complete"
+    wait_for 15 20  "openstack stack list | grep upgrade_test | grep CREATE_COMPLETE" \
+                    "heat stack for upgrade tests to complete"
     ping_fips && \
     echo "test pre-upgrade successful."
 }
 
-function oncontroller_testpostupgrade
+function oncontroller_testpostupgrade_simple_data
 {
     # retrieve the ping results
     local fips=$(openstack floating ip list -f value -c "Floating IP Address")
+    local timestamp=$(date '+%s')
 
     # remove manila-service fip from list
     manila_vm=$(openstack server list --all-projects -f value | grep manila-service | awk '{ print $1 }' )
@@ -5092,15 +5227,15 @@ function oncontroller_testpostupgrade
     fi
 
     for fip in $fips; do
-        scp cirros@$fip:/var/log/ping_neighbour.out ping_neighbour.$fip.out
-        max=$(sed -n 's/^.* not available for: //p' ping_neighbour.$fip.out | sort -n | tail -n 1)
+        scp cirros@$fip:/var/log/ping_neighbour.out ping_neighbour.$fip.out.${timestamp}
+        max=$(sed -n 's/^.* not available for: //p' ping_neighbour.$fip.out.${timestamp} | sort -n | tail -n 1)
         echo "Maximum outage while pinging other VM from $fip: $max seconds"
 
-        scp cirros@$fip:/var/log/ping_outside.out ping_outside.$fip.out
-        max=$(sed -n 's/^.* not available for: //p' ping_outside.$fip.out | sort -n | tail -n 1)
+        scp cirros@$fip:/var/log/ping_outside.out ping_outside.$fip.out.${timestamp}
+        max=$(sed -n 's/^.* not available for: //p' ping_outside.$fip.out .${timestamp}| sort -n | tail -n 1)
         echo "Maximum outage while pinging outside IP from $fip: $max seconds"
 
-        scp cirros@$fip:/mnt/cinder_test.out cinder_test.$fip.out
+        scp cirros@$fip:/mnt/cinder_test.out cinder_test.$fip.out.${timestamp}
         res=$(awk '$1!=p+1{print $1-p}{p=$1}' cinder_test.$fip.out | tail -n +2 | sort | tail -n 1)
         if [ -z "$res" ]; then
             echo "No cinder volume outage when writing from $fip"
@@ -5108,11 +5243,61 @@ function oncontroller_testpostupgrade
             echo "Maximum cinder volume outage when writing from $fip: $res seconds"
         fi
     done
+}
 
+function oncontroller_testpostupgrade_simple_delete_stack
+{
     openstack stack delete --yes upgrade_test
     wait_for 15 20 "! openstack stack show upgrade_test" \
              "heat stack for upgrade tests to be deleted"
-    echo "test post-upgrade successful."
+    echo "test post-upgrade stack deletion successful."
+}
+
+function oncontroller_testpostupgrade_extended_data
+{
+    local stack_names=$(echo $extended_upgrade_templates | sed -e s/2-instances-upgrade-//g -e 's/\.yaml//g')
+    local fips_file=$(mktemp)
+    local timestamp=$(date '+%s')
+
+    for stack in $stack_names
+        do
+        get_stack_fips $stack $fips_file
+        done
+    local fips=$(cat $fips_file)
+    rm $fips_file
+
+    for fip in $fips; do
+        # ensure we don't have host keys from a previous run in known_hosts
+        ssh-keygen -R $fip -f /root/.ssh/known_hosts
+
+        scp cirros@$fip:/var/log/ping_neighbour.out ping_neighbour.$fip.out.${timestamp}
+        max=$(sed -n 's/^.* not available for: //p' ping_neighbour.$fip.out.${timestamp}| sort -n | tail -n 1)
+        echo "Maximum outage while pinging other VM from $fip: $max seconds"
+
+        scp cirros@$fip:/var/log/ping_outside.out ping_outside.$fip.out.${timestamp}
+        max=$(sed -n 's/^.* not available for: //p' ping_outside.$fip.out.${timestamp} | sort -n | tail -n 1)
+        echo "Maximum outage while pinging outside IP from $fip: $max seconds"
+
+        if scp cirros@$fip:/mnt/cinder_test.out cinder_test.$fip.out.${timestamp}; then
+            res=$(awk '$1!=p+1{print $1-p}{p=$1}' cinder_test.$fip.out.${timestamp} | tail -n +2 | sort | tail -n 1)
+            if [ -z "$res" ]; then
+                echo "No cinder volume outage when writing from $fip"
+            else
+                echo "Maximum cinder volume outage when writing from $fip: $res seconds"
+            fi
+        else
+            echo "No Cinder data available from $fip, skipping."
+        fi
+    done
+}
+
+function oncontroller_testpostupgrade_extended_delete_stack
+{
+    for stack_name in $stack_names; do
+        openstack stack delete --yes --wait $stack_name
+    done
+
+    echo "test post-upgrade stack deletion successful."
 }
 
 function check_novacontroller
@@ -5126,8 +5311,32 @@ function onadmin_testpreupgrade
     get_novacontroller
     check_novacontroller
 
-    oncontroller testpreupgrade
+    if [[ $want_testpreupgrade_extended ]]; then
+        oncontroller reduce_to_3_computes
+        oncontroller testpreupgrade_extended
+        oncontroller reenable_computes
+    else
+        oncontroller testpreupgrade_simple
+    fi
 }
+
+function onadmin_testpreupgrade_data
+{
+    # Gather measurements from pre-upgrade test Heat stack. Run this function
+    # just before you run the upgrade's `services` step to gather data on how
+    # much accumulated outage the non-upgraded cloud starts with (without this
+    # the error in the numbers from the upgraded cloud will be unknown).
+
+    get_novacontroller
+    check_novacontroller
+
+    if [[ $want_testpreupgrade_extended ]]; then
+        oncontroller testpostupgrade_extended_data
+    else
+        oncontroller testpostupgrade_simple_data
+    fi
+}
+
 
 function oncontroller_get_fips
 {
@@ -5138,6 +5347,18 @@ function oncontroller_get_fips
     else
         echo $(openstack floating ip list -f value -c "Floating IP Address")
     fi
+}
+
+function oncontroller_get_stack_fips
+{
+    local stack=$1
+    local fips=$(mktemp)
+
+    get_stack_fips $stack $fips
+
+    ret=$(cat $fips)
+    rm $fips
+    echo $ret
 }
 
 function onadmin_ping_running_instances
@@ -5152,22 +5373,50 @@ function onadmin_ping_running_instances
 function onadmin_testpostupgrade
 {
     if ! grep non_disruptive /var/lib/crowbar/upgrade/*-progress.yml ; then
-        complain 11 "The testpostupgrade step is only valid for non-disruptive upgrade mode!"
+        echo "WARNING: the testpostupgrade step only makes sense for non-disruptive upgrade mode!"
+        echo "         In disruptive mode it will only provide current reachability information."
+        echo "         In a non-upgrade context, the data it provides may be useful to investigate"
+        echo "         Cinder or Neutron outages."
     fi
 
     get_novacontroller
     check_novacontroller
 
-    if [[ $want_ping_running_instances = 1 ]]; then
-        # retrieve the ping results
-        local fip
-        for fip in $(oncontroller get_fips); do
+    if [[ $want_testpreupgrade_extended ]]; then
+        local stack_names=$(echo $extended_upgrade_templates | sed -e s/2-instances-upgrade-//g -e 's/\.yaml//g')
+        local fips=""
+
+        for stack in $stack_names
+            do
+                fips="$fips $(oncontroller get_stack_fips $stack)"
+            done
+
+        for fip in $fips; do
             touch /var/lib/crowbar/stop_pinging.$fip
             max=$(sed -n 's/^.* not available for: //p' /var/log/ping_instance.$fip.out | sort -n | tail -n 1)
             echo "Maximum outage while pinging VM at $fip: $max seconds"
         done
+
+        oncontroller testpostupgrade_extended_data
+        oncontroller testpostupgrade_extended_delete_stack
+    else
+        if [[ $want_ping_running_instances = 1 ]]; then
+            # retrieve the ping results
+            local fip
+            local fips
+
+
+            for fip in $(oncontroller get_fips); do
+                touch /var/lib/crowbar/stop_pinging.$fip
+                max=$(sed -n 's/^.* not available for: //p' /var/log/ping_instance.$fip.out | sort -n | tail -n 1)
+                echo "Maximum outage while pinging VM at $fip: $max seconds"
+            done
+
+        oncontroller testpostupgrade_simple_data
+        oncontroller testpostupgrade_simple_delete_stack
+        fi
     fi
-    oncontroller testpostupgrade
+
 }
 
 function onadmin_addupdaterepo
