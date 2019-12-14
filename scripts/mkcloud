@@ -234,7 +234,13 @@ function onhost_supportconfig
             for node in $(crowbar machines list | grep ^d) ; do
             (
                 echo "Collecting supportconfig from $node"
-                timeout 1200 ssh $node supportconfig | wc
+                SUPPORTCONFIG_OUT=/tmp/supportconfig-output-$node
+                timeout 1200 ssh $node supportconfig > $SUPPORTCONFIG_OUT 2>&1
+                SUPPORTCONFIG_STATUS=$?
+                echo "$SUPPORTCONFIG_OUT: `wc $SUPPORTCONFIG_OUT`"
+                if [ $SUPPORTCONFIG_STATUS -ne 0 ]; then
+                    timeout 300 scp $node:$SUPPORTCONFIG_OUT /var/log/
+                fi
                 timeout 300 scp $node:/var/log/\*tbz /var/log/
             )&
             done
@@ -243,6 +249,7 @@ function onhost_supportconfig
             wait
         '
         $scp root@$(wrap_ip $adminip):/var/log/*tbz $artifacts_dir/
+        $scp root@$(wrap_ip $adminip):/var/log/supportconfig-* $artifacts_dir/ | true
     fi
 }
 
