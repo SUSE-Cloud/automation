@@ -110,6 +110,9 @@
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
+          # tempest filters not yet supported for SOC7
+          tempest_filter_list: ''
+          run_testsetup_tempest: true
       - cloud-crowbar8-job-gate-no-ha-deploy-x86_64:
           cloudsource: stagingcloud8
           ses_enabled: false
@@ -143,6 +146,9 @@
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
+          # tempest filters not yet supported for SOC7
+          tempest_filter_list: ''
+          run_testsetup_tempest: true
       - cloud-crowbar8-job-gate-ha-deploy-x86_64:
           cloudsource: stagingcloud8
           ses_enabled: false
@@ -178,6 +184,9 @@
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
+          # tempest filters not yet supported for SOC7
+          tempest_filter_list: ''
+          run_testsetup_tempest: true
       - cloud-crowbar8-job-gate-linuxbridge-deploy-x86_64:
           cloudsource: stagingcloud8
           ses_enabled: false

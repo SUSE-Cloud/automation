@@ -60,6 +60,12 @@ export cephvolumenumber=1
 # export cct_tests=
 export scenario={{ admin_crowbar_batch_file }}
 
+{% if not (run_testsetup_tempest | bool) %}
+# don't run tempest through qa_crowbarsetup.sh / onadmin_testsetup, the
+# ansible playbooks will take care of that
+export want_tempest=0
+{% endif %}
+
 # export host_mtu=
 # export architectures=
 

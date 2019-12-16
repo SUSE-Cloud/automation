@@ -26,3 +26,5 @@ ssl_keyfile: /etc/cloud/private/signing_key.pem
 ssl_ca_certs: /etc/ssl/ca-bundle.pem
 
 upgrade_repos: ''
+
+run_testsetup_tempest: false

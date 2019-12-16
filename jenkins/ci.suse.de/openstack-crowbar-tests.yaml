@@ -109,6 +109,12 @@
           description: >-
             Cloud product (ardana or crowbar)
 
+      - hidden:
+          name: run_testsetup_tempest
+          default: 'false'
+          description: >-
+            Run tempest as part of the onadmin_testsetup step
+
     pipeline-scm:
       scm:
         - git:

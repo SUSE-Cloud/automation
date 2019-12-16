@@ -292,7 +292,7 @@
           type: multi-select
           visible-items: 10
           multi-select-delimiter: ','
-          default-value: '{tempest_filter_list|}'
+          default-value: '{tempest_filter_list|smoke}'
           value: >-
             smoke,keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,fwaas,
             trove,aodh,heat,magnum,manila,lbaas,lbaas-octavia,designate
@@ -394,6 +394,12 @@
           default: '{collect_supportconfig|true}'
           description: >-
             Collect supportconfig files when the job fails
+
+      - hidden:
+          name: run_testsetup_tempest
+          default: '{run_testsetup_tempest|false}'
+          description: >-
+            Run tempest as part of the onadmin_testsetup step
 
     pipeline-scm:
       scm:
