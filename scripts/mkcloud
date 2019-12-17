@@ -682,11 +682,12 @@ function mkvlan
     fi
 }
 
-function setuppublicnet
+function setupvlangws
 {
     # workaround https://bugzilla.novell.com/show_bug.cgi?id=845496
     echo 0 > /proc/sys/net/bridge/bridge-nf-call-iptables
     mkvlan $vlan_public $publicgw
+    mkvlan $vlan_octavia $octaviagw
     if [[ $mkch_physcloudif ]] ; then
         $sudo brctl addif $cloudbr $mkch_physcloudif
         $sudo ip link set dev $mkch_physcloudif up
@@ -705,7 +706,7 @@ function restartcloud
     vgchange -ay $cloudvg
     libvirt_net_start
     $sudo virsh start $cloud-admin
-    setuppublicnet
+    setupvlangws
     wait_for_crowbar_ntpd
     local i
     for i in $(nodes ids all) ; do
@@ -718,7 +719,7 @@ function restartcloud
 function setupnodes
 {
     onadmin wait_tftpd || return $?
-    setuppublicnet
+    setupvlangws
     local i
     for i in $(nodes ids normal) ; do
         local macaddress=$(macfunc $i)

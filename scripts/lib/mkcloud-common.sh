@@ -416,6 +416,7 @@ function setcloudnetvars
         : ${admingw:=${net}${ip_sep}${ip_sep}1}
         : ${publicgw:=${net_public}${ip_sep}${ip_sep}1}
         : ${ironicgw:=${net_ironic}${ip_sep}${ip_sep}1}
+        : ${octaviagw:=${net_octavia}${ip_sep}${ip_sep}1}
     else
         net_fixed=${net_fixed:-192.168.123}
         net_public=${net_public:-192.168.122}
@@ -431,6 +432,7 @@ function setcloudnetvars
         : ${admingw:=${net}${ip_sep}1}
         : ${publicgw:=${net_public}${ip_sep}1}
         : ${ironicgw:=${net_ironic}${ip_sep}1}
+        : ${octaviagw:=${net_octavia}${ip_sep}1}
     fi
 }
 

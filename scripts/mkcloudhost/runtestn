@@ -22,6 +22,7 @@ test -e $cloudfunc || cloudfunc=$(dirname $(readlink -e $BASH_SOURCE))/cloudfunc
 #export NOQACROWBARDOWNLOAD=1
 export net_admin=$(cloudadminnet $n)
 export net_ironic=$(cloudironicnet $n)
+export net_octavia=$(cloudoctavianet $n)
 export net_public=$(cloudpublicnet $n)
 export adminnetmask=255.255.254.0
 export virtualcloud=$vcloudname$n

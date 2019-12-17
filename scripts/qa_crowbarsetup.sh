@@ -2800,13 +2800,14 @@ function custom_configuration
             fi
         ;;
         octavia)
-            proposal_set_value octavia default "['attributes']['octavia']['certs']['passphrase']" "crowbar"
-            proposal_set_value octavia default "['attributes']['octavia']['certs']['server_ca_cert_path']" "ca.cert.pem"
-            proposal_set_value octavia default "['attributes']['octavia']['certs']['server_ca_key_path']" "private/ca.key.pem"
-            proposal_set_value octavia default "['attributes']['octavia']['certs']['client_ca_cert_path']" "ca.cert.pem"
-            proposal_set_value octavia default "['attributes']['octavia']['certs']['client_cert_and_key_path']" "private/client.cert-and-key.pem"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['passphrase']" "'crowbar'"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['server_ca_cert_path']" "'ca.cert.pem'"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['server_ca_key_path']" "'private/ca.key.pem'"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['client_ca_cert_path']" "'ca.cert.pem'"
+            proposal_set_value octavia default "['attributes']['octavia']['certs']['client_cert_and_key_path']" "'private/client.cert-and-key.pem'"
             if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
                 proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-api']" "['cluster:$clusternameservices']"
+                proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-backend']" "['cluster:$clusternameservices']"
             fi
         ;;
         neutron)
@@ -4155,6 +4156,7 @@ function oncontroller_octavia_network_setup
 {
     local octavia_network_name="lb-mgmt-net"
     local octavia_subnet_name=$octavia_network_name
+    setcloudnetvars $cloud
 
     . ~/.openrc
     if ! openstack network list --format value -c Name | grep -q "^${octavia_network_name}$"; then
