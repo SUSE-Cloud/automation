@@ -5,7 +5,7 @@
 
 // Loads the list of extra parameters into the environment
 def load_extra_params_as_vars(extra_params) {
-  if (extra_params) {
+  if (extra_params.trim()) {
     def props = readProperties text: extra_params
     for(key in props.keySet()) {
       value = props["${key}"]
