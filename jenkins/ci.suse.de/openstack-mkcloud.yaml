@@ -362,8 +362,8 @@
 
       - string:
           name: want_designate_proposal
-          default:
-          description: Deploy with Designate
+          default: '1'
+          description: set to 0 to not deploy designate
 
       - string:
           name: want_magnum_proposal

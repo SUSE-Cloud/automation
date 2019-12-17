@@ -1395,9 +1395,9 @@ Optional
         want_aodh_proposal=0
         want_barbican_proposal=0
         want_sahara_proposal=0
+        want_designate_proposal=0
         The following proposals are default off:
         Set to 1 to enable \$PROPOSAL to be deployed. e.g.
-        want_designate_proposal=1 (Cloud9+ only)
         want_magnum_proposal=1
         want_monasca_proposal=1   (Cloud7+ only)
         want_octavia_proposal=1 (Cloud9+ only)

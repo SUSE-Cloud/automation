@@ -137,6 +137,14 @@ proposals:
     elements:
       heat-server:
       - @@controller@@
+- barclamp: designate
+  attributes:
+  deployment:
+    elements:
+      designate-server:
+      - @@controller@@
+      designate-worker:
+      - @@controller@@
 - barclamp: barbican
   deployment:
     elements:
