@@ -5210,9 +5210,8 @@ function oncontroller_testpreupgrade_simple
     for i in $(seq 1 $upgrade_test_stack_count); do
         openstack stack create "upgrade_test$suffix" -t \
             /root/scripts/heat/2-instances-cinder.yaml \
+            --wait \
             --parameter image=$tempest_image --parameter suffix="$suffix" $heat_stack_params
-        wait_for 15 20 "openstack stack show \"upgrade_test$suffix\" | grep CREATE_COMPLETE" \
-                 "heat stack for upgrade tests to complete"
         suffix="_$i"
     done
     ping_fips && \
@@ -5255,9 +5254,7 @@ function oncontroller_testpostupgrade_simple_delete_stack
 {
     suffix=''
     for i in $(seq 1 $upgrade_test_stack_count); do
-        openstack stack delete --yes "upgrade_test$suffix"
-        wait_for 15 20 "! openstack stack show \"upgrade_test$suffix\"" \
-                 "heat stack for upgrade tests to be deleted"
+        openstack stack delete --yes --wait "upgrade_test$suffix"
         suffix="_$i"
     done
     echo "test post-upgrade successful."
