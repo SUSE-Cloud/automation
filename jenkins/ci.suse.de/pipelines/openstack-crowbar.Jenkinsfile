@@ -261,7 +261,8 @@ pipeline {
       steps {
         script {
           // This step does the following on the non-admin nodes:
-          //  - runs tempest and other tests on the deployed cloud
+          //  - runs tempest smoke (if the run_testsetup_tempest bool parameter is set)
+          //  - runs other tests under qa_crowbarsetup.sh/onadmin_testsetup on the deployed cloud
           cloud_lib.ansible_playbook('run-crowbar-tests')
         }
       }
@@ -269,7 +270,9 @@ pipeline {
         always {
           script {
             archiveArtifacts artifacts: ".artifacts/**/*", allowEmptyArchive: true
-            junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+            if (run_testsetup_tempest.toBoolean()) {
+              junit testResults: ".artifacts/testr_crowbar.xml", allowEmptyResults: false
+            }
           }
         }
       }

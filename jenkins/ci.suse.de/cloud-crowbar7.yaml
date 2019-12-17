@@ -9,6 +9,9 @@
     controllers: '1'
     computes: '1'
     ses_enabled: false
+    # tempest filters not yet supported for SOC7
+    tempest_filter_list: ''
+    run_testsetup_tempest: true
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -25,6 +28,9 @@
     controllers: '3'
     computes: '2'
     ses_enabled: false
+    # tempest filters not yet supported for SOC7
+    tempest_filter_list: ''
+    run_testsetup_tempest: true
     triggers:
      - timed: 'H H * * *'
     jobs:
