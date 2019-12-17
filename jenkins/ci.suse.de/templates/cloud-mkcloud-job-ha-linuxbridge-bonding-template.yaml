@@ -27,5 +27,6 @@
             networkingplugin=linuxbridge
             networkingmode=vxlan
             crowbar_networkingmode=team
+            want_octavia_proposal={want_octavia_proposal|0}
             label={label}
             job_name=cloud-mkcloud{version}-job-ha-linuxbridge-{arch}

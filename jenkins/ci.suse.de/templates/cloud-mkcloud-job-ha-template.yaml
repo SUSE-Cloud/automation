@@ -27,5 +27,6 @@
             hacloud=1
             want_all_ssl={want_all_ssl}
             mkcloudtarget=all_noreboot
+            want_octavia_proposal={want_octavia_proposal|0}
             label={label}
             job_name=cloud-mkcloud{version}-job-ha-{arch}

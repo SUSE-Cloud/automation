@@ -24,6 +24,7 @@
             mkcloudtarget=all_batch
             scenario=cloud{version}-{nodenumber}nodes-compute-ha.yml
             want_node_aliases=controller={nodenumber_controller},compute=2
+            want_octavia_proposal={want_octavia_proposal|0}
             label={label}
             storage_method=swift
             job_name=cloud-mkcloud{version}-job-ha-compute-{arch}

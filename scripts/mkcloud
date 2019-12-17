@@ -131,7 +131,12 @@ fi
 if [[ $want_magnum_proposal = 1 ]]; then
     : ${compute_node_memory:=6621440}
     : ${computenode_hdd_size:=80}
+# octavia requires 1GB of RAM for every load balancer it creates, so
+# it needs compute nodes to be a little beefier
+elif [[ $want_octavia_proposal = 1 ]]; then
+    : ${compute_node_memory:=3145728}
 fi
+
 # pvlist is filled below
 : ${pvlist:=}
 next_pv_device=
