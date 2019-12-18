@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2019 SUSE LLC
+# (c) Copyright 2020 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,23 +15,11 @@
 #
 ---
 
-- name: Diff list of installed packages in plaintext
-  copy:
-    src: "{{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state2 }}.txt"
-    dest: "{{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state1 }}.txt"
-  loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
-  delegate_to: localhost
-  check_mode: yes
-  diff: yes
-  register: diff_list
-  loop_control:
-    loop_var: item_virtual_hosts
-
 - name: Create a diff of installed packages and safe into files in plaintext
   shell: |
-    diff -U 0 {{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state1 }}.txt \
-      {{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state2 }}.txt \
-      > {{ diff_tmp_dir }}/rpms/diffs/rpms_{{ item_virtual_hosts }}.diff
+    diff -U 0 {{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state1 }}.yaml \
+      {{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state2 }}.yaml \
+      > {{ diff_tmp_dir }}/rpms/diffs/rpms_{{ item_virtual_hosts }}.yaml
   args:
     warn: False
   delegate_to: localhost
@@ -41,20 +29,6 @@
   loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
   loop_control:
     loop_var: item_virtual_hosts
-
-# TODO: Alternative approach to get differences into files - **NOT** working now(issue with dict instead of list)
-#- debug: "var=diff_list"
-#- name:  Create a diff of installed packages and safe into files in plaintext
-#  #local_action: shell diff {{ item_virtual_hosts.1 }} {{item_virtual_hosts.1 }} | tee -a {{ diff_tmp_dir }}/rpms/diffs/rpms_cloud.diff
-#  local_action: shell echo {{ item_virtual_hosts['diff'] | selectattr('before') }}
-##- item_virtual_hosts.0 - item_virtual_hosts.1
-##loop: "{{ diff_list.results | subelements('diff') | list}}"
-#  loop: "{{ diff_list.results  }}"
-#  when: "item_virtual_hosts['diff']['before'] is not defined"
-#  loop_control:
-#    loop_var: item_virtual_hosts
-#    label: "{{ item_virtual_hosts._ansible_item_label }}"
-#
 
 # Task will fail when no changed in any of nodes occured.
 # TODO: add jenkins option - E.g. die when testing MUs.
