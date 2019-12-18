@@ -82,7 +82,7 @@
           disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            designate,heat,manila,magnum,lbaas"
+            designate,heat,manila,magnum,lbaas,octavia"
       - cloud-ardana9-job-gate-entry-scale-kvm-update-x86_64:
           cloudsource: develcloud9
           update_to_cloudsource: stagingcloud9
@@ -90,7 +90,7 @@
           disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            designate,heat,magnum,lbaas"
+            designate,heat,magnum,lbaas,octavia"
     jobs:
         - '{ardana_job}'
 
@@ -126,7 +126,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            designate,heat,magnum,manila,lbaas-octavia"
+            designate,heat,magnum,manila,lbaas-octavia,octavia"
     jobs:
         - '{crowbar_job}'
 
@@ -162,7 +162,7 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            designate,heat,magnum,manila,lbaas-octavia"
+            designate,heat,magnum,manila,lbaas-octavia,octavia"
     jobs:
         - '{crowbar_job}'
 
@@ -200,6 +200,6 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            designate,heat,magnum,manila,lbaas-octavia"
+            designate,heat,magnum,manila,lbaas-octavia,octavia"
     jobs:
         - '{crowbar_job}'
