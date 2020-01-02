@@ -54,13 +54,12 @@
     cloudsource: stagingcloud8
     upgrade_cloudsource: stagingcloud9
     cloud_env: cloud-crowbar-ci-slot
-    scenario_name: std-lmm
+    scenario_name: standard
     controllers: '1'
     computes: '1'
     ses_enabled: false
-    enabled_services: database,rabbitmq,keystone,swift,monasca,glance,cinder,neutron,nova,horizon
-    extra_params: |
-      ssl_enabled=false
+    enabled_services: database,rabbitmq,keystone,swift,glance,cinder,neutron,nova,horizon,heat,manila,designate,barbican,magnum,tempest
+    extra_params:
     triggers:
      - timed: 'H H * * *'
     jobs:
