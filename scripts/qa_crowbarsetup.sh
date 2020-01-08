@@ -5748,10 +5748,10 @@ zypper --non-interactive --gpg-auto-import-keys --no-gpg-checks install ses-upgr
 # This will adapt nodes repositories to the ones with next cloud version
 function onadmin_prepare_cloudupgrade_nodes_repos
 {
-    export_tftpboot_dirs
-
     # change CLOUDISONAME/CLOUDISOURL according to the new cloudsource
     onadmin_set_source_variables
+
+    export_tftpboot_dirs
 
     # prepare installation repositories for nodes
     onadmin_prepare_sles_installmedia
@@ -5770,10 +5770,10 @@ function onadmin_prepare_cloudupgrade_nodes_repos
 # This will adapt admin server repositories to the ones needed by next product version
 function onadmin_prepare_cloudupgrade_admin_repos
 {
-    export_tftpboot_dirs
-
     # change CLOUDISONAME/CLOUDISOURL according to the new cloudsource
     onadmin_set_source_variables
+
+    export_tftpboot_dirs
 
     # recreate the SUSE-Cloud Repo with the latest iso
     onadmin_prepare_cloud_repos
