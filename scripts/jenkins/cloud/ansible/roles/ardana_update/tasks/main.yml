@@ -40,9 +40,14 @@
 - include_tasks: reboot_nodes.yml
   when: pending_system_reboot
 
-- name: Check ardana services after update
-  command: |
-    ansible-playbook -i hosts/verb_hosts ardana-status.yml
+- name: Run playbooks from "{{ ardana_scratch_path }}"
+  command: "ansible-playbook {{ item.play }}"
   args:
     chdir: "{{ ardana_scratch_path }}"
-  changed_when: False
+  loop: "{{ ardana_scratch_playbooks }}"
+  register: ansible_scratch_plays
+  when:
+    - item.when | default(True)
+    - not (ansible_scratch_plays | default({})) is failed
+  loop_control:
+    label: "{{ item.play }}"
