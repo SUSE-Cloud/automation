@@ -24,5 +24,6 @@
             networkingmode=vlan
             want_dvr=1
             mkcloudtarget=all
+            want_octavia_proposal={want_octavia_proposal|0}
             label={label}
             job_name=cloud-mkcloud{version}-job-dvr-{arch}

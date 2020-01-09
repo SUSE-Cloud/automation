@@ -401,6 +401,11 @@
           default: '1'
           description: set to 0 to not deploy aodh
 
+      - string:
+          name: want_octavia_proposal
+          default:
+          description: set to 1 to deploy octavia
+
       ################################################
       # misc
 

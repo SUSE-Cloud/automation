@@ -24,5 +24,6 @@
             crowbar_networkingmode=team
             tempestoptions={tempestoptions}
             mkcloudtarget=all
+            want_octavia_proposal={want_octavia_proposal|0}
             label={label}
             job_name=cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}

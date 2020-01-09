@@ -13,6 +13,7 @@
     want_barbican_proposal: 1
     want_aodh_proposal: 0
     want_designate_proposal: 1
+    want_octavia_proposal: 1
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
@@ -43,6 +44,7 @@
     want_barbican_proposal: 1
     want_aodh_proposal: 0
     want_designate_proposal: 1
+    want_octavia_proposal: 1
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
@@ -60,6 +62,7 @@
     previous_version: 8
     arch: x86_64
     want_designate_proposal: 1
+    want_octavia_proposal: 1
     tempestoptions: --parallel --concurrency 3
     label: openstack-mkcloud-SLE12-x86_64
     jobs:
