@@ -160,6 +160,14 @@ proposals:
     elements:
       heat-server:
       - cluster:services
+- barclamp: designate
+  attributes:
+  deployment:
+    elements:
+      designate-server:
+      - cluster:services
+      designate-worker:
+      - cluster:services
 - barclamp: barbican
   deployment:
     elements:

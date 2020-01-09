@@ -8,7 +8,6 @@
     magnumoptions: --regex '^magnum.tests.functional.api'
     label: openstack-mkcloud-SLE12-x86_64
     database_engine: mysql
-    want_designate_proposal: 1
     jobs:
         - 'cloud-mkcloud{version}-job-2nodes-{arch}'
         - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-{arch}'
@@ -36,7 +35,6 @@
     storage_method_ha: swift
     database_engine: mysql
     want_all_ssl: 0
-    want_designate_proposal: 1
     jobs:
         - 'cloud-mkcloud{version}-job-ha-{arch}'
         - 'cloud-mkcloud{version}-job-ha-ceph-{arch}'
@@ -57,7 +55,6 @@
     previous_version: 7
     arch: x86_64
     tempestoptions: --parallel
-    want_designate_proposal: 1
     label: openstack-mkcloud-SLE12-x86_64
     jobs:
          - 'cloud-mkcloud{version}-job-2nodes-tempestfull-{arch}'
