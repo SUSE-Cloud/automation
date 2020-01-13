@@ -70,6 +70,7 @@
           loop:
             - command: onadmin_check_admin_server_upgraded
             - command: onadmin_wait_for_crowbar_api
+            - command: onadmin_modify_upgrade_timeouts chef_upgraded 1800
             - command: onadmin_crowbar_nodeupgrade
           loop_control:
             loop_var: upgrade_step
