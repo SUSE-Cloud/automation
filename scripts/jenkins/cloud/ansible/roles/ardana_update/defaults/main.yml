@@ -34,3 +34,7 @@ ardana_openstack_playbooks:
     when: "{{ is_physical_deploy }}"
   - play: "config-processor-run.yml -e encrypt='' -e rekey=''"
   - play: "ready-deployment.yml"
+
+ardana_scratch_playbooks:
+  - play: "ardana-status.yml"
+  - play: "ardana-cloud-configure.yml -e '{{ ardana_extra_vars|to_json }}'"
