@@ -5971,6 +5971,14 @@ function onadmin_check_admin_server_upgraded
     fi
 }
 
+function onadmin_modify_upgrade_timeouts
+{
+    local step=${1}
+    local new_value=${2}
+
+    sed -i "s/\(:$step:\) \(.*\)/\1 $new_value/" /etc/crowbar/upgrade_timeouts.yml
+}
+
 function onadmin_upgrade_admin_server
 {
     safely crowbarctl upgrade admin
