@@ -2,7 +2,7 @@
 
 # OpenSUSE Leap version number corresponding to the cloud version
 leap_version:
-  cloud7: "42.2"
+  cloud7: "42.3"
   cloud8: "42.3"
   cloud9: "15.0"
 
