@@ -5234,7 +5234,7 @@ function oncontroller_testpostupgrade_simple_data
         echo "Maximum outage while pinging other VM from $fip: $max seconds"
 
         scp cirros@$fip:/var/log/ping_outside.out ping_outside.$fip.out.${timestamp}
-        max=$(sed -n 's/^.* not available for: //p' ping_outside.$fip.out .${timestamp}| sort -n | tail -n 1)
+        max=$(sed -n 's/^.* not available for: //p' ping_outside.$fip.out.${timestamp}| sort -n | tail -n 1)
         echo "Maximum outage while pinging outside IP from $fip: $max seconds"
 
         scp cirros@$fip:/mnt/cinder_test.out cinder_test.$fip.out.${timestamp}
