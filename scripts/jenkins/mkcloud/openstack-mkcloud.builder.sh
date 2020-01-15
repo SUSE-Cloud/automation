@@ -184,13 +184,19 @@ export clouddescription="Jenkins Build: $BUILD_NUMBER / $JOB_NAME"
 
 $custom_settings
 
-perl -e "alarm 6*60*60 ; exec '${mkcloudwrapper} bash ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' ; print qq{$!\n} ; exit 127 " | tee $artifacts_dir/mkcloud_short_stdout.log
+export mkcloud_timeout=$((7*60*60))
+perl -e "alarm ${mkcloud_timeout} ; exec '${mkcloudwrapper} bash ${automationrepo}/scripts/mkcloud setuphost $(echo -n $MKCLOUDTARGET) ' ; print qq{$!\n} ; exit 127 " | tee $artifacts_dir/mkcloud_short_stdout.log
 ret=${PIPESTATUS[0]}
 if [[ $ret != 0 ]] ; then
     if [[ $github_pr_sha ]] ; then
         mkcloudgating_trap
     fi
-    echo "mkcloud ret=$ret"
+    # code 142 means process exited because of SIGALRM
+    if [[ $ret == 142 ]]; then
+        echo "mkcloud stopped because of timeout (${mkcloud_timeout} seconds). ret=$ret"
+    else
+        echo "mkcloud ret=$ret"
+    fi
     exit $ret # check return code before tee
 fi
 
