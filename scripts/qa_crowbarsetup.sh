@@ -5238,7 +5238,7 @@ function oncontroller_testpostupgrade_simple_data
         echo "Maximum outage while pinging outside IP from $fip: $max seconds"
 
         scp cirros@$fip:/mnt/cinder_test.out cinder_test.$fip.out.${timestamp}
-        res=$(awk '$1!=p+1{print $1-p}{p=$1}' cinder_test.$fip.out | tail -n +2 | sort | tail -n 1)
+        res=$(awk '$1!=p+1{print $1-p}{p=$1}' cinder_test.$fip.out.${timestamp} | tail -n +2 | sort | tail -n 1)
         if [ -z "$res" ]; then
             echo "No cinder volume outage when writing from $fip"
         else
