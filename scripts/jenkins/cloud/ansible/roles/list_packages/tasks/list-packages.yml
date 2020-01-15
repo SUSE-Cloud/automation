@@ -1,5 +1,5 @@
 #
-# (c) Copyright 2019 SUSE LLC
+# (c) Copyright 2020 SUSE LLC
 #
 # Licensed under the Apache License, Version 2.0 (the "License"); you may
 # not use this file except in compliance with the License. You may obtain
@@ -15,33 +15,67 @@
 #
 ---
 
-- name: Collect list of installed packages in plaintext
+- name: Collect list of installed packages with infos from rpm
   shell: |
-    rpm -qa | sort
+    echo "<?xml version='1.0'?>"
+    echo "<stream>"
+    rpm -qa --qf '<solvable name="%{NAME}" version="%{VERSION}" release="%{RELEASE}" disturl="%{DISTURL}"/>\n'
+    echo "</stream>"
   args:
     warn: False
   delegate_to: "{{ item_virtual_hosts }}"
   loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
   loop_control:
     loop_var: item_virtual_hosts
-  register: result_packages_plain
+  register: _result_packages_rpm
 
-- name: Save packages from variable into file on ansible host
-  copy:
-   content: "{{ item_virtual_hosts.stdout }}"
-   dest: "{{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts._ansible_item_label }}_{{ suffix }}.txt"
+- name: Collect list of installed packages repo of origin from zypper
+  shell: |
+    zypper --xmlout se -s -i -t package
+  args:
+    warn: False
+  delegate_to: "{{ item_virtual_hosts }}"
+  loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
+  loop_control:
+    loop_var: item_virtual_hosts
+  register: _result_packages_repos_zypper
+
+- name: Get Disturl and versions from rpm yml output
+  parse_xml:
+    path: "{{ item_virtual_hosts.stdout }}"
+    schema: "rpm"
+  register: _result
   delegate_to: localhost
-  loop: "{{ result_packages_plain.results }}"
+  loop: "{{ _result_packages_rpm.results }}"
   loop_control:
     loop_var: item_virtual_hosts
     label: "{{ item_virtual_hosts._ansible_item_label }}"
 
-# TODO: Improvement - have files in yaml - this needs to be reworked
-#- name: Collect list of installed packages in yaml
-#  shell: |
-#    rpm -qa --qf "%{NAME}:\n  version: %{VERSION}\n  release: %{RELEASE}\n  disturl: %{DISTURL}\n" \
-#    | perl -pe 'chomp;$_.=($.%4)?"\n":"\0"' | sort -z -t' ' -k1 | tr '\0' '\n' \
-#    > /tmp/rpms/rpms_{{ inventory_hostname }}_{{ suffix }}.yaml
-#  args:
-#    warn: False
-#    creates: "/tmp/rpms/rpms_{{ inventory_hostname }}_{{ suffix }}.yaml"
+- name: Get Repo of origin from zypper yml output
+  parse_xml:
+    path: "{{ item_virtual_hosts.stdout }}"
+    schema: "zypper"
+  register: _result2
+  delegate_to: localhost
+  loop: "{{ _result_packages_repos_zypper.results }}"
+  loop_control:
+    loop_var: item_virtual_hosts
+    label: "{{ item_virtual_hosts._ansible_item_label }}"
+
+- set_fact:
+    _merged_dicts_of_data: "{{ _merged_dicts_of_data | default({}) | combine(_result2.results | selectattr('_ansible_item_label', 'equalto', item._ansible_item_label) | map(attribute='parse_xml') | list | combine(item.parse_xml, recursive=True), recursive=True) }}"
+  register: _final_merged_values
+  loop: "{{ _result.results }}"
+  loop_control:
+    label: "{{ item._ansible_item_label }}"
+
+- name: Save packages from variable into file on ansible host
+  copy:
+   content: "{{ item_virtual_hosts.ansible_facts._merged_dicts_of_data|to_nice_yaml }}"
+   dest: "{{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts._ansible_item_label }}_{{ suffix }}.yaml"
+  delegate_to: localhost
+  loop: "{{ _final_merged_values.results }}"
+  loop_control:
+    loop_var: item_virtual_hosts
+    label: "{{ item_virtual_hosts._ansible_item_label }}"
+
