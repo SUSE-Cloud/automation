@@ -262,8 +262,6 @@ barclamps:
       - swift-ring-compute
       - swift-dispersion
   SWOBJ:
-    ceilometer:
-      - ceilometer-agent
     monasca:
       - monasca-agent
       - monasca-log-agent
