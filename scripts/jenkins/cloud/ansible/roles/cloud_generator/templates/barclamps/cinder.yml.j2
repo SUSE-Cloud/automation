@@ -15,7 +15,8 @@
             pool: ''
             user: ''
             secret_uuid: ''
-            flatten_volume_from_snapshot: false
+            # Required by SOC-11054
+            flatten_volume_from_snapshot: true
 {% else %}
         - backend_driver: local
           backend_name: default

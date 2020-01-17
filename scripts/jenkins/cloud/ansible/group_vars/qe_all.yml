@@ -20,3 +20,5 @@ ses_cluster_id: "qe"
 ardana_extra_vars:
   nova_migrate_enabled: "{{ ardana_nova_migrate_enabled }}"
   local_image_mirror_url: "http://{{ clouddata_server }}/images/x86_64/openstack/"
+  # Required by SOC-11054
+  cinder_ses_flatten_volume_from_snapshot: True
