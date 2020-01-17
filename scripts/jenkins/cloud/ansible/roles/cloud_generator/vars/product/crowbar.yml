@@ -16,3 +16,4 @@ gen_ip_start: 10
 gen_ip_gap: 71
 
 cloud_iso_name: "{{ (cloudsource[-1] == '7') | ternary('SUSE-OpenStack-Cloud-7', 'SUSE-OpenStack-Cloud-Crowbar-' ~ cloudsource[-1]) }}"
+upgrade_cloud_iso_name: "SUSE-OpenStack-Cloud-Crowbar-{{ upgrade_cloudsource[-1] }}"
