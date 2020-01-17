@@ -243,11 +243,10 @@ function onhost_supportconfig
                 timeout 300 scp $node:/var/log/\*tbz /var/log/
             )&
             done
-            zypper --non-interactive install bzip2
             timeout 600 supportconfig | wc &
             wait
         '
-        $scp root@$(wrap_ip $adminip):/var/log/*tbz $artifacts_dir/
+        $scp root@$(wrap_ip $adminip):/var/log/*txz $artifacts_dir/
     fi
 }
 
