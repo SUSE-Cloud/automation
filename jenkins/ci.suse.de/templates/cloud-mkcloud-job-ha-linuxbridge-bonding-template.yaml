@@ -20,7 +20,6 @@
             TESTHEAD=1
             cloudsource=develcloud{version}
             nodenumber={nodenumber}
-            clusterconfig=data+network+services=3
             storage_method=swift
             hacloud=1
             mkcloudtarget=all_noreboot
