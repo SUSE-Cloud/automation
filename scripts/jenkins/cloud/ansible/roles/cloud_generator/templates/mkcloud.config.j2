@@ -42,11 +42,11 @@ export TESTHEAD=
 
 {% if upgrade_cloudsource.startswith("stagingcloud") %}
 export want_cloud{{ upgrade_cloudsource[-1] }}_iso_url={{ clouddata_server }}/repos/x86_64/
-export want_cloud{{ upgrade_cloudsource[-1] }}_iso={{ cloud_iso_name }}-devel-staging.iso
+export want_cloud{{ upgrade_cloudsource[-1] }}_iso={{ upgrade_cloud_iso_name }}-devel-staging.iso
 {% endif %}
 {% if upgrade_cloudsource.startswith("develcloud") %}
 export want_cloud{{ upgrade_cloudsource[-1] }}_iso_url={{ clouddata_server }}/repos/x86_64/
-export want_cloud{{ upgrade_cloudsource[-1] }}_iso={{ cloud_iso_name }}-devel.iso
+export want_cloud{{ upgrade_cloudsource[-1] }}_iso={{ upgrade_cloud_iso_name }}-devel.iso
 {% endif %}
 
 # export mkclouddriver=
