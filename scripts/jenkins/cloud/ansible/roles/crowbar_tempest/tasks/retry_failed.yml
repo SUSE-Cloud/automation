@@ -15,6 +15,21 @@
 #
 ---
 
+- name: Get blacklisted tests
+  shell: |
+    grep -h ^- {{ tempest_run_filter }}.txt
+  args:
+    chdir: "{{ tempest_work_dir }}/run_filters"
+  register: _filter_blacklist
+  failed_when: false
+
+- name: Generate filter with failed tests
+  template:
+    src: "run_filter_retry.txt.j2"
+    dest: "{{ tempest_work_dir }}/run_filters/{{ tempest_run_filter }}_retry.txt"
+    mode: 0644
+  become: yes
+
 - name: Save previous tempest run outputs
   copy:
     src: "{{ item }}"
@@ -27,11 +42,8 @@
 - name: Rerun failed tests
   shell: |
     set -o pipefail
-    if [ -f ".stestr.conf" ]; then
-      stestr run --serial --failing | tee {{ tempest_results_log }}
-    else
-      testr run --failing --subunit | subunit-trace | tee {{ tempest_results_log }}
-    fi
+    filter_regex=$(bin/tests2skip.py run_filters/{{ tempest_run_filter }}_retry.txt)
+    tempest run --serial -r $filter_regex | tee {{ tempest_results_log }}
   args:
     chdir: "{{ tempest_work_dir }}"
   changed_when: false
