@@ -1,4 +1,4 @@
-{% set regexp = '\[.*]$' %}
+{% set regexp = '(\[.*]$|\[.*\)$)' %}
 {% set test = tempest_failed_tests.stdout_lines[0] %}
 {% if test.startswith('setUpClass') or test.startswith('tearDownClass') %}
 {% set regexp = '.*\(|\)$' %}
