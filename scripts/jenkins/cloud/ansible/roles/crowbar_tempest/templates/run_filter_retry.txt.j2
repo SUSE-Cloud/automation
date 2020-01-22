@@ -1,5 +1,5 @@
 {% set regexp = '(\[.*]$|\[.*\)$)' %}
-{% for test in tempest_failed_tests.stdout_lines[1:] %}
+{% for test in tempest_failed_tests.stdout_lines %}
 {% if test.startswith('setUpClass') or test.startswith('tearDownClass') %}
 {% set regexp = '.*\(|\)$' %}
 {% endif %}
