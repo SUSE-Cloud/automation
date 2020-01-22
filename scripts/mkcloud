@@ -369,6 +369,7 @@ function sshrun
         export bmc_user=$bmc_user;
         export bmc_password=$bmc_password;
         export upgrade_progress_file=$upgrade_progress_file;
+        export upgrade_test_stack_count=$upgrade_test_stack_count;
 EOF
     # setting these variables within mkcloud does not make them part of the env, so we need to export them
     export nodenumber nodenumberlonelynode nodenumberironicnode clusterconfig ironicnetmask

@@ -47,18 +47,25 @@ parameters:
     description: End of private network IP address allocation pool
     default: 172.20.1.99
 
+  suffix:
+    type: string
+    description: Resource name suffix for for multi-stack tests
+    default: ''
+
 resources:
 
   keypair:
     type: OS::Nova::KeyPair
     properties:
-      name: testkey
+      name:
+        list_join: ['', ['testkey', { get_param: suffix }]]
       public_key: { get_file: /root/.ssh/id_rsa.pub }
 
   private_net_east:
     type: OS::Neutron::Net
     properties:
-      name: private_net_east
+      name:
+        list_join: ['', ['private_net_east', { get_param: suffix }]]
 
   private_subnet_east:
     type: OS::Neutron::Subnet
@@ -72,7 +79,8 @@ resources:
   private_net_west:
     type: OS::Neutron::Net
     properties:
-      name: private_net_west
+      name:
+        list_join: ['', ['private_net_west', { get_param: suffix }]]
 
   private_subnet_west:
     type: OS::Neutron::Subnet
@@ -151,7 +159,8 @@ resources:
   east:
     type: OS::Nova::Server
     properties:
-      name: east
+      name:
+        list_join: ['', ['east', { get_param: suffix }]]
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_resource: keypair }
@@ -168,7 +177,8 @@ resources:
   west:
     type: OS::Nova::Server
     properties:
-      name: west
+      name:
+        list_join: ['', ['west', { get_param: suffix }]]
       image: { get_param: image }
       flavor: { get_param: flavor }
       key_name: { get_resource: keypair }
