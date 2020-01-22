@@ -67,11 +67,15 @@ if [[ $hacloud == 1 ]] ; then
         export nodenumber=$nodes
     fi
 
+    computenodes=$(( nodes - clusternodes ))
+
     # for now disable ceph deployment in HA mode explicitly
     # it would need 5 nodes (2 for the cluster + 3 nodes for compute and ceph)
     #### temorarily allow ceph in HA (test if it works)
     #export want_ceph=0
     #export cephvolumenumber=0
+else
+    computenodes=$(( nodenumber - 1 ))
 fi
 
 #storage
@@ -100,6 +104,24 @@ case "$storage_method" in
 esac
 export want_ceph
 export want_swift
+
+
+# octavia requires 1GB of RAM for every load balancer it creates, so
+# it needs compute nodes to be a little beefier in environments with two or
+# fewer compute nodes, otherwise lbaas tempest test cases will fail
+if [[ $want_octavia_proposal = 1 ]]; then
+    # WARNING: this way of determining the number of compute nodes is not
+    # entirely correct, as it doesn't take into consideration all use-cases.
+    # It makes some general assumptions about the number of controller nodes
+    # in the configuration (it always assumes 1 controller node in non-HA case
+    # and 3 controller nodes in HA case) and it assumes all nodes that are not
+    # controllers are compute nodes.
+    if [[ $computenodes = 1 ]]; then
+        export compute_node_memory=6621440 # 6GB
+    elif [[ $computenodes = 2 ]]; then
+        export compute_node_memory=3145728 # 3GB
+    fi
+fi
 
 if [ ! -z "$UPDATEREPOS" ] ; then
     # testing update only makes sense with GM and without TESTHEAD
