@@ -2,8 +2,13 @@
 {% include 'barclamps/lib/common.yml.j2' %}
 {% set deployments = ns.deployments %}
 
+{% if debug %}
+export debug_qa_crowbarsetup=1
+export debug_openstack=1
+{% else %}
 # export debug_qa_crowbarsetup=0
 # export debug_openstack=0
+{% endif %}
 
 # export drbdnode_mac_vol=
 export cloud={{ cloud_env }}
