@@ -46,7 +46,7 @@ service_groups:
       - DBMQ
       - SWPAC
       - NEUTRON
-      - SWOBJ
+      - '{{ (cloud_product == "ardana") | ternary("SWOBJ", '') }}'
   - name: lmm
     type: cluster
     prefix: c2
@@ -62,6 +62,7 @@ service_groups:
     min_count: 0
     service_components:
       - COMPUTE
+      - '{{ (cloud_product == "crowbar") | ternary("SWOBJ", '') }}'
   - name: rhel-compute
     type: resource
     prefix: rhel-comp
