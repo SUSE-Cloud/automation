@@ -31,7 +31,14 @@
 
 - name: Collect list of installed packages repo of origin from zypper
   shell: |
-    zypper --xmlout se -s -i -t package
+    if [ {{ hostvars[item_virtual_hosts].ansible_os_family }} = "Suse" ];then
+      zypper --xmlout se -s -i -t package
+    else
+      echo "<?xml version='1.0'?>"
+      echo "<stream>"
+      repoquery -a --installed --qf='<solvable name="%{NAME}" version="%{VERSION}" release="%{RELEASE}" repository="%{REPO}"/>'
+      echo "</stream>"
+    fi
   args:
     warn: False
   delegate_to: "{{ item_virtual_hosts }}"
@@ -63,7 +70,7 @@
     label: "{{ item_virtual_hosts._ansible_item_label }}"
 
 - set_fact:
-    _merged_dicts_of_data: "{{ _merged_dicts_of_data | default({}) | combine(_result2.results | selectattr('_ansible_item_label', 'equalto', item._ansible_item_label) | map(attribute='parse_xml') | list | combine(item.parse_xml, recursive=True), recursive=True) }}"
+    _merged_dicts_of_data: "{{ {} | combine(_result2.results | selectattr('_ansible_item_label', 'equalto', item._ansible_item_label) | map(attribute='parse_xml') | list | combine(item.parse_xml, recursive=True), recursive=True) }}"
   register: _final_merged_values
   loop: "{{ _result.results }}"
   loop_control:
