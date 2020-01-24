@@ -5583,9 +5583,14 @@ function reboot_controller_clusters
             wait_for 400 5 \
                 "ssh $m_hostname 'if \`which drbdadm &> /dev/null\`; then drbd-overview; ! drbdadm dstate all | grep -v UpToDate/UpToDate | grep -q .; fi'" \
                 "drbd devices to be consistent on node $m_hostname"
+            ssh $m_hostname crm --wait node standby
+            wait_for 30 5 "ssh $m_hostname crm status | grep -q 'Node $m_hostname: standby'" "node $m_hostname to enter crm standby mode"
+            ssh $m_hostname crm cluster stop
             power_cycle_and_wait $machine
             wait_for 400 5 "crowbar node_state status | grep $m_hostname | grep -qiE \"ready$|problem$\"" "node $m_hostname to be online"
             complain_if_problem_on_reboot
+            ssh $m_hostname crm --wait node online
+            wait_for 30 5 "ssh $m_hostname crm status | grep -q 'Online: \[ .*$m_hostname.* \]'" "node $m_hostname to enter crm online mode"
         done
     done
 }
