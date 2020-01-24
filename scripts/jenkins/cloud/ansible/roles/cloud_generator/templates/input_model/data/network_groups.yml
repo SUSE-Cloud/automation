@@ -78,7 +78,9 @@
 {%   set ns.routes=network_group.routes|default([]) %}
 {%   if 'MANAGEMENT' in network_group.component_endpoints %}
 {%     if bm_info is defined %}
-{%       set _ = ns.routes.append('OCTAVIA-MGMT-NET') %}
+{%       if not 'octavia' in disabled_services %}
+{%         set _ = ns.routes.append('OCTAVIA-MGMT-NET') %}
+{%       endif %}
 {%       set _ = ns.routes.append('ILO') %}
 {%     else %}
 {%       for neutron_ng in scenario.network_groups if 'NEUTRON-VLAN' in neutron_ng.component_endpoints and
