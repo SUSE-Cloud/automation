@@ -36,8 +36,7 @@ local_ssh_key: false
 # repositories, but skip the actual cloud deployment, e.g. for testing purposes.
 deploy_cloud: true
 
-# Reboot cloud after deploy. Primarly used to reboot cloud after installation of
-# Maintenance updates. For now it is valid for **CROWBAR** flavor only.
+# Reboot cloud after deploy.
 reboot_after_deploy: true
 
 #============= Repositories =============#

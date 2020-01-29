@@ -48,6 +48,13 @@
 
         - include_role:
             name: setup_amphora_image
+
+        - name: Reboot nodes
+          include_role:
+            name: ardana_reboot
+          when:
+            - reboot_after_deploy | default(False)
+            - not update_after_deploy
       rescue:
         - include_role:
             name: rocketchat_notify
