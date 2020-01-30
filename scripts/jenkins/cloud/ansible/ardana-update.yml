@@ -40,10 +40,16 @@
 
         - include_role:
             name: ardana_update
+            public: yes
 
         # Call this role to also update the Octavia amphora image
         - include_role:
             name: setup_amphora_image
+
+        - name: Reboot nodes
+          include_role:
+            name: ardana_reboot
+          when: pending_system_reboot
       rescue:
         - include_role:
             name: rocketchat_notify

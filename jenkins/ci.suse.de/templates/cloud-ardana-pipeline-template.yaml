@@ -81,6 +81,12 @@
             repositories, but skip the actual cloud deployment, e.g. for testing purposes.
 
       - bool:
+          name: reboot_after_deploy
+          default: '{reboot_after_deploy|false}'
+          description: >-
+            If true then cloud will be rebooted after deployment.
+
+      - bool:
           name: updates_test_enabled
           default: '{updates_test_enabled|true}'
           description: >-

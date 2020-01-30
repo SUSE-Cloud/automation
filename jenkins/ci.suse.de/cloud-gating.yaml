@@ -56,10 +56,12 @@
       - cloud-ardana8-job-gate-entry-scale-kvm-monasca-x86_64:
           cloudsource: stagingcloud8
           update_after_deploy: false
+          reboot_after_deploy: true
           tempest_filter_list: "smoke,monasca,ceilometer,freezer"
       - cloud-ardana8-job-gate-entry-scale-kvm-deploy-x86_64:
           cloudsource: stagingcloud8
           update_after_deploy: false
+          reboot_after_deploy: true
           disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
@@ -68,6 +70,7 @@
           cloudsource: develcloud8
           update_to_cloudsource: stagingcloud8
           update_after_deploy: true
+          reboot_after_deploy: false
           disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm|freezer"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
@@ -75,10 +78,12 @@
       - cloud-ardana9-job-gate-entry-scale-kvm-monasca-x86_64:
           cloudsource: stagingcloud9
           update_after_deploy: false
+          reboot_after_deploy: true
           tempest_filter_list: "smoke,monasca"
       - cloud-ardana9-job-gate-entry-scale-kvm-deploy-x86_64:
           cloudsource: stagingcloud9
           update_after_deploy: false
+          reboot_after_deploy: true
           disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
@@ -87,6 +92,7 @@
           cloudsource: develcloud9
           update_to_cloudsource: stagingcloud9
           update_after_deploy: true
+          reboot_after_deploy: false
           disabled_services: "monasca|logging|ceilometer|cassandra|kafka|spark|storm"
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
