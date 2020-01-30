@@ -1099,10 +1099,12 @@ EOF
     sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
 
     if (( $want_ipv6 > 0 )); then
-        sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "fd00:0:0:3::1",/' \
+        sed -i.netbak \
+            -e 's/"conduit": "bmc",$/& "router": "fd00:0:0:3::1",/' \
             -e "s/fd00:0:0:3:/$net${ip_sep}/g" \
             -e "s/fd00:0:0:7:/$net_sdn${ip_sep}/g" \
             -e "s/fd00:0:0:4:/$net_storage${ip_sep}/g" \
+            -e "s/fd00:0:0:8:/$net_octavia${ip_sep}/g" \
             -e "s/fd00:0:0:5:/$net_ceph${ip_sep}/g" \
             -e "s/fd00:0:0:2:/$net_fixed${ip_sep}/g" \
             -e "s/fd00:0:0:1:/$net_public${ip_sep}/g" \
@@ -1110,10 +1112,12 @@ EOF
             -e "s/fd00:0:0:3:5054:ff:fe77:7771/$admin_end_range/g" \
             $netfile
     else
-        sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
+        sed -i.netbak \
+            -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
             -e "s/192.168.124./$net${ip_sep}/g" \
             -e "s/192.168.130./$net_sdn${ip_sep}/g" \
             -e "s/192.168.125./$net_storage${ip_sep}/g" \
+            -e "s/192.168.131./$net_octavia${ip_sep}/g" \
             -e "s/192.168.127./$net_ceph${ip_sep}/g" \
             -e "s/192.168.123./$net_fixed${ip_sep}/g" \
             -e "s/192.168.122./$net_public${ip_sep}/g" \
@@ -1121,9 +1125,10 @@ EOF
     fi
     sed -i.netbak.vlan \
         -e "s/ 200/ $vlan_storage/g" \
+        -e "s/ 500/ $vlan_octavia/g" \
         -e "s/ 600/ $vlan_ceph/g" \
         -e "s/ 300/ $vlan_public/g" \
-        -e "s/ 500/ $vlan_fixed/g" \
+        -e "s/ 700/ $vlan_fixed/g" \
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
 
@@ -1208,7 +1213,7 @@ networks['ironic']=ironic_network
 print json.dumps(networks, indent=4)
 EOPYTHON
         `
-    /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
     fi
 
     if [[ $cloud =~ ^p[0-9]$ ]] ; then
@@ -2806,6 +2811,7 @@ function custom_configuration
             proposal_set_value octavia default "['attributes']['octavia']['certs']['server_ca_key_path']" "'private/ca.key.pem'"
             proposal_set_value octavia default "['attributes']['octavia']['certs']['client_ca_cert_path']" "'ca.cert.pem'"
             proposal_set_value octavia default "['attributes']['octavia']['certs']['client_cert_and_key_path']" "'private/client.cert-and-key.pem'"
+            proposal_set_value octavia default "['attributes']['octavia']['amphora']['manage_cidr']" "'$net_octavia.0/24'"
             if [[ $hacloud = 1 ]] && iscloudver 9plus ; then
                 proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-api']" "['cluster:$clusternameservices']"
                 proposal_set_value octavia default "['deployment']['octavia']['elements']['octavia-backend']" "['cluster:$clusternameservices']"
@@ -4155,6 +4161,8 @@ function nova_services_up
 
 function oncontroller_octavia_network_setup
 {
+    return
+
     local octavia_network_name="lb-mgmt-net"
     local octavia_subnet_name=$octavia_network_name
     setcloudnetvars $cloud
