@@ -128,6 +128,7 @@ service_component_groups:
     - nova-novncproxy
     - neutron-server
     - neutron-ml2-plugin
+    - neutron-ml2-port-security
     - octavia-api
     - octavia-health-manager
     - ops-console-web
