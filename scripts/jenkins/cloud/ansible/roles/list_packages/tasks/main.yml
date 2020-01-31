@@ -15,6 +15,14 @@
 #
 ---
 
+- name: Gather facts from vhosts
+  setup:
+  delegate_to: "{{ item_virtual_hosts }}"
+  delegate_facts: True
+  loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
+  loop_control:
+    loop_var: item_virtual_hosts
+
 - name: "Ensure {{ diff_tmp_dir }}/rpms/diffs artifacts dir exists"
   delegate_to: localhost
   run_once: yes
