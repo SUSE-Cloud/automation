@@ -1096,10 +1096,10 @@ EOF
     fi
 
     # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
-    sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
+    sed -i.netbak.revert -e 's/192\.168\.126/192.168.122/g' $netfile
 
     if (( $want_ipv6 > 0 )); then
-        sed -i.netbak \
+        sed -i.netbak.networks \
             -e 's/"conduit": "bmc",$/& "router": "fd00:0:0:3::1",/' \
             -e "s/fd00:0:0:3:/$net${ip_sep}/g" \
             -e "s/fd00:0:0:7:/$net_sdn${ip_sep}/g" \
@@ -1112,7 +1112,7 @@ EOF
             -e "s/fd00:0:0:3:5054:ff:fe77:7771/$admin_end_range/g" \
             $netfile
     else
-        sed -i.netbak \
+        sed -i.netbak.networks \
             -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
             -e "s/192.168.124./$net${ip_sep}/g" \
             -e "s/192.168.130./$net_sdn${ip_sep}/g" \
@@ -1133,6 +1133,7 @@ EOF
         $netfile
 
     # set requested networking mode for Crowbar
+    cp -v ${netfile} ${netfile}.netbak.mode
     /opt/dell/bin/json-edit -a attributes.network.mode -v "$crowbar_networkingmode" $netfile
 
     if [ "$crowbar_networkingmode" == "team" ]; then
@@ -1148,6 +1149,7 @@ EOF
             j=json.load(f);j['attributes']['network']['conduit_map'].insert(0, $conmap_element); \
             print json.dumps(j['attributes']['network']['conduit_map'], indent=4)"`
         # set the modified conduit map
+        cp -v ${netfile} ${netfile}.netbak.conduit
         /opt/dell/bin/json-edit -a attributes.network.conduit_map -r -v "$conmap_complete" $netfile
     fi
 
@@ -1159,6 +1161,7 @@ EOF
     fi
 
     if [[ $want_ironic = 1 ]] ; then
+        cp -v ${netfile} ${netfile}.netbak.ironic
         if (( $want_ipv6 > 0 )); then
             # IPv6 don't use broadcast addresses.
             local ironic_bc=""
@@ -1216,6 +1219,7 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
     fi
 
+    cp -v ${netfile} ${netfile}.netbak.clouds
     if [[ $cloud =~ ^p[0-9]$ ]] ; then
         local pcloudnum=${cloud#p}
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
@@ -1271,6 +1275,7 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.162.211.191 $netfile
     fi
     # Setup network attributes for custom MTU
+    cp -v ${netfile} ${netfile}.netbak.mtu
     echo "Setting MTU to: $want_mtu_size"
     local lnet
     for lnet in admin storage os_sdn public nova_floating nova_fixed; do
