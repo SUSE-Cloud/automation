@@ -1,5 +1,6 @@
   - barclamp: keystone
     attributes:
+      debug: {{ debug }}
       api:
         region: CustomRegion
 {% if not is_physical_deploy %}

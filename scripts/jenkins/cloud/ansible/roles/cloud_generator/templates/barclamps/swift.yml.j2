@@ -1,5 +1,6 @@
   - barclamp: swift
     attributes:
+      debug: {{ debug }}
 {% set storage_service_groups = deployment['swift-storage'] %}
 {% set ns = namespace(storage_nodes=0) %}
 {% for service_group in storage_service_groups.values() %}

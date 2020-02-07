@@ -1,6 +1,7 @@
 {% if not when_cloud9 or ('monasca' in deployments and 'monasca-server' in deployments['monasca']) %}
   - barclamp: ceilometer
     attributes:
+      debug: {{ debug }}
       api:
         protocol: {{ api_protocol }}
 {%   include 'barclamps/lib/ssl.yml.j2' %}
