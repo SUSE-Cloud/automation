@@ -18,6 +18,8 @@ cloud_env: localhost
 
 cloudsource: stagingcloud9
 
+debug: False
+
 upgrade_cloudsource: ""
 
 # cloud product can be ardana or crowbar

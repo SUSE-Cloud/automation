@@ -1,5 +1,6 @@
   - barclamp: neutron
     attributes:
+      debug: {{ debug }}
       networking_plugin: ml2
       ml2_mechanism_drivers:
         - {{ neutron_networkingplugin }}

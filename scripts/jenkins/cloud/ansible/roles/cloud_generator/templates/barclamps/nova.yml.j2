@@ -1,5 +1,6 @@
   - barclamp: nova
     attributes:
+      debug: {{ debug }}
       libvirt_type: kvm
 {% set nova_service = 'nova' %}
 {% include 'barclamps/lib/ssl.yml.j2' %}
