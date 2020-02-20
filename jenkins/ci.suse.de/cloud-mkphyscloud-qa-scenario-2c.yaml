@@ -204,6 +204,7 @@
           export sbd_ip=$sbd_ip ;
           export UPDATEREPOS=$UPDATEREPOS ;
           export UPDATEBEFOREINSTALL=$UPDATEBEFOREINSTALL ;
+          export want_test_updates=$want_test_updates ;
           export TESTHEAD=$TESTHEAD ;
           export cloudsource=$cloudsource ;
           export nodenumber=$nodenumber ;
