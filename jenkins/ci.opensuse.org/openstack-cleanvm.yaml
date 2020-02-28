@@ -1,27 +1,7 @@
-
-- project:
-    name: openstack-cleanvm-Newton
-    disabled: false
-    release: Newton
-    image:
-      - SLE_12_SP2
-    jobs:
-      - 'openstack-cleanvm-{release}'
-
 - project:
     name: openstack-cleanvm-Pike
     disabled: false
     release: Pike
-    image:
-      - SLE_12_SP3
-      - openSUSE-Leap-42.3
-    jobs:
-      - 'openstack-cleanvm-{release}'
-
-- project:
-    name: openstack-cleanvm-Queens
-    disabled: false
-    release: Queens
     image:
       - SLE_12_SP3
       - openSUSE-Leap-42.3
