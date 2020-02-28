@@ -115,3 +115,6 @@ jobs:
 
   - name: openstack-rpm-packaging-update-Stein
     branch: stable/stein
+
+  - name: openstack-rpm-packaging-update-Train
+    branch: stable/train
