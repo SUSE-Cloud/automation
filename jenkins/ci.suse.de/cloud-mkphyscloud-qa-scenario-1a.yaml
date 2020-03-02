@@ -131,13 +131,10 @@
           name: want_ipmi
           default: "1"
 
-      - choice:
+      - string:
           name: commands
           default: addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
           description: All the steps that needs to be completed to have cloud installed:When deploying with SSL add "install_ca_certificates" before "batch" command
-          choices:
-            - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases batch
-            - addupdaterepo prepareinstallcrowbar runupdate bootstrapcrowbar installcrowbar allocate waitcloud setup_aliases install_ca_certificates batch
 
       - string:
           name: want_test_updates
