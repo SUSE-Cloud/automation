@@ -32,7 +32,7 @@
 - name: Collect list of installed packages repo of origin from zypper
   shell: |
     if [ {{ hostvars[item_virtual_hosts].ansible_os_family }} = "Suse" ];then
-      zypper --xmlout se -s -i -t package
+      ZYPP_LOCKFILE_ROOT=/root; zypper --xmlout se -s -i -t package
     else
       echo "<?xml version='1.0'?>"
       echo "<stream>"
