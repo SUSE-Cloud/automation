@@ -67,7 +67,7 @@
     disabled: false
     version: 8
     arch: x86_64
-    label: openstack-mkcloud-SLE12-SP2-x86_64
+    label: openstack-mkcloud-SLE12-x86_64
     tempestoptions: --smoke
     jobs:
         - 'cloud-mkcloud{version}-job-uefi-{arch}'
