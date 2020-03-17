@@ -15,24 +15,18 @@
 #
 ---
 
-- name: Create a diff of installed packages and safe into files in plaintext
-  shell: |
-    diff -U 0 {{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state1 }}.yaml \
-      {{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state2 }}.yaml \
-      > {{ diff_tmp_dir }}/rpms/diffs/rpms_{{ item_virtual_hosts }}.yaml
-  args:
-    warn: False
+
+- name: Create a diff of installed packages and safe into a file in yaml
+  diff_yaml:
+    file1: "{{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state1 }}.yaml"
+    file2: "{{ diff_tmp_dir }}/rpms/rpms_{{ item_virtual_hosts }}_{{ state2 }}.yaml"
+    output: "{{ diff_tmp_dir }}/rpms/diffs/rpms_{{ item_virtual_hosts }}.yaml"
   delegate_to: localhost
   register: diff_files
-  # diff rc: 0 when nothing changes(handled bellow) or 2 when error
-  failed_when: diff_files.rc == 2
   loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
   loop_control:
     loop_var: item_virtual_hosts
 
-# Task will fail when no changed in any of nodes occured.
-# TODO: add jenkins option - E.g. die when testing MUs.
-- fail:
-    msg: No difference found in installed packages before and after.
-  failed_when: diff_list.changed  == false
-  when: die_when_no_diff_package_changes is defined
+- debug:
+    var: diff_files
+    verbosity: 1

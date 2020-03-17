@@ -43,5 +43,17 @@ Library - Module
       schema: zypper                (can be zypper or rpm)
     register: _result
   ```
+- diff_yaml.py
+  + compares 2 given files and print diff into output file on the system
+  + output in yaml
+  Example of module usage in the role:
+  ```
+  - diff_yaml:
+      file1: path/to/yaml/file
+      file2: path/to/yaml/file
+      output: path/where/to/save/output
+    register: _result
+  ```
+
 
 
