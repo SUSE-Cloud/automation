@@ -55,6 +55,7 @@ jenkins_worker_venv_requires:
   - "openstackclient"
   - "openstacksdk"
   - "sh"
+  - "deepdiff"
 
 jenkins_worker_ntp_server: "ntp1.suse.de"
 
