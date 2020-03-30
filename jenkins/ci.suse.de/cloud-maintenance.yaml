@@ -92,14 +92,14 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas-octavia"
+            heat,magnum,manila,lbaas"
       - cloud-crowbar9-job-mu-no-ha-update-x86_64:
           cloudsource: GM9+up
           ses_enabled: true
           update_after_deploy: true
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas-octavia"
+            heat,magnum,manila,lbaas"
     jobs:
       - '{crowbar_job}'
 
@@ -150,14 +150,14 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas-octavia"
+            heat,magnum,manila,lbaas"
       - cloud-crowbar9-job-mu-ha-update-x86_64:
           cloudsource: GM9+up
           ses_enabled: true
           update_after_deploy: true
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas-octavia"
+            heat,magnum,manila,lbaas"
     jobs:
       - '{crowbar_job}'
 
@@ -210,13 +210,13 @@
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas-octavia"
+            heat,magnum,manila,lbaas"
       - cloud-crowbar9-job-mu-linuxbridge-update-x86_64:
           cloudsource: GM9+up
           ses_enabled: true
           update_after_deploy: true
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,\
-            heat,magnum,manila,lbaas-octavia"
+            heat,magnum,manila,lbaas"
     jobs:
       - '{crowbar_job}'
