@@ -5,7 +5,7 @@
       - ci-trigger:
           jenkins_worker_labels: 'cloud-ci-worker cloud-ci-trigger'
           jenkins_workers_executors: '50'
-      - ci:
+      - ci,ci2:
           jenkins_worker_labels: 'cloud-ci-worker cloud-ci'
           jenkins_workers_executors: '50'
     jobs:
