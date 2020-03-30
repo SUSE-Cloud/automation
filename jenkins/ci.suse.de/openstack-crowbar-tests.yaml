@@ -51,7 +51,7 @@
           default-value: ''
           value: >-
             smoke,keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,fwaas,
-            trove,aodh,heat,magnum,manila,lbaas,lbaas-octavia,octavia,designate
+            trove,aodh,heat,magnum,manila,lbaas,octavia,designate
           description: >-
             Name of the filter file to use for tempest. Selecting multiple values
             will run tempest for each selected value.
