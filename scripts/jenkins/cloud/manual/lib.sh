@@ -189,7 +189,7 @@ function bootstrap_clm {
     test_repo_url=""
     if is_defined gerrit_change_ids; then
         homeproject=$(get_from_input homeproject)
-        test_repo_url="http://download.suse.de/ibs/$(sed 's#\b:\b#&/#' <<< $homeproject):/ardana-ci-local/standard/$(get_from_input homeproject):ardana-ci-local.repo"
+        test_repo_url="http://download.suse.de/ibs/$(sed 's#\b:\b#&/#' <<< $homeproject):/ardana-ci-local/standard"
     fi
     extra_repos=$(sed -e "s/^,//" -e "s/,$//" <<< "$(get_from_input extra_repos),${test_repo_url}")
     ansible_playbook bootstrap-clm.yml -e extra_repos="${extra_repos}"
