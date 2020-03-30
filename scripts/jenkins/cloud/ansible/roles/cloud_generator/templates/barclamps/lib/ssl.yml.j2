@@ -18,10 +18,10 @@
         certfile: {{ ssl_certfile }}
         keyfile: {{ ssl_keyfile }}
 {%       if barclamp != 'nova' or nova_service != 'novnc' %}
-{%         if barclamp not in ['database', 'keystone', 'swift'] %}
+{%         if barclamp not in ['database', 'keystone', 'swift', 'magnum'] %}
         cert_required: {{ ssl_cert_required }}
 {%         endif %}
-{%         if barclamp not in ['swift'] %}
+{%         if barclamp not in ['swift', 'magnum'] %}
         ca_certs: {{ ssl_ca_certs }}
 {%         endif %}
 {%         if barclamp == 'rabbitmq' %}
