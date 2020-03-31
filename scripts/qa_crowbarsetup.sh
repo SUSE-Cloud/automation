@@ -51,6 +51,7 @@ else
     : ${want_cinder_rbd_flatten_snaps:=0}
     : ${want_clustered_rabbitmq:=0}
 fi
+: ${want_octavia_network:=1}
 
 if [[ $arch = "s390x" ]] ; then
     want_s390=1
@@ -1131,6 +1132,10 @@ EOF
         -e "s/ 700/ $vlan_fixed/g" \
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
+
+    if  [[ $want_octavia_network != 1 ]]; then
+        /opt/dell/bin/json-edit --remove -a attributes.network.networks.octavia $netfile
+    fi
 
     # set requested networking mode for Crowbar
     cp -v ${netfile} ${netfile}.netbak.mode
@@ -4166,7 +4171,9 @@ function nova_services_up
 
 function oncontroller_octavia_network_setup
 {
-    return
+    if  [[ $want_octavia_network == 1 ]]; then
+        return
+    fi
 
     local octavia_network_name="lb-mgmt-net"
     local octavia_subnet_name=$octavia_network_name
