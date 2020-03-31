@@ -27,6 +27,7 @@
             want_node_aliases=data=3,compute=2
             clusterconfig=data+services+network={nodenumber_controller}
             hacloud=1
+            want_sbd=1
             storage_method=swift
             want_nodesupgrade=1
             want_database_sql_engine={database_engine}
