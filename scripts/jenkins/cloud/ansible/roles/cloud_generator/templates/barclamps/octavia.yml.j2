@@ -11,13 +11,4 @@
         server_ca_key_path: private/ca.key.pem
         client_ca_cert_path: ca.cert.pem
         client_cert_and_key_path: private/client.cert-and-key.pem
-{% set ns = namespace(net_id=30, vlan_id=gen_subnet_start+scenario.network_groups|length) %}
-{% for network_group in scenario.network_groups if 'NEUTRON-VLAN' in network_group.component_endpoints %}
-      amphora:
-        #manage_vlan: {{ ns.vlan_id }}
-        manage_cidr: {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.1.0/24
-        #manage_allocation_pools: {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.1.10,{{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.1.250
-        #gateway: {{ neutron_subnet_prefix.ipv4 }}.{{ ns.net_id }}.1.1
-{% endfor %}
-
 {% include 'barclamps/lib/deployment.yml.j2' %}
