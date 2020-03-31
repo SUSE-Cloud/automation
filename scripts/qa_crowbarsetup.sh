@@ -51,6 +51,7 @@ else
     : ${want_cinder_rbd_flatten_snaps:=0}
     : ${want_clustered_rabbitmq:=0}
 fi
+: ${want_octavia_network:=1}
 
 if [[ $arch = "s390x" ]] ; then
     want_s390=1
@@ -1104,7 +1105,6 @@ EOF
             -e "s/fd00:0:0:3:/$net${ip_sep}/g" \
             -e "s/fd00:0:0:7:/$net_sdn${ip_sep}/g" \
             -e "s/fd00:0:0:4:/$net_storage${ip_sep}/g" \
-            -e "s/fd00:0:0:8:/$net_octavia${ip_sep}/g" \
             -e "s/fd00:0:0:5:/$net_ceph${ip_sep}/g" \
             -e "s/fd00:0:0:2:/$net_fixed${ip_sep}/g" \
             -e "s/fd00:0:0:1:/$net_public${ip_sep}/g" \
@@ -1117,7 +1117,6 @@ EOF
             -e "s/192.168.124./$net${ip_sep}/g" \
             -e "s/192.168.130./$net_sdn${ip_sep}/g" \
             -e "s/192.168.125./$net_storage${ip_sep}/g" \
-            -e "s/192.168.131./$net_octavia${ip_sep}/g" \
             -e "s/192.168.127./$net_ceph${ip_sep}/g" \
             -e "s/192.168.123./$net_fixed${ip_sep}/g" \
             -e "s/192.168.122./$net_public${ip_sep}/g" \
@@ -1125,12 +1124,41 @@ EOF
     fi
     sed -i.netbak.vlan \
         -e "s/ 200/ $vlan_storage/g" \
-        -e "s/ 500/ $vlan_octavia/g" \
         -e "s/ 600/ $vlan_ceph/g" \
         -e "s/ 300/ $vlan_public/g" \
         -e "s/ 500/ $vlan_fixed/g" \
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
+
+    if [[ $want_octavia_proposal == 1 ]] && [[ $want_octavia_network == 1 ]]; then
+        cp -v ${netfile} ${netfile}.netbak.octavia
+        local networks_complete=`python - <<EOPYTHON
+import json
+f=open('$netfile')
+j=json.load(f)
+networks=j['attributes']['network']['networks']
+octavia_network={
+  'conduit': 'intf1',
+  'vlan': $vlan_octavia,
+  'use_vlan': True,
+  'add_bridge': False,
+  'add_ovs_bridge': False,
+  'mtu': 1500,
+  'subnet': '$net_octavia${ip_sep}0',
+  'netmask': '255.255.255.0',
+  'broadcast': '$net_octavia${ip_sep}255',
+  'ranges': {
+    'host': { 'start': '$net_octavia${ip_sep}10', 'end': '$net_octavia${ip_sep}29' },
+    'dhcp': { 'start': '$net_octavia${ip_sep}30', 'end': '$net_octavia${ip_sep}254' }
+  }
+}
+networks['octavia']=octavia_network
+print json.dumps(networks, indent=4)
+EOPYTHON
+        `
+        /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
+    fi
+
 
     # set requested networking mode for Crowbar
     cp -v ${netfile} ${netfile}.netbak.mode
@@ -4166,7 +4194,9 @@ function nova_services_up
 
 function oncontroller_octavia_network_setup
 {
-    return
+    if  [[ $want_octavia_network == 1 ]]; then
+        return
+    fi
 
     local octavia_network_name="lb-mgmt-net"
     local octavia_subnet_name=$octavia_network_name
@@ -6437,12 +6467,19 @@ function onadmin_batch
     fi
 
     if grep -q "barclamp: octavia" ${scenario}; then
-        # Need neutron deployed first to create the Octavia management network
-        exclude="$exclude --exclude octavia"
+        if [[ $want_octavia_network != 1 ]]; then
+            # Need neutron deployed first to create the Octavia management network
+            exclude="$exclude --exclude octavia"
+        else
+            # If we rely on network.json to configure the Octavia management network,
+            # we can set up the Octavia certs now
+            get_novacontroller
+            setup_octavia_cert /etc/octavia/certs
+        fi
     fi
 
     safely crowbar batch $exclude --timeout 3600 build ${scenario}
-    if grep -q "barclamp: octavia" ${scenario}; then
+    if grep -q "barclamp: octavia" ${scenario} && [[ $want_octavia_network != 1 ]]; then
         get_novacontroller
         setup_octavia_cert /etc/octavia/certs
         safely oncontroller octavia_network_setup

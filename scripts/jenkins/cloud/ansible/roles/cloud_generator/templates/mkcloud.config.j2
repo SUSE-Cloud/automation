@@ -131,6 +131,7 @@ export want_designate_proposal=1
 
 {% if 'octavia' in deployments %}
 export want_octavia_proposal=1
+export want_octavia_network={{ want_octavia_network|default(1) }}
 {% endif %}
 
 # export ironicnetmask=
