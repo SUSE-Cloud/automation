@@ -4,7 +4,19 @@ proposals:
   name: data
   attributes:
     stonith:
-      mode: libvirt
+      mode: sbd
+      sbd:
+        nodes:
+          @@data1@@:
+            devices:
+            - "##sbd_device_data1##"
+          @@data2@@:
+            devices:
+            - "##sbd_device_data2##"
+          @@data3@@:
+            devices:
+            - "##sbd_device_data3##"
+        watchdog_module: softdog
       per_node:
         nodes:
           @@data1@@:
@@ -13,9 +25,6 @@ proposals:
             params: ''
           @@data3@@:
             params: ''
-      libvirt:
-        hypervisor_ip: ##hypervisor_ip##
-    drbd:
     clone_stateless_services: false
   deployment:
     elements:

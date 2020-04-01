@@ -24,6 +24,7 @@
             nodenumber=6
             clusterconfig=data+services+network={nodenumber_controller}
             hacloud=1
+            want_sbd=1
             storage_method=swift
             cinder_backend=nfs
             want_nodesupgrade=1

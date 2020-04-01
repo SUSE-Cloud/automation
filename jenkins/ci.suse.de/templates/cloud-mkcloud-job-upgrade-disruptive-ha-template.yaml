@@ -28,6 +28,7 @@
             want_barbican_proposal=0
             want_sahara_proposal=0
             hacloud=1
+            want_sbd=1
             clusterconfig=data+services+network={nodenumber_controller}
             storage_method=swift
             label={label}
