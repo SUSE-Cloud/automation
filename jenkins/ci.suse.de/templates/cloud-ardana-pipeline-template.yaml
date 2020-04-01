@@ -414,6 +414,12 @@
           description: >-
             Deploy CaaSP using the caasp-openstack-heat-templates.
 
+      - bool:
+          name: want_caaspv4
+          default: false
+          description: >-
+            Deploy CaaSPv4 using terraform
+
       - choice:
           name: cleanup
           choices:

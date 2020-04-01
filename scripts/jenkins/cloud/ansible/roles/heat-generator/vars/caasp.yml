@@ -17,4 +17,4 @@
 # compute node.
 ---
 
-compute_flavor: "{{ vcloud_flavor_name_prefix }}-controller"
+compute_flavor: "{{ vcloud_flavor_name_prefix }}-controller-large"

@@ -21,7 +21,7 @@ os_cloud: "engcloud"
 os_project_name: "cloud"
 
 want_caasp: False
-virt_config_file_name: "{{ 'caasp.yml' if want_caasp else workspace_path ~ '/' ~ scenario_name ~ '-virt-config.yml' if scenario_name is defined else '' }}"
+virt_config_file_name: "{{ 'caasp.yml' if ( want_caasp or want_caaspv4 ) else workspace_path ~ '/' ~ scenario_name ~ '-virt-config.yml' if scenario_name is defined else '' }}"
 virt_config_file: "{{ virt_config_name | default(virt_config_file_name) }}"
 
 # Use the root LVM partition only for Ardana deployments

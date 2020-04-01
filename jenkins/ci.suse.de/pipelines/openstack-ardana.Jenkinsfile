@@ -255,7 +255,7 @@ pipeline {
 
     stage ('Prepare tests') {
       when {
-        expression { tempest_filter_list != '' || qa_test_list != '' || want_caasp == 'true' }
+        expression { tempest_filter_list != '' || qa_test_list != '' || want_caasp == 'true' || want_caaspv4 == 'true' }
       }
       steps {
         script {
@@ -267,6 +267,12 @@ pipeline {
           if (want_caasp == 'true') {
             stage('Deploy CaaSP') {
               cloud_lib.ansible_playbook('deploy-caasp')
+            }
+          }
+          // Generate stage for CaaSPv4 deployment
+          if (want_caaspv4 == 'true') {
+            stage('Deploy CaaSPv4') {
+              cloud_lib.ansible_playbook('deploy-caasp-v4-terraform')
             }
           }
         }
