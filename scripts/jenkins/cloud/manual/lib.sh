@@ -22,6 +22,47 @@ MITOGEN_URL=${MITOGEN_URL:-"https://github.com/dw/mitogen/archive/master.tar.gz"
 ANSIBLE_CFG_ARDANA=${ANSIBLE_CFG_ARDANA:-"$AUTOMATION_DIR/scripts/jenkins/cloud/ansible/ansible.cfg"}
 ANSIBLE_CFG_SES=${ANSIBLE_CFG_SES:-"$AUTOMATION_DIR/scripts/jenkins/ses/ansible/ansible.cfg"}
 
+# determine python command to use, preferring compatible python3 over
+# python2 but ensuring that we select a python version that supports
+# creating an ansible-venv with all the modules specified in the
+# requirements.txt installed.
+function determine_python_bin {
+    declare -g python_bin
+
+    [[ -n "${python_bin}" ]] && return
+
+    local pycmd pybin pyver pyminver
+
+    for pycmd in python3 python
+    do
+        pybin=$(command -v ${pycmd}) || continue
+
+        # check if it is a compatible python version - Ansible needs Python >=3.5, or >=2.6
+        pyver=$(${pybin} --version 2>&1 | awk '{print $2}')
+        case "${pyver}" in
+            2.* )
+                pyminver=2.6
+                ;;
+            3.* )
+                pyminver=3.5
+                ;;
+            * )
+                continue
+                ;;
+        esac
+
+        if [[ "$(printf '%s\n' ${pyminver} ${pyver} | sort --version-sort | tail -1)" == "${pyver}" ]]; then
+            python_bin=${pybin}
+            break
+        fi
+    done
+
+    if [[ -z "${python_bin}" ]]; then
+        echo 1>&2 "ERROR: No compatible python version detected"
+        return 1
+    fi
+}
+
 function get_from_input {
     echo $(grep -v "^#" $ARDANA_INPUT | awk -v var=$1 '$0 ~ var{ print $2 }' | tr -d "'")
 }
@@ -37,8 +78,15 @@ function is_defined {
 
 function setup_ansible_venv {
     if [ ! -d "$ANSIBLE_VENV" ]; then
-        virtualenv $ANSIBLE_VENV
-        $ANSIBLE_VENV/bin/pip install --upgrade pip
+        determine_python_bin || return 1
+        virtualenv --python=${python_bin} $ANSIBLE_VENV
+
+        # some versions of virtualenv may not ensure that setuptools and
+        # wheel are installed/upgraded to latest versions which can cause
+        # issues when trying to install some of the modules specified in
+        # requirements.txt, so we need to explicitly specify them here.
+        $ANSIBLE_VENV/bin/pip install --upgrade pip setuptools wheel
+
         $ANSIBLE_VENV/bin/pip install -r $WORK_DIR/requirements.txt
     fi
 }
@@ -110,10 +158,14 @@ function ansible_playbook_ses {
     fi
 }
 
-# this wrapper will choose python3 over python2 when running a python script
+# this wrapper will prefer python3 over python2 when running a python script,
+# which should be the same version used for creating the ansible-venv, and
+# thus should leverage the Python environment provided by the ansible-venv,
+# if we have activated the virtualenv, which will have all of the modules
+# specified in requirements.txt installed.
 function run_python_script {
     set +x
-    python_bin=$(command -v python3 || command -v python)
+    determine_python_bin || return 1
     $python_bin "${@}"
 }
 
