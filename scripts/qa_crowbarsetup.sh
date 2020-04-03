@@ -1708,6 +1708,13 @@ function onadmin_allocate
 Host node$i
     HostName $m
 EOF
+
+        # NOTE(bbobrov): this is a temporary workaround for SOC-11110;
+        # remove when bsc#1166529 is fixed and the fix is available for us
+        ssh $m systemctl enable dm-event.socket
+        ssh $m systemctl enable lvm2-monitor.service
+        ssh $m systemctl start lvm2-monitor.service
+
     done
 
     onadmin_is_crowbar_api_available || \
