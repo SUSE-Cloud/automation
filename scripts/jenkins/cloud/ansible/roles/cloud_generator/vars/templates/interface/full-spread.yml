@@ -25,6 +25,8 @@ interface_models:
           - MANAGEMENT
         forced_network_groups:
           - EXTERNAL-API
+      - network_groups:
+          - CONF
 
   - name: CORE
     service_groups:
@@ -33,8 +35,9 @@ interface_models:
       - network_groups:
           - EXTERNAL-API
           - INTERNAL-API
-      - network_groups:
           - MANAGEMENT
+      - network_groups:
+          - CONF
 
   - name: NEUTRON
     service_groups:
@@ -42,10 +45,11 @@ interface_models:
     network_interfaces:
       - network_groups:
           - GUEST
+          - MANAGEMENT
           - EXTERNAL-VM
           - TENANT-VLAN
       - network_groups:
-          - MANAGEMENT
+          - CONF
 
   - name: COMPUTE
     service_groups:
@@ -54,19 +58,21 @@ interface_models:
     network_interfaces:
       - network_groups:
           - GUEST
+          - MANAGEMENT
           - EXTERNAL-VM
           - TENANT-VLAN
       - network_groups:
-          - MANAGEMENT
+          - CONF
 
   - name: SWIFT
     service_groups:
       - swift
     network_interfaces:
       - network_groups:
+          - MANAGEMENT
           - SWIFT
       - network_groups:
-          - MANAGEMENT
+          - CONF
 
   - name: DBMQ
     service_groups:
@@ -74,6 +80,8 @@ interface_models:
     network_interfaces:
       - network_groups:
           - MANAGEMENT
+      - network_groups:
+          - CONF
 
   - name: LMM
     service_groups:
@@ -81,3 +89,5 @@ interface_models:
     network_interfaces:
       - network_groups:
           - MANAGEMENT
+      - network_groups:
+          - CONF
