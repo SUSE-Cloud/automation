@@ -16,11 +16,16 @@
 ---
 
 network_groups:
-  - name: MANAGEMENT
-    hostname_suffix: mgmt
+  - name: CONF
+    hostname_suffix: conf
     tagged_vlan: false
     component_endpoints:
       - CLM
+
+  - name: MANAGEMENT
+    hostname_suffix: mgmt
+    tagged_vlan: true
+    component_endpoints:
       - MANAGEMENT
     routes:
       - INTERNAL-API
