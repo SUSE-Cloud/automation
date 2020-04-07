@@ -116,10 +116,9 @@
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
-          # magnum not fully passing yet
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
-            trove,aodh,heat,manila,lbaas"
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-no-ha-deploy-x86_64:
           cloudsource: stagingcloud8
           ses_enabled: false
@@ -153,10 +152,9 @@
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
-          # magnum not fully passing yet
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
-            trove,aodh,heat,manila,lbaas"
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-ha-deploy-x86_64:
           cloudsource: stagingcloud8
           ses_enabled: false
@@ -192,10 +190,9 @@
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
-          # magnum not fully passing yet
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
-            trove,aodh,heat,manila,lbaas"
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-linuxbridge-deploy-x86_64:
           cloudsource: stagingcloud8
           ses_enabled: false
