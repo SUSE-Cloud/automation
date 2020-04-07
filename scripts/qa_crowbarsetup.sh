@@ -51,6 +51,7 @@ else
     : ${want_cinder_rbd_flatten_snaps:=0}
     : ${want_clustered_rabbitmq:=0}
 fi
+: ${want_octavia_network:=1}
 
 if [[ $arch = "s390x" ]] ; then
     want_s390=1
@@ -1096,10 +1097,11 @@ EOF
     fi
 
     # to revert https://github.com/crowbar/barclamp-network/commit/a85bb03d7196468c333a58708b42d106d77eaead
-    sed -i.netbak1 -e 's/192\.168\.126/192.168.122/g' $netfile
+    sed -i.netbak.revert -e 's/192\.168\.126/192.168.122/g' $netfile
 
     if (( $want_ipv6 > 0 )); then
-        sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "fd00:0:0:3::1",/' \
+        sed -i.netbak.networks \
+            -e 's/"conduit": "bmc",$/& "router": "fd00:0:0:3::1",/' \
             -e "s/fd00:0:0:3:/$net${ip_sep}/g" \
             -e "s/fd00:0:0:7:/$net_sdn${ip_sep}/g" \
             -e "s/fd00:0:0:4:/$net_storage${ip_sep}/g" \
@@ -1110,7 +1112,8 @@ EOF
             -e "s/fd00:0:0:3:5054:ff:fe77:7771/$admin_end_range/g" \
             $netfile
     else
-        sed -i.netbak -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
+        sed -i.netbak.networks \
+            -e 's/"conduit": "bmc",$/& "router": "192.168.124.1",/' \
             -e "s/192.168.124./$net${ip_sep}/g" \
             -e "s/192.168.130./$net_sdn${ip_sep}/g" \
             -e "s/192.168.125./$net_storage${ip_sep}/g" \
@@ -1127,7 +1130,38 @@ EOF
         -e "s/ [47]00/ $vlan_sdn/g" \
         $netfile
 
+    if [[ $want_octavia_proposal == 1 ]] && [[ $want_octavia_network == 1 ]]; then
+        cp -v ${netfile} ${netfile}.netbak.octavia
+        local networks_complete=`python - <<EOPYTHON
+import json
+f=open('$netfile')
+j=json.load(f)
+networks=j['attributes']['network']['networks']
+octavia_network={
+  'conduit': 'intf1',
+  'vlan': $vlan_octavia,
+  'use_vlan': True,
+  'add_bridge': False,
+  'add_ovs_bridge': False,
+  'mtu': 1500,
+  'subnet': '$net_octavia${ip_sep}0',
+  'netmask': '255.255.255.0',
+  'broadcast': '$net_octavia${ip_sep}255',
+  'ranges': {
+    'host': { 'start': '$net_octavia${ip_sep}10', 'end': '$net_octavia${ip_sep}29' },
+    'dhcp': { 'start': '$net_octavia${ip_sep}30', 'end': '$net_octavia${ip_sep}254' }
+  }
+}
+networks['octavia']=octavia_network
+print json.dumps(networks, indent=4)
+EOPYTHON
+        `
+        /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
+    fi
+
+
     # set requested networking mode for Crowbar
+    cp -v ${netfile} ${netfile}.netbak.mode
     /opt/dell/bin/json-edit -a attributes.network.mode -v "$crowbar_networkingmode" $netfile
 
     if [ "$crowbar_networkingmode" == "team" ]; then
@@ -1143,6 +1177,7 @@ EOF
             j=json.load(f);j['attributes']['network']['conduit_map'].insert(0, $conmap_element); \
             print json.dumps(j['attributes']['network']['conduit_map'], indent=4)"`
         # set the modified conduit map
+        cp -v ${netfile} ${netfile}.netbak.conduit
         /opt/dell/bin/json-edit -a attributes.network.conduit_map -r -v "$conmap_complete" $netfile
     fi
 
@@ -1154,6 +1189,7 @@ EOF
     fi
 
     if [[ $want_ironic = 1 ]] ; then
+        cp -v ${netfile} ${netfile}.netbak.ironic
         if (( $want_ipv6 > 0 )); then
             # IPv6 don't use broadcast addresses.
             local ironic_bc=""
@@ -1208,9 +1244,10 @@ networks['ironic']=ironic_network
 print json.dumps(networks, indent=4)
 EOPYTHON
         `
-    /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks -r -v "$networks_complete" $netfile
     fi
 
+    cp -v ${netfile} ${netfile}.netbak.clouds
     if [[ $cloud =~ ^p[0-9]$ ]] ; then
         local pcloudnum=${cloud#p}
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.netmask -v 255.255.192.0 $netfile
@@ -1266,6 +1303,7 @@ EOPYTHON
         /opt/dell/bin/json-edit -a attributes.network.networks.public.ranges.host.end -v 10.162.211.191 $netfile
     fi
     # Setup network attributes for custom MTU
+    cp -v ${netfile} ${netfile}.netbak.mtu
     echo "Setting MTU to: $want_mtu_size"
     local lnet
     for lnet in admin storage os_sdn public nova_floating nova_fixed; do
@@ -4162,6 +4200,10 @@ function nova_services_up
 
 function oncontroller_octavia_network_setup
 {
+    if  [[ $want_octavia_network == 1 ]]; then
+        return
+    fi
+
     local octavia_network_name="lb-mgmt-net"
     local octavia_subnet_name=$octavia_network_name
     setcloudnetvars $cloud
@@ -6431,12 +6473,19 @@ function onadmin_batch
     fi
 
     if grep -q "barclamp: octavia" ${scenario}; then
-        # Need neutron deployed first to create the Octavia management network
-        exclude="$exclude --exclude octavia"
+        if [[ $want_octavia_network != 1 ]]; then
+            # Need neutron deployed first to create the Octavia management network
+            exclude="$exclude --exclude octavia"
+        else
+            # If we rely on network.json to configure the Octavia management network,
+            # we can set up the Octavia certs now
+            get_novacontroller
+            setup_octavia_cert /etc/octavia/certs
+        fi
     fi
 
     safely crowbar batch $exclude --timeout 3600 build ${scenario}
-    if grep -q "barclamp: octavia" ${scenario}; then
+    if grep -q "barclamp: octavia" ${scenario} && [[ $want_octavia_network != 1 ]]; then
         get_novacontroller
         setup_octavia_cert /etc/octavia/certs
         safely oncontroller octavia_network_setup

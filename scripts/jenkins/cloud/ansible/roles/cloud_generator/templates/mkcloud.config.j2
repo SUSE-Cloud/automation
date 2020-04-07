@@ -131,6 +131,7 @@ export want_designate_proposal=1
 
 {% if 'octavia' in deployments %}
 export want_octavia_proposal=1
+export want_octavia_network={{ want_octavia_network|default(1) }}
 {% endif %}
 
 # export ironicnetmask=
@@ -162,7 +163,7 @@ export net_ceph={{ subnet_prefix }}{{ ipsep }}{{ gen_subnet_start+5 }}
 export vlan_public={{ gen_subnet_start+1 }}
 export vlan_sdn={{ gen_subnet_start+2 }}
 export vlan_storage={{ gen_subnet_start+3 }}
-export vlan_fixed={{ gen_subnet_start+4 }}
+export vlan_fixed={{ gen_subnet_start+6 }}
 export vlan_ceph={{ gen_subnet_start+5 }}
 
 {% if 'octavia' in deployments %}

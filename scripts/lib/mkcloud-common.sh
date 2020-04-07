@@ -397,9 +397,9 @@ function setcloudnetvars
     vlan_storage=${vlan_storage:-200}
     vlan_ceph=${vlan_ceph:-600}
     vlan_public=${vlan_public:-300}
-    vlan_fixed=${vlan_fixed:-500}
+    vlan_fixed=${vlan_fixed:-700}
     vlan_sdn=${vlan_sdn:-400}
-    vlan_octavia=${vlan_octavia:-700}
+    vlan_octavia=${vlan_octavia:-500}
     if (( ${want_ipv6} > 0 )); then
         net_fixed=${net_fixed:-'fd00:0:0:2'}
         net_public=${net_public:-'fd00:0:0:1'}
