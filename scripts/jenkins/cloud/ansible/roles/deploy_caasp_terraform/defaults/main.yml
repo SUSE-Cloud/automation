@@ -1,0 +1,79 @@
+#
+# (c) Copyright 2020 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+ca_path: "/etc/pki/trust/anchors/ca-bundle.pem"
+caasp_deployment_path: "/home/sles/caasp/deployment"
+caasp_openstack_path: "{{ caasp_deployment_path }}/openstack"
+caasp_osrc: "openstack_caasp.osrc"
+caasp_user: "sles"
+cpiautotfvars_path: "{{ caasp_openstack_path }}/cpi.auto.tfvars"
+dns_server_ip1: "10.84.2.20"
+dns_server_ip2: "10.84.2.21"
+image_url: "http://ibs-mirror.prv.suse.net/install/SLE-15-SP1-JeOS-QU2/SLES15-SP1-JeOS.x86_64-15.1-OpenStack-Cloud-QU2.qcow2"
+image_path: "{{ soc_home }}/SLES15-SP1-JeOS.x86_64-15.1-OpenStack-Cloud-QU2.qcow2"
+image_name: "SLE-15-SP1-JeOS-QU2"
+timestamp: ''
+internal_net: "{{'caasp-int-net' + '-' + timestamp }}"
+internal_subnet: "{{'caasp-int-subnet' + '-' + timestamp}}"
+keyname: "caaspmanagementkey"
+lb_tf_path: "{{ caasp_openstack_path }}/load-balancer.tf"
+flavor: "m1.caasp"
+master_size: "{{ flavor }}"
+management_machine_size: "m1.small"
+management_machine_name: "{{'caasp_management' + '-' + timestamp }}"
+management_machine_net: "{{ 'caasp-mm-net' + '-' + timestamp }}"
+management_machine_repos:
+  - name: sles-15-sp1
+    repo: http://ibs-mirror.prv.suse.net/ibs/SUSE:/SLE-15-SP1:/GA/standard/
+  - name: sles-15-sp1-update
+    repo: http://ibs-mirror.prv.suse.net/ibs/SUSE:/SLE-15-SP1:/Update/standard/
+  - name: base-system-pool
+    repo: http://ibs-mirror.prv.suse.net/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/product/
+  - name: base-system-update
+    repo: http://ibs-mirror.prv.suse.net/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/x86_64/update/
+  - name: cassp40-pool
+    repo: http://ibs-mirror.prv.suse.net/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40/standard/
+  - name: caasp40-update
+    repo: http://ibs-mirror.prv.suse.net/ibs/SUSE:/SLE-15-SP1:/Update:/Products:/CASP40:/Update/standard/
+management_machine_router: "{{'caasp-mm-router' + '-' + timestamp}}"
+management_machine_subnet: "{{'caasp-mm-subnet' + '-' + timestamp}}"
+management_machine_subnet_cidr: "2.2.2.0/24"
+management_machine_gateway: "2.2.2.1"
+management_machine_secgroup: "{{'caasp-mm-sec-group' + '-' + timestamp}}"
+network_tf_path: "{{ caasp_openstack_path }}/network.tf"
+#Due to resource constraints in virtual cloud environment setup, the num_masters and num_workers are set to 1
+#This can be overidden for baremetal QE cloud environments.
+num_masters: 1
+num_workers: 1
+prod: "{{ (ansible_hostname=='crowbar') | ternary ('crowbar', 'ardana') }}"
+octavia_enabled: "{{ not (ansible_distribution_release == '3') }}"
+os_ca_path: "/etc/ssl/ca-bundle.pem"
+registration_auto_vars_path: "{{ caasp_openstack_path }}/registration.auto.tfvars"
+repositories: '\n
+  basesystem_pool = "http://ibs-mirror.prv.suse.net/ibs/SUSE/Products/SLE-Module-Basesystem/15-SP1/x86_64/product/" \n
+  serverapps_pool = "http://ibs-mirror.prv.suse.net/ibs/SUSE/Products/SLE-Module-Server-Applications/15-SP1/x86_64/product/" \n
+  containers_pool = "http://ibs-mirror.prv.suse.net/ibs/SUSE/Products/SLE-Module-Containers/15-SP1/x86_64/product/" \n
+  basesystem_updates = "http://ibs-mirror.prv.suse.net/ibs/SUSE/Updates/SLE-Module-Basesystem/15-SP1/x86_64/update/" \n
+  containers_updates = "http://ibs-mirror.prv.suse.net/ibs/SUSE/Updates/SLE-Module-Containers/15-SP1/x86_64/update/" \n
+  serverapps_updates = "http://ibs-mirror.prv.suse.net/ibs/SUSE/Updates/SLE-Module-Server-Applications/15-SP1/x86_64/update/" \n
+'
+ssh_key_filename: "id_rsa"
+ssh_opts: '-o BatchMode=yes -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=error -o ConnectTimeout=30'
+stack_name: "{{'auto-caasp' + '-' + timestamp }}"
+subnet_cidr: "172.28.0.0/24"
+terraform_destroy: false
+tfvars_path: "{{ caasp_openstack_path }}/terraform.tfvars"
+worker_size: "{{ flavor }}"

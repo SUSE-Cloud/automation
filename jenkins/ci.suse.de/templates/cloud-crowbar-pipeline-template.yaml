@@ -407,6 +407,12 @@
           description: >-
             Run tempest as part of the onadmin_testsetup step
 
+      - bool:
+          name: want_caaspv4
+          default: false
+          description: >-
+            Deploy CaaSPv4 using terraform on openstack.
+
     pipeline-scm:
       scm:
         - git:

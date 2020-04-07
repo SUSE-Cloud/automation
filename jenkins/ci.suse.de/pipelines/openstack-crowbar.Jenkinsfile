@@ -290,6 +290,22 @@ pipeline {
       }
     }
 
+    stage ('Caaspv4 deploy') {
+      when {
+        expression { want_caaspv4 == 'true' }
+      }
+      steps {
+        script {
+          // Generate stage for CaaSPv4 deployment
+          if (want_caaspv4 == 'true') {
+            stage('Deploy CaaSPv4') {
+              cloud_lib.ansible_playbook('deploy-caasp-v4-terraform')
+            }
+          }
+        }
+      }
+    }
+
   }
 
   post {

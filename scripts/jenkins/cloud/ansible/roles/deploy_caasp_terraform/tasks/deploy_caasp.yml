@@ -1,0 +1,341 @@
+#
+# (c) Copyright 2020 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: Management Machine | Add zypper repos
+  zypper_repository:
+    name: "{{ item.name }}"
+    repo: "{{ item.repo }}"
+    runrefresh: yes
+  loop: "{{ management_machine_repos }}"
+  when: item.enabled | default(true)
+  become: yes
+
+- name: Managment Machine | Install SUSE-CaaSP-Management
+  zypper:
+    name: "SUSE-CaaSP-Management"
+    state: present
+    type: pattern
+  become: yes
+
+- name: Management Machine | Copy caasp
+  shell: |
+    set -e
+    mkdir -p {{ caasp_deployment_path }}
+    cp -r /usr/share/caasp/terraform/openstack/ {{ caasp_deployment_path }}
+    cd {{ caasp_openstack_path }}
+    mv terraform.tfvars.example terraform.tfvars
+  args:
+    executable: /bin/bash
+
+- name: Management Machine | Copy caasp.osrc
+  copy:
+    src: "{{ caasp_osrc }}"
+    dest: "{{ caasp_openstack_path }}"
+  become: yes
+
+- name: Management Machine | Copy CA certificate
+  copy:
+    src: "ca-bundle.pem"
+    dest: "{{ ca_path }}"
+  become: yes
+
+- name: Management Machine | Run update-ca-certificates
+  shell: update-ca-certificates --fresh
+  become: yes
+
+- name: Management Machine | Generate a ssh keypair
+  user:
+    name: "{{ caasp_user }}"
+    generate_ssh_key: yes
+    ssh_key_type: rsa
+    ssh_key_bits: 4096
+    ssh_key_file: .ssh/{{ssh_key_filename}}
+
+- name: Management Machine | Copy public key contents
+  command:
+    cat /home/sles/.ssh/{{ssh_key_filename}}.pub
+  register: publickey
+
+# Here we are using the rmt mirror server instead of the SCC product registration code
+# Since the rmt server does not mirror all the packages, I'm configuring additional repositories hosted provo ibs mirror.
+- name: Management Machine | Update registration.auto.tfvars to use the RMT server
+  lineinfile:
+    path: "{{ registration_auto_vars_path }}"
+    regexp: '^#?rmt_server_name ='
+    line: 'rmt_server_name = "rmt.scc.suse.de"'
+
+- name: Management Machine | Update terraform.tfvars
+  lineinfile:
+    dest: "{{ tfvars_path }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { regexp: '^image_name = "', line: 'image_name = "{{ image_name }}"' }
+    - { regexp: '^internal_net = "', line: 'internal_net = "{{ internal_net }}"' }
+    - { regexp: '^internal_subnet = "', line: 'internal_subnet = "{{ internal_subnet }}"' }
+    - { regexp: '^external_net = "', line: 'external_net = "{{ external_net }}"' }
+    - { regexp: '^stack_name = "', line: 'stack_name = "{{stack_name}}"' }
+    - { regexp: '^subnet_cidr = "', line: 'subnet_cidr = "{{ subnet_cidr }}"' }
+    - { regexp: '^master_size = "', line: 'master_size = "{{ master_size }}"' }
+    - { regexp: '^worker_size = "', line: 'worker_size = "{{ worker_size }}"' }
+
+- name: Management Machine | Update terraform.tfvars authorized_keys
+  replace:
+    path: "{{ tfvars_path }}"
+    regexp: '^authorized_keys = \[\n.*\n]$'
+    replace: 'authorized_keys = [\n  "{{ publickey.stdout }}"\n]'
+
+- name: Management Machine | Update terraform.tfvars repositories
+  replace:
+    path: "{{ tfvars_path }}"
+    regexp: '^repositories = {}$'
+    replace: 'repositories = {  {{ repositories }} }'
+
+- name: Management Machine | Update terraform.tfvars number of master nodes
+  replace:
+    path: "{{ tfvars_path }}"
+    regexp: '^masters = .*$'
+    replace: 'masters = {{ num_masters | int }}'
+
+- name: Management Machine | Update terraform.tfvars number of worker nodes
+  replace:
+    path: "{{ tfvars_path }}"
+    regexp: '^workers = .*$'
+    replace: 'workers = {{ num_workers | int }}'
+
+- name: Management Machine | Update cpi.auto.tfvars to enable cloud provider integration with Openstack
+  replace:
+    path: "{{ cpiautotfvars_path }}"
+    regexp: '^#cpi_enable = true$'
+    replace: 'cpi_enable = true'
+
+- name: Management Machine | Update cpi.auto.tfvars to set up the ca_file
+  replace:
+    path: "{{ cpiautotfvars_path }}"
+    regexp: '^#ca_file = "/etc/pki/trust/anchors/.*"$'
+    replace: 'ca_file = "/etc/pki/trust/anchors/ca-bundle.pem"'
+
+#Update network.tf to set up dns servers so the cloud-init on the caasp nodes does not fail
+- name: Management Machine | Update network.tf to set up dns servers
+  lineinfile:
+    path: "{{ network_tf_path }}"
+    insertafter: 'resource "openstack_networking_subnet_v2" "subnet" {'
+    line: '  dns_nameservers = [ "{{dns_server_ip1}}", "{{dns_server_ip2}}"]'
+
+#Update load-balancer.tf to use haproxy provider in SOC 8
+#For SOC 9, we use octavia provider by default
+#For SOC 8, we use haproxy provider since the octavia provider in SOC 8 has slowness that cause terraform to fail
+- name: Management Machine | Update load-balancer.tf to setup haproxy provider
+  lineinfile:
+    path: "{{ lb_tf_path }}"
+    insertafter: 'resource "openstack_lb_loadbalancer_v2" "lb" {'
+    line: '  loadbalancer_provider = "haproxy"'
+  when: hostvars[cloud_env]['ansible_distribution_release'] == '3'
+
+- name: Management Machine | Update /etc/hosts
+  shell:
+    echo "{{resolved_public_vip }} {{ public_endpoint_domain }}" | sudo tee -a /etc/hosts
+  become: yes
+  when: (resolved_public_vip is defined) and (resolved_public_vip|length > 0)
+
+- name: Management Machine | Run terraform init
+  shell: |
+    set -e
+    cd {{ caasp_openstack_path }}
+    terraform init | tee -a terraform_init.log
+  register:
+    terraform_init_results
+  failed_when: "not ('Terraform has been successfully initialized!' in terraform_init_results.stdout)"
+
+- name: Management Machine |  Run terraform plan
+  shell: |
+    set -e
+    eval `ssh-agent -s`
+    ssh-add
+    cd {{ caasp_openstack_path }}
+    source {{ caasp_openstack_path }}/{{ caasp_osrc }}
+    terraform plan -out caaspdeployplan | tee -a terraform_plan.log
+  register:
+    terraform_plan_results
+  failed_when: "not ('run the following command to apply' in terraform_plan_results.stdout)"
+
+- name: Management Machine | Run terraform apply
+  shell: |
+    set -e
+    eval `ssh-agent -s`
+    ssh-add
+    cd {{ caasp_openstack_path }}
+    source {{ caasp_openstack_path }}/{{ caasp_osrc }}
+    terraform apply "caaspdeployplan" | tee -a terraform_apply.log
+  register:
+    terraform_apply_results
+  failed_when: "not ('Apply complete!' in terraform_apply_results.stdout)"
+
+- name: Management Machine |  Parse skuba init command
+  set_fact:
+    skuba_init_command: "{{ item | regex_replace('(^.*CMD ]  )', '') }}"
+  when: item|trim is regex("skuba cluster init .*$")
+  loop: "{{ terraform_apply_results.stdout_lines }}"
+
+- name: Management Machine |  Parse skuba mv command
+  set_fact:
+    skuba_mv_openstack_conf_command: "{{ item | regex_replace('(^.*CMD ]  )', '') }}"
+  when: item|trim is regex("mv openstack.conf .*$")
+  loop: "{{ terraform_apply_results.stdout_lines }}"
+
+- name: Management Machine |  Parse skuba bootstrap command
+  set_fact:
+    skuba_boostrap_commands: "{{ skuba_bootstrap_commands | default([])}} +  {{ [item | regex_replace('(^.*CMD ]  )', '')] }} "
+  when: item|trim is regex("skuba node bootstrap .*$")
+  loop: "{{ terraform_apply_results.stdout_lines }}"
+
+- name: Management Machine |  Parse skuba join commands
+  set_fact:
+    skuba_join_commands: "{{ skuba_join_commands | default([])}} +  {{ [item | regex_replace('(^.*CMD ]  )', '')] }}"
+  when: item|trim is regex("skuba node join .*$")
+  loop: "{{ terraform_apply_results.stdout_lines }}"
+
+- name: Managmenent Machine | Run terraform ouput in json format to capture node info
+  shell: |
+    set -e
+    cd {{ caasp_openstack_path }}
+    terraform output --json
+  register:
+    terraform_output_results
+
+- name: Management Machine | Set master ips and worker ips
+  set_fact:
+    master_ips: "{{ terraform_output_results.stdout | from_json | json_query('ip_masters')}}"
+    worker_ips: "{{ terraform_output_results.stdout | from_json | json_query('ip_workers')}}"
+
+- name: Management Machine | Copy certificates to each of the master nodes in the cluster
+  shell: |
+    set -e
+    scp -o StrictHostKeyChecking=no {{ ca_path }} sles@{{item}}:~/ca-bundle.pem
+    ssh -o StrictHostKeyChecking=no sles@{{item}} sudo cp ~/ca-bundle.pem {{ ca_path }}
+    ssh -o StrictHostKeyChecking=no sles@{{item}} sudo update-ca-certificates
+  loop: "{{ master_ips.value.values() | list }}"
+
+- name: Management Machine | Copy certificates to each of the worker nodes in the cluster
+  shell: |
+    set -e
+    scp -o StrictHostKeyChecking=no {{ ca_path }} sles@{{item}}:~/ca-bundle.pem
+    ssh -o StrictHostKeyChecking=no sles@{{item}}  sudo cp ~/ca-bundle.pem {{ ca_path }}
+    ssh -o StrictHostKeyChecking=no sles@{{item}} sudo update-ca-certificates
+  loop: "{{ worker_ips.value.values() | list }}"
+
+- name: Management Machine | Update /etc/hosts on masters to add entry to the identity public domain name
+  shell: |
+    set -e
+    ssh -o StrictHostKeyChecking=no sles@{{item}} "echo {{resolved_public_vip }} {{ public_endpoint_domain }} | sudo tee -a /etc/hosts"
+  loop: "{{ master_ips.value.values() | list }}"
+  when: (resolved_public_vip is defined) and (resolved_public_vip|length > 0)
+
+- name: Management Machine | Update /etc/hosts on workers to add entry to the identity public domain name
+  shell: |
+    set -e
+    ssh -o StrictHostKeyChecking=no sles@{{item}} "echo "{{resolved_public_vip }} {{ public_endpoint_domain }}" | sudo tee -a /etc/hosts"
+  loop: "{{ worker_ips.value.values() | list }}"
+  when: (resolved_public_vip is defined) and (resolved_public_vip|length > 0)
+
+- name: Management Machine | Run skuba init
+  shell: |
+    set -e
+    cd {{ caasp_openstack_path }}
+    {{ skuba_init_command }} | tee -a skuba_init.log
+  register:
+    skuba_init_command_results
+  failed_when: " not ('[init] configuration files written to' in skuba_init_command_results.stdout)"
+
+- name: Management Machine | Move openstack.conf
+  shell: |
+    set -e
+    cd {{ caasp_openstack_path }}
+    {{ skuba_mv_openstack_conf_command }}
+  register:
+    skuba_mv_openstack_conf_command_results
+
+- name: Management Machine | Run skuba bootstrap
+  shell: |
+    set -e
+    eval `ssh-agent -s`
+    ssh-add
+    cd {{ caasp_openstack_path }}/{{ stack_name }}-cluster
+    {{ item }} | tee -a skuba_bootstrap.log
+  loop: "{{ skuba_boostrap_commands }}"
+  register:
+    skuba_bootstrap_commands_results
+  failed_when: " not ('[bootstrap] successfully bootstrapped core add-ons' in skuba_bootstrap_commands_results.stdout)"
+
+- name: Set expected total nodes in the cluster
+  set_fact:
+    total: "{{ num_masters | int + num_workers | int }}"
+
+- name: Set expected total nodes joining the cluster after bootstrap
+  set_fact:
+    total_join: "{{ num_masters | int + num_workers | int - 1 }}"
+
+- name: Management Machine | Run skuba join
+  shell: |
+    set -e
+    eval `ssh-agent -s`
+    ssh-add
+    cd {{ caasp_openstack_path }}/{{ stack_name }}-cluster
+    {{ item }} | tee -a skuba_join.log
+  loop: "{{ skuba_join_commands }}"
+  register:
+    skuba_join_commands_results
+
+- name: Management Machine | track the count of the nodes that join the cluster successfully
+  set_fact:
+    count: "{{ count | default(0) | int + 1 }}"
+  when: "'node successfully joined the cluster' in item"
+  loop: "{{ skuba_join_commands_results.results|map(attribute='stdout')|list }}"
+
+- name: Management Machine | Print when the expected number of nodes have not joined the cluster yet
+  debug:
+    msg: "Not all expected nodes have successfully joined the cluster. Continue and check status next"
+  when: "count | int != total_join | int"
+
+- name: Management Machine | Run skuba cluster status to validate all the nodes are in the cluster in Ready state
+  shell: |
+    set -e
+    cd {{ caasp_openstack_path }}/{{ stack_name }}-cluster
+    skuba cluster status
+  register:
+    skuba_cluster_status_results
+  failed_when: "skuba_cluster_status_results.stdout.count(' Ready') != total | int"
+  until: skuba_cluster_status_results is success
+  retries: 30
+  delay: 15
+
+- name: Management Machine | Copy admin.conf
+  shell: |
+    set -e
+    mkdir -p ~/.kube
+    cp {{ caasp_openstack_path }}/{{ stack_name }}-cluster/admin.conf ~/.kube/config
+  register:
+    kube_config_copy_results
+
+- name: Management Machine | run terraform destroy
+  shell: |
+    set -e
+    cd {{ caasp_openstack_path }}
+    source {{ caasp_openstack_path }}/{{ caasp_osrc }}
+    terraform destroy
+  register:
+    terraform_destroy_results
+  when: terraform_destroy | bool

@@ -35,7 +35,6 @@ pipeline {
           cloud_lib.load_extra_params_as_vars(extra_params)
           cloud_lib.load_os_params_from_resource(cloud_env)
           cloud_lib.ansible_playbook('load-job-params')
-          cloud_lib.ansible_playbook('setup-ssh-access')
           cloud_lib.get_deployer_ip()
         }
       }
