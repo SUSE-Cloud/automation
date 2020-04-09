@@ -79,7 +79,7 @@
         - 'cloud-mkcloud{version}-job-uefi-{arch}'
 - project:
     name: cloud-mkcloud9-aarch64
-    disabled: false
+    disabled: true
     version: 9
     previous_version: 8
     arch: aarch64
