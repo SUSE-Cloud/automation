@@ -881,26 +881,42 @@ function onadmin_set_source_variables
 {
     case "$cloudsource" in
         develcloud6)
-            CLOUDISOURL=${want_cloud6_iso_url:="$susedownload/ibs/Devel:/Cloud:/6/images/iso/"}
-            [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/6:/Staging/images/iso/"
+            if [ -n "$want_cloud6_iso_url" ]; then
+                CLOUDISOURL="$want_cloud6_iso_url"
+            else
+                CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/6/images/iso/"
+                [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/6:/Staging/images/iso/"
+            fi
             CLOUDISONAME=${want_cloud6_iso:="SUSE-OPENSTACK-CLOUD-6-${arch}-Media1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-6-devel"
         ;;
         develcloud7)
-            CLOUDISOURL=${want_cloud7_iso_url:="$susedownload/ibs/Devel:/Cloud:/7/images/iso/"}
-            [ -n "$TESTHEAD" ] && CLOUDISOURL=${want_cloud7_iso_url:="$susedownload/ibs/Devel:/Cloud:/7:/Staging/images/iso/"}
+            if [ -n "$want_cloud7_iso_url" ]; then
+                CLOUDISOURL="$want_cloud7_iso_url"
+            else
+                CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/7/images/iso/"
+                [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/7:/Staging/images/iso/"
+            fi
             CLOUDISONAME=${want_cloud7_iso:="SUSE-OPENSTACK-CLOUD-7-${arch}-Media1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-7-devel"
         ;;
         develcloud8)
-            CLOUDISOURL=${want_cloud8_iso_url:="$susedownload/ibs/Devel:/Cloud:/8/images/iso/"}
-            [ -n "$TESTHEAD" ] && CLOUDISOURL=${want_cloud8_iso_url:="$susedownload/ibs/Devel:/Cloud:/8:/Staging/images/iso/"}
+            if [ -n "$want_cloud8_iso_url" ]; then
+                CLOUDISOURL="$want_cloud8_iso_url"
+            else
+                CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8/images/iso/"
+                [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/8:/Staging/images/iso/"
+            fi
             CLOUDISONAME=${want_cloud8_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-8-${arch}-Media1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-8-devel"
         ;;
         develcloud9)
-            CLOUDISOURL=${want_cloud9_iso_url:="$susedownload/ibs/Devel:/Cloud:/9/images/iso/"}
-            [ -n "$TESTHEAD" ] && CLOUDISOURL=${want_cloud9_iso_url:="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso/"}
+            if [ -n "$want_cloud9_iso_url" ]; then
+                CLOUDISOURL="$want_cloud9_iso_url"
+            else
+                CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9/images/iso/"
+                [ -n "$TESTHEAD" ] && CLOUDISOURL="$susedownload/ibs/Devel:/Cloud:/9:/Staging/images/iso/"
+            fi
             CLOUDISONAME=${want_cloud9_iso:="SUSE-OPENSTACK-CLOUD-CROWBAR-9-${arch}-Media1.iso"}
             CLOUDLOCALREPOS="SUSE-OpenStack-Cloud-Crowbar-9-devel"
         ;;
