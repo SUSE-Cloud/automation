@@ -40,6 +40,7 @@
     management_machine_subnet: "caasp-mm-subnet"
     management_machine_subnet_cidr: "2.2.2.0/24"
     management_machine_gateway: "2.2.2.1"
+    dns_server_ip: "10.84.2.20"
     management_machine_secgroup: "caasp-mm-sec-group"
     #for SOC 8: Use the regular Neutron LBaaS API
     #conditional check ansible_distribution_release == "3" means SLES12SP3 deployer
@@ -75,7 +76,8 @@
       openstack keypair show --public-key {{ keyname }} > {{ soc_home }}/{{ keyname }}.pub
       net_id=$(openstack network create {{ management_machine_net }} -c id -f value)
       subnet_id=$(openstack subnet create --network $net_id --gateway {{ management_machine_gateway }} \
-      --subnet-range {{ management_machine_subnet_cidr}} {{ management_machine_subnet }} -c id -f value)
+      --subnet-range {{ management_machine_subnet_cidr}} --dns-nameserver {{ dns_server_ip }} \
+      {{ management_machine_subnet }} -c id -f value)
       router_id=$(openstack router create {{ management_machine_router }} -c id -f value)
       openstack router add subnet $router_id $subnet_id
       openstack router set $router_id --external-gateway {{ external_net }}
@@ -241,13 +243,6 @@
       stack_name: "{{stack_name + '-' + timestamp}}"
       internal_net: "{{internal_net + '-' + timestamp}}"
       internal_subnet: "{{internal_subnet + '-' + timestamp}}"
-
-  - name: Management Machine | Update resolv.conf
-    shell:
-      echo "nameserver {{ dns_server_ip1 }}" | sudo tee -a /etc/resolv.conf
-    args:
-      executable: /bin/bash
-    become: yes
 
   - name: Management Machine | Add zypper repos
     zypper_repository:
