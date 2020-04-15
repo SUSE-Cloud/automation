@@ -20,4 +20,4 @@ supportconfig_pkgs:
   - supportutils-plugin-suse-openstack-cloud
 
 supportconfig_filename: "{{ cloud_env }}-{{ (inventory_hostname in groups['deployer_virt']) | ternary('admin', inventory_hostname) }}"
-supportconfig_filepath: "/var/log/nts_{{ supportconfig_filename }}.txz"
+supportconfig_filepath: "/var/log/scc_{{ supportconfig_filename }}.txz"
