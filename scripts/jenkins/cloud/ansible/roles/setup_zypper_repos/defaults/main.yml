@@ -47,18 +47,24 @@ repository_mnemonics:
     SLES-Pool: "SLES12-SP2-Pool"
     SLES-Updates: "SLES12-SP2-Updates"
     SLES-Updates-test: "SLES12-SP2-Updates-test"
+    SLES-LTSS-Updates: "SLES12-SP2-LTSS-Updates"
+    SLES-LTSS-Updates-test: "SLES12-SP2-LTSS-Updates-test"
     Cloud-Updates: "{{ cloud_brand }}-7-Updates"
     Cloud-Updates-test: "SUSE-OpenStack-Cloud-7-Updates-test"
   cloud8:
     SLES-Pool: "SLES12-SP3-Pool"
     SLES-Updates: "SLES12-SP3-Updates"
     SLES-Updates-test: "SLES12-SP3-Updates-test"
+    SLES-LTSS-Updates: "SLES12-SP3-LTSS-Updates"
+    SLES-LTSS-Updates-test: "SLES12-SP3-LTSS-Updates-test"
     Cloud-Updates: "{{ cloud_brand }}-8-Updates"
     Cloud-Updates-test: "SUSE-OpenStack-Cloud-8-Updates-test"
   cloud9:
     SLES-Pool: "SLES12-SP4-Pool"
     SLES-Updates: "SLES12-SP4-Updates"
     SLES-Updates-test: "SLES12-SP4-Updates-test"
+    SLES-LTSS-Updates: "SLES12-SP4-LTSS-Updates"
+    SLES-LTSS-Updates-test: "SLES12-SP4-LTSS-Updates-test"
     Cloud-Updates: "SUSE-OpenStack-Cloud-9-Updates"
     Cloud-Updates-test: "SUSE-OpenStack-Cloud-9-Updates-test"
 
@@ -72,12 +78,22 @@ sles_test_repos:
   - "{{ repository_mnemonics[cloud_release]['SLES-Updates-test'] }}"
 cloud_test_repos:
   - "{{ repository_mnemonics[cloud_release]['Cloud-Updates-test'] }}"
+sles_ltss_update_repos:
+  - "{{ repository_mnemonics[cloud_release]['SLES-LTSS-Updates'] }}"
+sles_ltss_test_repos:
+  - "{{ repository_mnemonics[cloud_release]['SLES-LTSS-Updates-test'] }}"
+
+sles_ltss_enabled:
+  cloud7: true
+  cloud8: true
+  cloud9: false
 
 cloud_update_repos_enabled: "{{ '+up' in cloudsource }}"
 sles_test_repos_enabled: "{{ updates_test_enabled and ((task == 'deploy' and not (update_after_deploy and 'GM' in cloudsource)) or (task == 'update')) }}"
 cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource and ((task == 'deploy' and not update_after_deploy) or (task == 'update')) }}"
 
-repos_to_mount: "{{ repos_to_add | select('search', '.*-Pool$') | list }}"
+repos_to_mount_regexp: "{{ sles_ltss_enabled[cloud_release] | ternary('.*-Pool$|.*SP\\d-Updates$', '.*-Pool$') }}"
+repos_to_mount: "{{ repos_to_add | select('search', repos_to_mount_regexp) | list }}"
 repos_to_sync: "{{ repos_to_add | difference(repos_to_mount) }}"
 
 extra_repos_list: "{{ extra_repos.split(',') if extra_repos is defined and extra_repos | length > 0 else [] }}"
