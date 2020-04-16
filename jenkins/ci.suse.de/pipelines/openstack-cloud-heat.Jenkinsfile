@@ -38,7 +38,7 @@ pipeline {
             git clone $git_automation_repo --branch $git_automation_branch automation-git
           ''')
           cloud_lib = load "$WORKSPACE/automation-git/jenkins/ci.suse.de/pipelines/openstack-cloud.groovy"
-          cloud_lib.load_os_params_from_resource(cloud_env)
+          cloud_lib.load_os_params_from_resource(cloud_env, true)
           cloud_lib.load_extra_params_as_vars(extra_params)
           cloud_lib.ansible_playbook('load-job-params',
                                       "-e jjb_type=job-template -e jjb_file=$WORKSPACE/automation-git/jenkins/ci.suse.de/templates/cloud-heat-template.yaml"
