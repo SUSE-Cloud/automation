@@ -7,7 +7,7 @@
     cloud_env: ''
     reserve_env: false
     cleanup: never
-    ses_enabled: false
+    ses_enabled: true
     collect_supportconfig: false
     jobs:
         - '{crowbar_job}'

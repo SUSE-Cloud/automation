@@ -57,7 +57,7 @@
     scenario_name: standard
     controllers: '1'
     computes: '1'
-    ses_enabled: false
+    ses_enabled: true
     enabled_services: database,rabbitmq,keystone,swift,glance,cinder,neutron,nova,horizon,heat,manila,designate,barbican,magnum,tempest
     extra_params:
     triggers:
