@@ -34,6 +34,10 @@
       enabled: "{{ sles_test_repos_enabled }}"
     - repo: "{{ cloud_test_repos }}"
       enabled: "{{ cloud_test_repos_enabled }}"
+    - repo: "{{ sles_ltss_update_repos }}"
+      enabled: "{{ sles_ltss_enabled[cloud_release] }}"
+    - repo: "{{ sles_ltss_test_repos }}"
+      enabled: "{{ sles_ltss_enabled[cloud_release] and sles_test_repos_enabled }}"
 
 - name: Ensure repo directory exists
   file:
