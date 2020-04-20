@@ -1,0 +1,8 @@
+---
+### Crowbar specific ###
+external_net: "floating"
+soc_home: "/root"
+osrc: "{{ soc_home }}/.openrc"
+user: 'root'
+host: "{{ hostvars['localhost'].controller_conf_ips[0] }}"
+

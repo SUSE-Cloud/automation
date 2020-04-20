@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -e
+source {{ osrc }}
+if ! openstack keypair list | grep {{ keyname }}; then openstack keypair create {{ keyname }} > {{ soc_home }}/{{ keyname }}.pem; fi
+chmod 600 {{ soc_home }}/{{ keyname }}.pem
+openstack keypair show --public-key {{ keyname }} > {{ soc_home }}/{{ keyname }}.pub
+net_id=$(openstack network create {{ management_machine_net }} -c id -f value)
+subnet_id=$(openstack subnet create --network $net_id --gateway {{ management_machine_gateway }} \
+--subnet-range {{ management_machine_subnet_cidr}} --dns-nameserver {{ dns_server_ip1 }} \
+{{ management_machine_subnet }} -c id -f value)
+router_id=$(openstack router create {{ management_machine_router }} -c id -f value)
+openstack router add subnet $router_id $subnet_id
+openstack router set $router_id --external-gateway {{ external_net }}
+sec_group=$(openstack security group create {{ management_machine_secgroup }} -c id -f value)
+openstack security group rule create --protocol icmp $sec_group
+openstack security group rule create --protocol tcp --dst-port 22 $sec_group
+vm_id=$(openstack server create --wait --image {{ image_name }} --flavor {{ management_machine_size }} \
+--key-name {{ keyname }} --network $net_id {{ management_machine_name }} --security-group $sec_group -c id -f value)
+status=$(openstack server show $vm_id | grep -w status | awk '{print $4}')
+if [ $status = 'ACTIVE' ]; then echo "Management Machine created successfully."; else echo "Failed to create Management Machine: $status"; exit 1; fi
+caasp_mgmt_floating_ip=$(openstack floating ip create {{ external_net }} -c floating_ip_address -f value)
+fixed_ip=$(openstack server show $vm_id -c addresses -f value | awk -F'=' '{print $2}')
+vmportuuid=$(openstack port list | grep $fixed_ip | grep $subnet_id | awk '{print $2}')
+openstack floating ip set --port $vmportuuid $caasp_mgmt_floating_ip
+sleep 200
+addresses=$(openstack server show $vm_id -c addresses -f value | awk -F'=' '{print $2}')
+if [[ $addresses =~ $caasp_mgmt_floating_ip ]]; then echo "Floating IP assigned successfully."; else echo "Failed to assign floating IP"; exit 1; fi
+echo $caasp_mgmt_floating_ip

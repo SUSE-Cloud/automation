@@ -418,7 +418,7 @@
           name: want_caaspv4
           default: false
           description: >-
-            Deploy CaaSPv4 using terraform
+            Deploy CaaSPv4 using terraform on openstack.
 
       - choice:
           name: cleanup

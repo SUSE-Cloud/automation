@@ -1,0 +1,54 @@
+#
+# (c) Copyright 2020 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: Set timestamp to be used for creating resource names
+  set_fact:
+    timestamp: "{{lookup('pipe', 'date +%Y%m%d%H%M%S')}}"
+
+- name: Gather variables specific to the product
+  include_vars: "product/{{ prod }}.yml"
+
+- name: Add the first controller as a host when crowbar
+  add_host:
+    hostname: '{{ host }}'
+    ansible_host: '{{ host }}'
+    ansible_password: "linux"
+    ansible_ssh_common_args: >
+      -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no
+      -o ProxyCommand='ssh -o UserKnownHostsFile=/dev/null
+      -o StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[cloud_env].ansible_host }}'
+      -o ControlPath='~/.ansible/cp/{{ cloud_env }}-%r@%h:%p'
+  when: prod == 'crowbar'
+
+- name: Set up a management machine
+  include: setup_management_machine.yml
+  delegate_to: "{{ host }}"
+  remote_user: "{{ user }}"
+
+- name: Add a host alias for management machine
+  add_host:
+    hostname: '{{ caasp_mgmt_floating_ip }}'
+    ansible_host: '{{ caasp_mgmt_floating_ip }}'
+    ansible_ssh_common_args:  '-o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i {{ keyname }}.pem
+    -o ProxyCommand="ssh {{ ssh_opts }} -W %h:%p -q {{ user }}@{{ hostvars[cloud_env].ansible_host }}"'
+    groups: managementmachine
+
+- name: Deploy Caasp using the management machine
+  include: deploy_caasp.yml
+  remote_user: sles
+  ansible_python_interpreter: "/usr/bin/python3"
+  delegate_to: '{{ groups.managementmachine[0] }}'
+

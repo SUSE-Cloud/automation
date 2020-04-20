@@ -1,0 +1,144 @@
+#
+# (c) Copyright 2020 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+- name: Gather variables specific to the product
+  include_vars: "product/{{ prod }}.yml"
+
+- name: Download SLES15SP1 image
+  get_url:
+    url: "{{ image_url }}"
+    dest: "{{ image_path }}"
+    mode: 0600
+  register: _download_caasp_image
+  until: _download_caasp_image is success
+  retries: 5
+  delay: 2
+
+- name: Upload SLES15SP1 image to glance
+  shell: |
+    source "{{ osrc }}"
+    if ! openstack image list | grep "{{ image_name }}"; then openstack image create --public --disk-format qcow2 --container-format bare --file "{{ image_path }}" "{{ image_name }}"; fi
+  args:
+    executable: /bin/bash
+
+- name: Create a specific flavor to be used for caasp
+  shell: |
+    source "{{ osrc }}"
+    if ! openstack flavor list | grep "{{ flavor }}"; then openstack flavor create --ram 4096 --disk 10 --vcpu 2 "{{ flavor }}"; fi
+  args:
+    executable: /bin/bash
+
+- name: Copy script
+  template:
+    src: "templates/create_mgmt_machine.sh.j2"
+    dest: "{{ soc_home }}/create_mgmt_machine.sh"
+    mode: "0755"
+    force: yes
+
+- name: Create Management Machine
+  shell: |
+    {{ soc_home }}/create_mgmt_machine.sh
+  register: results
+
+- name: Save floating IP of the Management Machine
+  set_fact:
+    caasp_mgmt_floating_ip: "{{ results.stdout_lines[-1] }}"
+
+- name: Store key locally
+  fetch:
+    src: "{{ soc_home }}/{{ keyname }}.pem"
+    dest:  "{{ keyname }}.pem"
+    flat: yes
+
+- name: Update key permissions
+  file:
+    path: "{{ keyname }}.pem"
+    mode: 0600
+  delegate_to: localhost
+
+- name: Fetch the project id
+  shell: |
+    source {{ osrc }}
+    openstack project show $OS_PROJECT_NAME -c id -f value
+  register: project_id
+
+- name: Copy service.osrc to openstack_caasp.osrc
+  copy:
+    src: "{{ osrc }}"
+    dest: "{{ soc_home }}/{{ caasp_osrc }}"
+    mode: '0644'
+    remote_src: yes
+
+- name: Get public identity endpoint
+  shell: |
+    source {{ osrc }}
+    openstack endpoint list --service identity --interface public -c URL -f value
+  register: public_identity_endpoint
+
+- name: Update openstack_caasp.osrc OS_AUTH_URL to use public endpoint
+  replace:
+    path: "{{ soc_home }}/{{ caasp_osrc }}"
+    regexp: 'export OS_AUTH_URL=.*$'
+    replace: 'export OS_AUTH_URL={{public_identity_endpoint.stdout}}'
+
+- name: Get public endpoint domain name
+  shell: |
+    source {{ osrc }}
+    openstack endpoint list --service identity --interface public -c URL -f value | awk -F/ '{print $3}' | awk -F: '{print $1}'
+  register: public_endpoint_domain_results
+
+- set_fact:
+    public_endpoint_domain: "{{ public_endpoint_domain_results.stdout }}"
+
+- name: lookup IP for the public endpoint domain name
+  shell: |
+    nslookup -q=A {{ public_endpoint_domain }} | tail -n+4 | grep Address | awk '{print $2}'
+  register: resolved_public_vip_results
+
+- set_fact:
+    resolved_public_vip: "{{ resolved_public_vip_results.stdout }}"
+
+- name: Update openstack_caasp.osrc endpoint type/interface
+  lineinfile:
+    dest: "{{ item.dest }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop:
+    - { dest: "{{ soc_home }}/{{ caasp_osrc }}", regexp: 'export OS_ENDPOINT_TYPE=.*$', line: 'export OS_ENDPOINT_TYPE=publicURL' }
+    - { dest: "{{ soc_home }}/{{ caasp_osrc }}", regexp: 'export OS_INTERFACE=.*$', line: 'export OS_INTERFACE=public' }
+
+- name: Update openstack_caasp.osrc with OS_PROJECT_ID since generate-cpi-conf.sh looks for this var to be set
+  lineinfile:
+    path: "{{ soc_home }}/{{ caasp_osrc }}"
+    line: 'export OS_PROJECT_ID="{{ project_id.stdout }}"'
+
+- name: Update openstack_caasp.osrc with export OS_USE_OCTAVIA=true
+  lineinfile:
+    path: "{{ soc_home }}/{{ caasp_osrc }}"
+    line: 'export OS_USE_OCTAVIA=true'
+  when: octavia_enabled | bool
+
+- name: Fetch updated openstack_caasp.osrc
+  fetch:
+    src: "{{ soc_home }}/{{ caasp_osrc }}"
+    dest: "{{ caasp_osrc }}"
+    flat: yes
+
+- name: Store CA certificate
+  fetch:
+    src: "{{ os_ca_path }}"
+    dest: "ca-bundle.pem"
+    flat: yes

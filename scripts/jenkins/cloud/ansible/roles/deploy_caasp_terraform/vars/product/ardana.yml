@@ -1,0 +1,8 @@
+---
+### Ardana Specific ###
+external_net: "ext-net"
+soc_home: "/var/lib/ardana"
+osrc: "{{ soc_home }}/service.osrc"
+user: 'ardana'
+host: "{{ cloud_env }}"
+
