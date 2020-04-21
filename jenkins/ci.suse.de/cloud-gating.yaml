@@ -121,7 +121,7 @@
             trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-no-ha-deploy-x86_64:
           cloudsource: stagingcloud8
-          ses_enabled: false
+          ses_enabled: true
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
@@ -157,7 +157,7 @@
             trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-ha-deploy-x86_64:
           cloudsource: stagingcloud8
-          ses_enabled: false
+          ses_enabled: true
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\
@@ -195,7 +195,7 @@
             trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-linuxbridge-deploy-x86_64:
           cloudsource: stagingcloud8
-          ses_enabled: false
+          ses_enabled: true
           update_after_deploy: false
           tempest_filter_list: "\
             keystone,swift,glance,cinder,neutron,nova,ceilometer,barbican,\

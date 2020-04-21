@@ -8,7 +8,7 @@
     scenario_name: standard
     controllers: '1'
     computes: '1'
-    ses_enabled: false
+    ses_enabled: true
     triggers:
      - timed: 'H H * * *'
     jobs:
@@ -24,7 +24,7 @@
     scenario_name: standard
     controllers: '3'
     computes: '2'
-    ses_enabled: false
+    ses_enabled: true
     triggers:
      - timed: 'H H * * *'
     jobs:

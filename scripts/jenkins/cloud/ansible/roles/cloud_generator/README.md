@@ -265,8 +265,8 @@ which is used to filter out matching service components, service component group
 Crowbar barclamps generated in the Crowbar batch scenario. It accepts a comma separated value list of barclamp
 names.
 * `ses_enabled` (boolean, defaults to `true`): controls whether SES is used in the generated Glance, Cinder
-and Nova service configuration as the back-end. *NOTE*: SES is not a valid back-end for Crowbar versions
-7 and 8; it should be explicitly set to `false` for those Crowbar versions.
+and Nova service configuration as the back-end. *NOTE*: SES is not a valid back-end for Crowbar version 7;
+it should be explicitly set to `false` for that version.
 * `ssl_enabled` (boolean, Crowbar only, defaults to `true`): controls whether SSL is used for services in the
 generated crowbar batch scenario.
 * `ssl_insecure` (boolean, Crowbar only, defaults to `false`): generate insecure, self-signed certificates for
