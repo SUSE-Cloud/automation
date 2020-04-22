@@ -260,6 +260,13 @@
     skuba_init_command_results
   failed_when: " not ('[init] configuration files written to' in skuba_init_command_results.stdout)"
 
+- name: Management Machine | Update openstack.conf if using Octavia
+  lineinfile:
+    path: "{{ caasp_openstack_path }}/openstack.conf"
+    insertafter: '\[LoadBalancer\]'
+    line: 'use-octavia=true'
+  when: hostvars[cloud_env]['ansible_distribution_release'] == '4'
+
 - name: Management Machine | Move openstack.conf
   shell: |
     set -e
