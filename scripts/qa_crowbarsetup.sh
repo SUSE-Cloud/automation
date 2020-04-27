@@ -1291,10 +1291,12 @@ EOPYTHON
     fi
     if [[ $cloud = p2 ]] ; then
         /opt/dell/bin/json-edit -a attributes.network.networks.public.netmask -v 255.255.252.0 $netfile
-        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.0.3.254 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.public.broadcast -v $netp.167.255 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_fixed.ranges.dhcp.end -v 44.12.63.254 $netfile
         # floating net is the 2nd half of public net:
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.netmask -v 255.255.254.0 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.subnet -v $netp.166.0 $netfile
+        /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.broadcast -v $netp.167.255 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.start -v $netp.166.1 $netfile
         /opt/dell/bin/json-edit -a attributes.network.networks.nova_floating.ranges.host.end -v $netp.167.191 $netfile
         # todo? broadcast
