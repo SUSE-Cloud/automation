@@ -15,7 +15,27 @@
 #
 ---
 
-setup_distribution_minor_version: "{{ ansible_distribution_version.split('.')[1] }}"
+#
+# zypper repo management
+#
+zypper_repo_enabled: yes
+zypper_repo_state: "present"
+# set to true to delete repo backing content from the system;
+# only valid if enabled==no and state==absent
+zypper_repo_delete: false
+
+setup_cloud_info:
+  cloud9:
+    sles_version: 12.4
+  cloud8:
+    sles_version: 12.3
+  cloud7:
+    sles_version: 12.2
+
+setup_sles_version: "{{ setup_cloud_info[cloud_release].sles_version }}"
+setup_sles_major_version: "{{ setup_sles_version.split('.')[0] }}"
+setup_sles_minor_version: "{{ setup_sles_version.split('.')[1] }}"
+setup_suse_release: "suse-{{ setup_sles_version }}"
 
 clouddata_server: "provo-clouddata.cloud.suse.de"
 repos_url: "http://{{ clouddata_server }}/repos/{{ ansible_architecture }}"
@@ -39,7 +59,7 @@ cloudsource_repos:
   GM9: "SUSE-OpenStack-Cloud-9-Pool"
 
 cloud_brand: "{{ cloudsource.startswith('hos') | ternary('HPE-Helion-OpenStack', 'SUSE-OpenStack-Cloud') }}"
-cloud_pool_tag: "SLE-{{ ansible_distribution_major_version }}-SP{{ setup_distribution_minor_version }}:Update:Products:Cloud{{ cloud_release_number }}/{{ cloud_brand | lower }}/{{ cloud_release_number }}/POOL/{{ ansible_architecture }}"
+cloud_pool_tag: "SLE-{{ setup_sles_major_version }}-SP{{ setup_sles_minor_version }}:Update:Products:Cloud{{ cloud_release_number }}/{{ cloud_brand | lower }}/{{ cloud_release_number }}/POOL/{{ ansible_architecture }}"
 cloud_updates_tag: "Updates:{{ cloud_brand | replace('SUSE-', '') }}:{{ cloud_release_number }}:{{ ansible_architecture }}/update"
 
 repository_mnemonics:
@@ -93,15 +113,15 @@ sles_test_repos_enabled: "{{ updates_test_enabled and ((task == 'deploy' and not
 cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource and ((task == 'deploy' and not update_after_deploy) or (task == 'update')) }}"
 
 repos_to_mount_regexp: "{{ sles_ltss_enabled[cloud_release] | ternary('.*-Pool$|.*SP\\d-Updates$', '.*-Pool$') }}"
-repos_to_mount: "{{ repos_to_add | select('search', repos_to_mount_regexp) | list }}"
-repos_to_sync: "{{ repos_to_add | difference(repos_to_mount) }}"
+repos_to_mount: "{{ repos_to_manage | select('search', repos_to_mount_regexp) | list }}"
+repos_to_sync: "{{ repos_to_manage | difference(repos_to_mount) }}"
 
 extra_repos_list: "{{ extra_repos.split(',') if extra_repos is defined and extra_repos | length > 0 else [] }}"
 cloudsource_repo: "{{ (task == 'update' and cloudsource is defined and cloudsource != '') | ternary('Updates', 'Pool') }}"
 zypper_repo_name: "{{ item | regex_replace('devel.*', cloudsource_repo) }}"
 
 local_repos_web_dir_prefix: "{{ (cloud_product == 'crowbar') | ternary('tftpboot', 'www') }}"
-local_repos_base_dir: "/srv/{{ local_repos_web_dir_prefix }}/{{ suse_release }}/{{ ansible_architecture }}/repos"
+local_repos_base_dir: "/srv/{{ local_repos_web_dir_prefix }}/{{ setup_suse_release }}/{{ ansible_architecture }}/repos"
 
 #media_versions
 ardana_media_version_src_file: "{{ local_repos_base_dir }}/{{ base_repos.0 | regex_replace('devel.*', 'Pool') }}/media.1/build"

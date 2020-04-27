@@ -42,44 +42,81 @@
   delay: 5
   until: mu_url is succeeded
 
-- name: Ensure MU directories exists
-  file:
-    state: directory
-    path: "{{ local_repos_base_dir }}/{{ item }}"
-  loop: "{{ maint_updates_list }}"
+# Download MU repo contents and add/enabled/disable MU repos
+- block:
+    - name: Ensure MU directories exist
+      file:
+        state: directory
+        path: "{{ local_repos_base_dir }}/{{ item }}"
+      loop: "{{ maint_updates_list }}"
 
-# This tasks is responsible for finding to which product the MUs are targeted for.
-# This is done by combining the MU IDs with the MU paths (for Cloud and SLES)
-# and for each combination it checks if the Cloud or SLES MU path is present on
-# the MU page content which registered in the mu_url variable.
-- name: Rsync MU repositories
-  synchronize:
-    mode: pull
-    src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}"
-    dest: "{{ local_repos_base_dir }}/{{ item.0 }}/"
-    rsync_opts:
-      - "--sparse"
-      - "--hard-links"
-      - "--fuzzy"
-      - "--delete-delay"
-  delegate_to: "{{ inventory_hostname }}"
-  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
-  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
-  register: mu_sync_result
-  retries: 5
-  until: mu_sync_result.rc != 24
-  delay: 300
+    # This tasks is responsible for finding to which product the MUs are targeted for.
+    # This is done by combining the MU IDs with the MU paths (for Cloud and SLES)
+    # and for each combination it checks if the Cloud or SLES MU path is present on
+    # the MU page content which registered in the mu_url variable.
+    - name: Rsync MU repositories
+      synchronize:
+        mode: pull
+        src: "rsync://{{ maintenance_updates_server }}:/repos/SUSE:/Maintenance:/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}"
+        dest: "{{ local_repos_base_dir }}/{{ item.0 }}/"
+        rsync_opts:
+          - "--sparse"
+          - "--hard-links"
+          - "--fuzzy"
+          - "--delete-delay"
+      delegate_to: "{{ inventory_hostname }}"
+      when:
+        - "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+        - zypper_repo_state == "present"
+      loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
+      register: mu_sync_result
+      retries: 5
+      until: mu_sync_result.rc != 24
+      delay: 300
 
-- name: Add MU zypper repositories
-  zypper_repository:
-    name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
-    repo: "{{ local_repos_base_dir }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
-    runrefresh: yes
-    state: present
-  when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
-  loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
-  register: add_mu_repos_output
+    - name: Manage MU zypper repositories
+      zypper_repository:
+        name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
+        repo: "{{ local_repos_base_dir }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
+        runrefresh: yes
+        enabled: "{{ zypper_repo_enabled }}"
+        state: "{{ zypper_repo_state }}"
+      when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+      loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
+      register: manage_mu_repos_output
 
-- fail:
-    msg: No repositories added
-  when: not add_mu_repos_output.changed
+    # TODO(fergal): This check is not idempotent safe - if we run the play multiple times, on
+    # subsequent runs no new repos will be registered so manage_mu_repos_output will not be
+    # registering as changed; instead we should be checking that there are MU repos registered
+    # after the previous step has completed.
+    - fail:
+        msg: No repositories added
+      when:
+        - not (manage_mu_repos_output is changed)
+        - mu_sync_result is changed
+        - zypper_repo_state == "present"
+        - zypper_repo_enabled in ["yes", true]
+
+  when:
+    - zypper_repo_state == "present"
+
+# Remove MU repo definitions and delete MU repo contents if specified
+- block:
+    - name: Remove MU zypper repos
+      zypper_repository:
+        name: "{{ item.1 }}-Maint-Update-{{ item.0 }}"
+        state: "{{ zypper_repo_state }}"
+      when: "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+      loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
+
+    - name: Delete MU zypper repo contents
+      file:
+        path: "{{ local_repos_base_dir }}/{{ item.0 }}/{{ maintenance_updates_path[item.1] }}/"
+        state: absent
+      when:
+        - "maintenance_updates_path[item.1] in mu_url.results | selectattr('item', 'equalto', item.0) | map(attribute='content') | join(' ')"
+        - zypper_repo_delete | bool
+      loop: "{{ maint_updates_list | product(maintenance_updates_path) | list }}"
+
+  when:
+    - zypper_repo_state == "absent"

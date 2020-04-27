@@ -18,13 +18,13 @@
 # If this task is included more than once as part of a single ansible-playbook
 # top-level command, the subsequent runs will inherit the list created/updated
 # by the earlier runs, which isn't always desirable.
-- name: Initialise repos_to_add as an empty list
+- name: Initialise repos_to_manage as an empty list
   set_fact:
-    repos_to_add: []
+    repos_to_manage: []
 
-- name: Gather repos to add
+- name: Gather repos to be managed
   set_fact:
-    repos_to_add: "{{ repos_to_add + item.repo }}"
+    repos_to_manage: "{{ repos_to_manage + item.repo }}"
   when: "item.enabled | default(True)"
   loop:
     - repo: "{{ base_repos }}"
@@ -39,59 +39,91 @@
     - repo: "{{ sles_ltss_test_repos }}"
       enabled: "{{ sles_ltss_enabled[cloud_release] and sles_test_repos_enabled }}"
 
-- name: Ensure repo directory exists
+- name: Setup managed zypper hierarchy
+  block:
+    - name: Ensure repo directory exists
+      file:
+        state: directory
+        path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
+      loop: "{{ repos_to_manage }}"
+
+    - name: Rsync repos that are frequently updated
+      synchronize:
+        mode: pull
+        src: "rsync://{{ clouddata_server }}/cloud/repos/{{ ansible_architecture }}/{{ item }}/"
+        dest: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
+        rsync_opts:
+          - "--sparse"
+          - "--hard-links"
+          - "--fuzzy"
+          - "--delete-delay"
+      delegate_to: "{{ inventory_hostname }}"
+      loop: "{{ repos_to_sync }}"
+      register: sync_result
+      retries: 5
+      until: sync_result.rc != 24
+      delay: 300
+      when:
+
+    - name: Add Pool tag to relevant rsync'd repos
+      lineinfile:
+        path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}/suse/repodata/repomd.xml"
+        insertafter: "<tags>"
+        line: "    <repo>obsproduct://build.suse.de/SUSE:{{ cloud_pool_tag }}</repo>"
+      loop: "{{ repos_to_sync }}"
+      when:
+        - item.endswith('-devel') or item.endswith('-devel-staging')
+
+    - name: Add Updates tag to relevant rsync'd repos
+      lineinfile:
+        path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}/suse/repodata/repomd.xml"
+        insertafter: "<tags>"
+        line: "    <repo>obsrepository://build.suse.de/SUSE:{{ cloud_updates_tag }}</repo>"
+      loop: "{{ repos_to_sync }}"
+      when:
+        - item.endswith('-devel') or item.endswith('-devel-staging')
+
+  when:
+    - zypper_repo_state == "present"
+
+- name: Remove zypper repo definitions
+  zypper_repository:
+    name: "{{ zypper_repo_name }}"
+    state: "{{ zypper_repo_state }}"
+  loop: "{{ repos_to_manage }}"
+  when:
+    # can only be absent if not enabled
+    - zypper_repo_state == "absent"
+
+- name: Delete zypper repo contents
   file:
-    state: directory
     path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
-  loop: "{{ repos_to_add }}"
-
-- name: Rsync repos that are frequently updated
-  synchronize:
-    mode: pull
-    src: "rsync://{{ clouddata_server }}/cloud/repos/{{ ansible_architecture }}/{{ item }}/"
-    dest: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
-    rsync_opts:
-      - "--sparse"
-      - "--hard-links"
-      - "--fuzzy"
-      - "--delete-delay"
-  delegate_to: "{{ inventory_hostname }}"
-  loop: "{{ repos_to_sync }}"
-  register: sync_result
-  retries: 5
-  until: sync_result.rc != 24
-  delay: 300
-
-- name: Add Pool tag to relevant rsync'd repos
-  lineinfile:
-    path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}/suse/repodata/repomd.xml"
-    insertafter: "<tags>"
-    line: "    <repo>obsproduct://build.suse.de/SUSE:{{ cloud_pool_tag }}</repo>"
+    state: absent
   loop: "{{ repos_to_sync }}"
   when:
-    - item.endswith('-devel') or item.endswith('-devel-staging')
+    # can only be true if state is absent and not enabled
+    - zypper_repo_delete | bool
 
-- name: Add Updates tag to relevant rsync'd repos
-  lineinfile:
-    path: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}/suse/repodata/repomd.xml"
-    insertafter: "<tags>"
-    line: "    <repo>obsrepository://build.suse.de/SUSE:{{ cloud_updates_tag }}</repo>"
-  loop: "{{ repos_to_sync }}"
-  when:
-    - item.endswith('-devel') or item.endswith('-devel-staging')
-
-- name: Mount repos that are not frequently updated
+# This will remove the NFS mount only after the repo is no longer in use
+# and delete is requested, or ensure it is mounted before attempting to
+# add it below.
+- name: Manage NFS mounting of repos that are not frequently updated
   mount:
     src: "{{ clouddata_server }}:/srv/nfs/repos/{{ ansible_architecture }}/{{ item }}"
     path: "{{ local_repos_base_dir }}/{{ item }}"
     opts: ro,nosuid,rsize=8192,wsize=8192,hard,intr,nolock,x-systemd.automount,noauto
     fstype: nfs
-    state: mounted
+    state: "{{ (zypper_repo_state == 'absent' and (zypper_repo_delete | bool)) | ternary('absent', 'mounted') }}"
   loop: "{{ repos_to_mount }}"
 
-- name: Add zypper repos
+# This will add a repo, possible in a disabled state, or disable an
+# existing repo, if it already present.
+- name: Manage zypper repos
   zypper_repository:
     name: "{{ zypper_repo_name }}"
     repo: "{{ local_repos_base_dir }}/{{ zypper_repo_name }}"
-    state: present
-  loop: "{{ repos_to_add }}"
+    enabled: "{{ zypper_repo_enabled }}"
+    state: "{{ zypper_repo_state }}"
+  loop: "{{ repos_to_manage }}"
+  when:
+    - zypper_repo_state == "present"
