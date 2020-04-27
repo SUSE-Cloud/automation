@@ -221,7 +221,7 @@ min_compute_nodes = 1
 global_physnet_mtu = 1450
 EOF
 
-    chown stack:stack -R $DEVSTACK_DIR
+    chown stack:stack -R /opt/stack
 }
 
 
