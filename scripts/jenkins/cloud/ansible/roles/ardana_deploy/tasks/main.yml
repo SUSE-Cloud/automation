@@ -65,7 +65,7 @@
   when: openid_connect_enabled
 
 - include_tasks: reimage_nodes.yml
-  when: is_physical_deploy
+  when: is_physical_deploy or pxe_boot_enabled
 
 - name: Import Devel:Cloud:X key when cloudsource is staging or devel
   shell: "ansible {{ item }} resources"

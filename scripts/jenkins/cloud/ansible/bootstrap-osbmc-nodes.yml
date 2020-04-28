@@ -1,0 +1,77 @@
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- name: Create temp inventory with osbmc nodes
+  hosts: "localhost"
+  gather_facts: False
+
+  tasks:
+    - name: Get osbmc node(s) IP(s) and servers to manage
+      command: |
+         openstack --os-cloud "{{ os_cloud }}" --os-project-name {{ os_project_name }} \
+           stack output show {{ heat_stack_name }} {{ item }} -c output_value -f value
+      loop:
+        - "osbmc-server-ips"
+        - "osbmc-managed-servers"
+      register: "osbmc_stack_output"
+
+    - name: Create temp inventory with all osbmc nodes
+      add_host:
+        name: "{{ item.1 | replace('server', 'osbmc_server')}}"
+        ansible_host: "{{ item.0 }}"
+        ansible_password: "linux"
+        ansible_user: root
+        group: "osbmc_all"
+        instance_to_manage: "{{ item.1 }}"
+        ansible_ssh_common_args: >
+          -o ProxyCommand='ssh -o UserKnownHostsFile=/dev/null -o
+          StrictHostKeyChecking=no -W %h:%p -q root@{{ hostvars[cloud_env].ansible_host }}'
+          -o ControlPath='~/.ansible/cp/{{ cloud_env }}-%r@%h:%p'
+      loop: "{{ osbmc_stack_output.results.0.stdout | from_yaml | zip(osbmc_stack_output.results.1.stdout | from_yaml) | list }}"
+      loop_control:
+        label: "{{ item.1 }} bmc managed by: {{ item.0 }}"
+
+- name: Bootstrap openstack-bmc servers
+  hosts: "osbmc_all"
+  gather_facts: False
+
+  roles:
+    - osbmc_server
+
+- name: Disable DHCP on the cloud infra management network
+  hosts: localhost
+
+  tasks:
+    - name: Disable DHCP on the cloud infra management network
+      command: |
+        openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
+          subnet set --no-dhcp \
+          {{ cloud_env }}-cloud_management_subnet
+
+- name: Set ipmi_ip_addrs on mkcloud.config when crowbar
+  hosts: "{{ cloud_env }}"
+  remote_user: root
+  gather_facts: False
+
+  tasks:
+    - name: Set ipmi_ip_addrs on mkcloud for crowbar
+      lineinfile:
+        dest: "/root/mkcloud.config"
+        regexp: "^export ipmi_ip_addrs="
+        line: "export ipmi_ip_addrs='{{ groups['osbmc_all'] | map('extract', hostvars, ['ansible_host']) | join(' ') }}'"
+        state: present
+      when: cloud_product == 'crowbar'

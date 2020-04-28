@@ -71,6 +71,6 @@ network_groups:
       - SWIFT
     rack_network: {{ scenario.rack_networks_enabled }}
 
-  - name: ILO
-    hostname_suffix: ilo
+  - name: BMC
+    hostname_suffix: bmc
     component_endpoints: []

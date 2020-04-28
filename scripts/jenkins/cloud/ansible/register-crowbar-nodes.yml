@@ -16,7 +16,7 @@
   hosts: cloud_virt_hosts
   any_errors_fatal: true
   remote_user: root
-  gather_facts: True
+  gather_facts: False
   vars:
     task: "register"
 
@@ -27,9 +27,33 @@
         - include_role:
             name: crowbar_setup
           vars:
+            qa_crowbarsetup_cmd: "onadmin_allocate"
+
+        # Need to wait until SLESHammer finishes running and reboot the nodes
+        # 2 minutes should be more than enough for that
+        - name: Wait for nodes to be ready to install the OS
+          pause:
+            minutes: 2
+          when: pxe_boot_enabled
+
+        # The iPXE image expects to install the OS on its first boot through PXE, however on
+        # Crowbar it boots SLESHammer which clears the machine disks (deleting the iPXE image).
+        # This gets the instance stuck on 'Booting from Hard Drive'. A way to work around that is
+        # rebuilding the instances which makes it boot through PXE again and installs the OS.
+        - name: Rebuild crowbar nodes when PXE boot enabled
+          command: |
+            openstack --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} \
+              server rebuild {{ item }}
+          loop: "{{ groups['cloud_virt_hosts'] }}"
+          when: pxe_boot_enabled
+          delegate_to: localhost
+          run_once: True
+
+        - include_role:
+            name: crowbar_setup
+          vars:
             qa_crowbarsetup_cmd: "onadmin_{{ command }}"
           loop:
-            - allocate
             - waitcloud
             - post_allocate
             - setup_aliases

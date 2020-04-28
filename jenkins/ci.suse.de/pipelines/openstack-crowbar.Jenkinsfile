@@ -139,6 +139,9 @@ pipeline {
     }
 
     stage('Bootstrap nodes') {
+      when {
+        expression { pxe_boot_enabled == 'false' && cloud_type == 'virtual' }
+      }
       steps {
         script {
           // This step does the following on the non-admin nodes:
@@ -197,6 +200,19 @@ pipeline {
                    // This step does the following on the admin node:
                    //  - installs crowbar
                    cloud_lib.ansible_playbook('install-crowbar')
+                }
+              }
+            }
+
+            stage('Bootstrap BMC nodes') {
+              when {
+                expression { pxe_boot_enabled == 'true' && cloud_type == 'virtual' }
+              }
+              steps {
+                script {
+                   // This step does the following on the virtual BMC nodes:
+                   //  - Setup the openstack-bmc service
+                   cloud_lib.ansible_playbook('bootstrap-osbmc-nodes')
                 }
               }
             }

@@ -1,0 +1,8 @@
+---
+
+- name: Gathering Facts
+  setup:
+
+- name: set crowbar_node_name fact
+  set_fact:
+    crowbar_node_name: "d{{ hostvars[inventory_hostname]['ansible_%s' | format(admin_interface)].macaddress | replace(':', '-') }}.{{ cloud_fqdn }}"

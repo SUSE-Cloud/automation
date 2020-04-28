@@ -108,10 +108,16 @@ export UPDATEREPOS={{ extra_repos.split(',') | join('+') }}
 # export JENKINS_WORKSPACE=
 # export test_internet_url=
 # export extraipmipw=
-# export ipmi_ip_addrs=
-# export bmc_user=
-# export bmc_password=
 # export upgrade_progress_file=
+
+{% if pxe_boot_enabled %}
+export want_ipmi=1
+export bmc_user=admin
+export bmc_password=password
+export want_ipmi_username=$bmc_user
+export want_ipmi_extraopts="-I lanplus -P $bmc_password"
+export ipmi_ip_addrs=
+{% endif %}
 
 export nodenumber={{ ns.cloud_nodes }}
 # export nodenumberlonelynode=

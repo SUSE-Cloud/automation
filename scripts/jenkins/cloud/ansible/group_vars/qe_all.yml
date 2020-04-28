@@ -17,6 +17,9 @@
 
 ses_cluster_id: "qe"
 
+cobbler_root_device: "/dev/sda"
+pxe_boot_enabled: True
+
 ardana_extra_vars:
   nova_migrate_enabled: "{{ ardana_nova_migrate_enabled }}"
   local_image_mirror_url: "http://{{ clouddata_server }}/images/x86_64/openstack/"

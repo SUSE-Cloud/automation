@@ -1606,7 +1606,7 @@ function reboot_nodes_via_ipmi
         if [[ $i -gt $nodenumber ]]; then
             # power off extra nodes
             $ipmicmd power off
-            wait_for 30 2 "$ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
+            wait_for 30 5 "$ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
         else
             if [[ $ipmi_default_gw ]] ; then
                 $ipmicmd lan set 1 defgw ipaddr "$ipmi_default_gw"
@@ -1617,9 +1617,9 @@ function reboot_nodes_via_ipmi
 
             $ipmicmd chassis bootdev pxe ${want_ipmi_pxeextraopts}
             $ipmicmd power off
-            wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
+            wait_for 30 5 "timeout 5 $ipmicmd power status | grep -q 'is off'" "node ($ip) to power off"
             $ipmicmd power on
-            wait_for 30 2 "timeout 5 $ipmicmd power status | grep -q 'is on'" "node ($ip) to power on"
+            wait_for 30 5 "timeout 5 $ipmicmd power status | grep -q 'is on'" "node ($ip) to power on"
         fi
     done
 }

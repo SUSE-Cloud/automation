@@ -99,7 +99,7 @@ resources:
 {%       endfor %}
 {%     endif  %}
 {%   endif  %}
-      enable_dhcp: {{ network.is_conf or network.is_mgmt }}
+      enable_dhcp: {{ network.is_conf or network.is_mgmt or 'bmc' in name }}
 {%   if network.gateway is defined %}
       gateway_ip: "{{ network.gateway }}"
 {%   endif   %}
@@ -142,10 +142,12 @@ resources:
 {% endfor %}
 
 
+{% set has_bmc_net = 'BMC-NET' in heat_template.networks %}
 {% for server in heat_template.servers %}
 {%   set interface_model = heat_template.interface_models[server.interface_model] %}
 {%   set disk_model = heat_template.disk_models[server.disk_model] %}
 {%   set server_ns = namespace(ports=[], trunk_port_names=[], volume_names=[]) %}
+{%   set need_osbmc_server = pxe_boot_enabled and server['ilo_ip'] %}
 
 {%   set server_name = server.name|lower|replace('-','_') %}
 {%   for port in interface_model.ports %}
@@ -184,11 +186,27 @@ resources:
 
 {%       else %}
       network: { get_resource: {{ network_name }}_network }
+{%         if need_osbmc_server and network.is_conf %}
+      mac_address: "{{ server['mac_addr'] }}"
+{%         endif %}
       fixed_ips:
         - subnet_id: { get_resource: {{ network_name }}_subnet }
 {%         if network.is_conf %}
 {%           set _ = global_ns.conf_ports.append((server, port_name,)) %}
           ip_address: "{{ server.ip_addr }}"
+{%         if need_osbmc_server and network.is_conf %}
+
+  # Port for server hosting BMC for {{ server_name }}
+  {{ server_name }}_osbmc_port:
+    type: OS::Neutron::Port
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ server_name }}_osbmc_port
+      network: { get_resource: {{ has_bmc_net | ternary('bmc_network', 'management_network') }} }
+      fixed_ips:
+        - subnet_id: { get_resource: {{ has_bmc_net | ternary('bmc_subnet', 'management_subnet') }} }
+          ip_address: "{{ server.ilo_ip }}"
+{%         endif %}
+
 
 {%           if server.is_admin %}
   # floating IP for the admin node
@@ -288,7 +306,7 @@ resources:
 {% if os_key_name is defined %}
       key_name: { get_param: key_name }
 {% endif %}
-      image: {{ server.image }}
+      image: {{ need_osbmc_server | ternary(pxe_boot_image, server.image) }}
       flavor: {{ server.flavor }}
       tags:
 {%   if server.is_admin %}
@@ -310,6 +328,17 @@ resources:
           # interface model: {{ server.interface_model }}
         - port: { get_resource: {{ port_name }}_port }
 {%   endfor %}
+
+{%   if need_osbmc_server %}
+  {{ server_name }}_osbmc_server:
+    type: OS::Nova::Server
+    properties:
+      name: {{ heat_resource_name_prefix }}_{{ server_name }}_osbmc_server
+      image: {{ openstack_bmc_image }}
+      flavor: {{ openstack_bmc_flavor }}
+      networks:
+        - port: { get_resource: {{ server_name }}_osbmc_port }
+{%   endif %}
 {% endfor %}
 
 outputs:
@@ -340,3 +369,21 @@ outputs:
 {% for server, port_name in global_ns.conf_ports if server.is_compute %}
       - { get_attr: [{{ port_name }}_port, fixed_ips, 0, ip_address] }
 {%   endfor %}
+
+{% if pxe_boot_enabled %}
+  # BMC IP addresses of the openstack-bmc nodes
+  osbmc-server-ips:
+    description: IP addresses of the openstack-bmc server nodes
+    value:
+{% for server, port_name in global_ns.conf_ports if server.ilo_ip %}
+      - { get_attr: [{{ server.name|lower|replace('-','_') }}_osbmc_port, fixed_ips, 0, ip_address] }
+{%   endfor %}
+
+  # Name of nodes to be managed by openstack-bmc
+  osbmc-managed-servers:
+    description: Name of nodes to be managed by openstack-bmc
+    value:
+{% for server, port_name in global_ns.conf_ports if server.ilo_ip %}
+      - { get_attr: [{{ server.name|lower|replace('-','_') }}_server, name] }
+{%   endfor %}
+{% endif %}

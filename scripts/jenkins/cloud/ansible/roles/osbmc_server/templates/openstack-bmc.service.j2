@@ -1,0 +1,15 @@
+[Unit]
+Description=openstack-bmc Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/opt/osbmc/openstackbmc.py --os-cloud {{ os_cloud }} --os-project-name {{ os_project_name }} --instance {{ instance_to_manage }} --address {{ ansible_host }}
+Restart=always
+User=root
+StandardOutput=tty
+StandardError=inherit
+TTYPath=/dev/ttyS0
+
+[Install]
+WantedBy=multi-user.target

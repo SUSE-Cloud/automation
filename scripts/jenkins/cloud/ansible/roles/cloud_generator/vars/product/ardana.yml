@@ -12,3 +12,6 @@ gen_subnet_start: 100
 gen_ip_start: 100
 # Gap to be left between the generated IP for the admin node and the rest of the nodes
 gen_ip_gap: 1
+# Gap to be left between the generated IP for the bmc node and the rest of the nodes
+# As ardana bmc nodes are on a different network that gap can be set to 0
+bmc_ip_gap: 0

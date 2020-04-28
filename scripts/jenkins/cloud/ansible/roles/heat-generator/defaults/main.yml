@@ -21,6 +21,10 @@ rhel_image: "centos{{ rhel_os_version }}"
 # If SES is disabled, we need a greater disk size for swift
 disk_size: "{{ ses_enabled | ternary(2, 3) }}"
 
+openstack_bmc_image: "osbmc"
+openstack_bmc_flavor: "m1.smaller"
+pxe_boot_image: "ipxe"
+
 # Versioned virtualized configuration artifacts
 virt_artifacts:
   cloud7:

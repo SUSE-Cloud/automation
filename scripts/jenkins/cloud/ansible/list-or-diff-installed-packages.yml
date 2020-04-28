@@ -17,6 +17,15 @@
 
 - import_playbook: _create-vcloud-inventory.yml
 
+- name: Ensure hosts accessible by root user
+  hosts: cloud_virt_hosts
+  remote_user: "{{ (pxe_boot_enabled and cloud_product=='ardana') | ternary('ardana', 'root') }}"
+  gather_facts: True
+  become: yes
+
+  roles:
+    - ssh_keys
+
 - name: Collect list of installed packages in all nodes
   hosts: localhost
   remote_user: root

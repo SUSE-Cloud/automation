@@ -18,12 +18,12 @@
 - name: Run cobbler-deploy
   command: |
     ansible-playbook -i hosts/localhost cobbler-deploy.yml \
-      -e ardanauser_password='ardana'
+      -e ardanauser_password='ardana' -e cobbler_root_device='{{ cobbler_root_device }}'
   args:
     chdir: "{{ ardana_openstack_path }}"
 
 - name: Get list of SLES nodes to reimage
-  shell: 'cobbler profile list | grep "sles12sp{{ ansible_distribution_release }}-x86_64-" | cut -d"-" -f3'
+  shell: 'cobbler profile list | grep "sles12sp{{ ansible_distribution_release }}-x86_64-" | cut -d"-" -f3-'
   become: yes
   register: ardana_sles_nodes
 

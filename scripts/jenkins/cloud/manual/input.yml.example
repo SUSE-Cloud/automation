@@ -39,6 +39,9 @@ deploy_cloud: true
 # Reboot cloud after deploy.
 reboot_after_deploy: true
 
+# Infra nodes (besides the CLM/admin) will be provisioned by cobbler/crowbar.
+pxe_boot_enabled: false
+
 #============= Repositories =============#
 # The cloud repository (from provo-clouddata) to be used for testing. This value can take
 # the following form:

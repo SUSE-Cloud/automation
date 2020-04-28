@@ -706,6 +706,8 @@ def generate_heat_model(input_model, virt_config):
             heat_network['allocation_pools'] = \
                 [[str(mgmt_net_last - EXTERNAL_MGMT_ADDR_RANGE),
                   str(mgmt_net_last - 1)]]
+        elif 'bmc' in network['name'].lower():
+            heat_network['external'] = True
         elif True in [('public' in lb['roles'])
                       for lb in network['network-group'].get('load-balancers',
                                                              [])]:
@@ -880,6 +882,8 @@ def generate_heat_model(input_model, virt_config):
         heat_server = dict(
             name=server['id'],
             ip_addr=server['ip-addr'],
+            ilo_ip=server.get('ilo-ip'),
+            mac_addr=server.get('mac-addr'),
             role=server['role']['name'],
             interface_model=server['role']['interface-model']['name'],
             disk_model=server['role']['disk-model']['name'],

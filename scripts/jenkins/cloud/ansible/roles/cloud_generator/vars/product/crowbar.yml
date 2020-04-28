@@ -14,5 +14,7 @@ gen_subnet_start: 124
 gen_ip_start: 10
 # Gap to be left between the generated IP for the admin node and the rest of the nodes
 gen_ip_gap: 71
-
+# Gap to be left between the generated IP for the bmc node and the rest of the nodes
+# As crowbar bmc nodes are also on the admin network this gap needs to fit the values on network.json bmc network range
+bmc_ip_gap: 80
 cloud_iso_name: "{{ (cloudsource[-1] == '7') | ternary('SUSE-OpenStack-Cloud-7', 'SUSE-OpenStack-Cloud-Crowbar-' ~ cloudsource[-1]) }}"
