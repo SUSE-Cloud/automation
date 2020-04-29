@@ -38,6 +38,15 @@
       - 'openstack-cleanvm-{release}'
 
 - project:
+    name: openstack-cleanvm-Ussuri
+    disabled: false
+    release: Ussuri
+    image:
+      - openSUSE-Leap-15.2
+    jobs:
+      - 'openstack-cleanvm-{release}'
+
+- project:
     name: openstack-cleanvm-Master
     disabled: false
     release: Master

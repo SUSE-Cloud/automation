@@ -17,3 +17,5 @@
             release: 'Stein'
         - 'openstack-rpm-packaging-update-{release}':
             release: 'Train'
+        - 'openstack-rpm-packaging-update-{release}':
+            release: 'Ussuri'

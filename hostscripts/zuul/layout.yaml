@@ -41,6 +41,7 @@ projects:
       - openstack-rpm-packaging-sles12-Rocky
       - openstack-rpm-packaging-sles15-Stein
       - openstack-rpm-packaging-sles15-Train
+      - openstack-rpm-packaging-sles15-Ussuri
     post-rpm-packaging:
       - openstack-rpm-packaging-update-Master
       - openstack-rpm-packaging-update-Newton
@@ -50,6 +51,7 @@ projects:
       - openstack-rpm-packaging-update-Rocky
       - openstack-rpm-packaging-update-Stein
       - openstack-rpm-packaging-update-Train
+      - openstack-rpm-packaging-update-Ussuri
 
 jobs:
   - name: openstack-rpm-packaging-sles15-Master
@@ -92,6 +94,11 @@ jobs:
     failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Train-{build.build_set.commit}
     success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Train-{build.build_set.commit}
 
+  - name: openstack-rpm-packaging-sles15-Ussuri
+    branch: stable/ussuri
+    failure-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Ussuri-{build.build_set.commit}
+    success-pattern: https://build.opensuse.org/project/show/home:suse-cloud-ci:rpm-packaging-sles15-Ussuri-{build.build_set.commit}
+
   - name: openstack-rpm-packaging-update-Master
     branch: master
 
@@ -118,3 +125,6 @@ jobs:
 
   - name: openstack-rpm-packaging-update-Train
     branch: stable/train
+
+  - name: openstack-rpm-packaging-update-Ussuri
+    branch: stable/ussuri
