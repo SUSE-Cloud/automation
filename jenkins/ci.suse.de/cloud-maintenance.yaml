@@ -60,18 +60,16 @@
           cloudsource: GM7+up
           ses_enabled: false
           update_after_deploy: false
-          # nova, neutron, cinder, manila, magnum, fwaas and lbaas not fully passing yet
           tempest_filter_list: "\
-            keystone,swift,glance,ceilometer,\
-            trove,aodh,heat"
+            keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar7-job-mu-no-ha-update-x86_64:
           cloudsource: GM7+up
           ses_enabled: false
           update_after_deploy: true
-          # nova, neutron, cinder, manila, magnum, fwaas and lbaas not fully passing yet
           tempest_filter_list: "\
-            keystone,swift,glance,ceilometer,\
-            trove,aodh,heat"
+            keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-mu-no-ha-deploy-x86_64:
           cloudsource: GM8+up
           ses_enabled: true
@@ -118,18 +116,16 @@
           cloudsource: GM7+up
           ses_enabled: false
           update_after_deploy: false
-          # nova, neutron, cinder, manila, magnum, fwaas and lbaas not fully passing yet
           tempest_filter_list: "\
-            keystone,swift,glance,ceilometer,\
-            trove,aodh,heat"
+            keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar7-job-mu-ha-update-x86_64:
           cloudsource: GM7+up
           ses_enabled: false
           update_after_deploy: true
-          # nova, neutron, cinder, manila, magnum, fwaas and lbaas not fully passing yet
           tempest_filter_list: "\
-            keystone,swift,glance,ceilometer,\
-            trove,aodh,heat"
+            keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-mu-ha-deploy-x86_64:
           cloudsource: GM8+up
           ses_enabled: true
@@ -178,18 +174,16 @@
           cloudsource: GM7+up
           ses_enabled: false
           update_after_deploy: false
-          # nova, neutron, cinder, manila, magnum, fwaas and lbaas not fully passing yet
           tempest_filter_list: "\
-            keystone,swift,glance,ceilometer,\
-            trove,aodh,heat"
+            keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar7-job-mu-linuxbridge-update-x86_64:
           cloudsource: GM7+up
           ses_enabled: false
           update_after_deploy: true
-          # nova, neutron, cinder, manila, magnum, fwaas and lbaas not fully passing yet
           tempest_filter_list: "\
-            keystone,swift,glance,ceilometer,\
-            trove,aodh,heat"
+            keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
+            trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-mu-linuxbridge-deploy-x86_64:
           cloudsource: GM8+up
           ses_enabled: true
