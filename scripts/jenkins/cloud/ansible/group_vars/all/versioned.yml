@@ -51,7 +51,7 @@ versioned_features:
   neutron-ml2-port-security:
     enabled: "{{ when_cloud9 or when_cloud8}}"
   magnum_ssl_enabled:
-    enabled: "{{ when_staging_or_devel and (when_cloud8 or when_cloud9) }}"
+    enabled: "{{ when_cloud8 or (when_cloud9 and when_staging_or_devel) }}"
 
 
 input_model_versioned_features:
