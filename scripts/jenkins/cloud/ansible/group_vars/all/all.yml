@@ -30,7 +30,7 @@ cloud_admin_user:
   crowbar: root
 
 # The cloud release is encoded in the cloudsource value
-cloud_release_number: "{{ cloudsource | regex_search('\\d') }}"
+cloud_release_number: "{{ cloudsource | regex_search('\\d') | default(sles_cloud_version[ansible_distribution_version], true) }}"
 cloud_release: "cloud{{ cloud_release_number }}"
 cloud_git_branch:
   cloud8: "stable/pike"
