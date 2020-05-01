@@ -313,15 +313,22 @@ function deploy_ardana_but_dont_run_site_yml {
 function update_cloud {
     if $(get_from_input deploy_cloud) && $(get_from_input update_after_deploy); then
         if [ "$(get_cloud_product)" == "crowbar" ]; then
-            ansible_playbook crowbar-update.yml -e cloudsource=$(get_from_input update_to_cloudsource)
-        elif $(get_from_input deploy_cloud); then
-            ansible_playbook ardana-update.yml -e cloudsource=$(get_from_input update_to_cloudsource)
+            ansible_playbook crowbar-update.yml
+        else
+            local update_to_cloudsource maint_updates
+
+            update_to_cloudsource="$(get_from_input update_to_cloudsource)"
+            maint_updates="$(get_from_input maint_updates)"
+
+            if [[ -n "${update_to_cloudsource}" ]] || [[ -n "${maint_updates}" ]]; then
+                ansible_playbook ardana-update.yml ${update_to_cloudsource:+-e cloudsource="${update_to_cloudsource}"}
+            fi
         fi
     fi
 }
 
 function upgrade_cloud {
-    if $(get_from_input deploy_cloud) && [[ -n $(get_from_input upgrade_cloudsource) ]]; then
+    if $(get_from_input deploy_cloud) && $(get_from_input update_after_deploy) && [[ -n $(get_from_input upgrade_cloudsource) ]]; then
         if [ "$(get_cloud_product)" == "crowbar" ]; then
             ansible_playbook crowbar-upgrade.yml
         fi
