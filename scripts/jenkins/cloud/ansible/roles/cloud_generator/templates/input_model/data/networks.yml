@@ -21,17 +21,18 @@
 
 {% set ns = namespace(net_id=gen_subnet_start) %}
 {% for network_group in scenario['network_groups'] %}
+{%   set name_in_networks = ((network_group.name == "BMC") | ternary("ILO", network_group.name) | replace('-', '_')|lower) %}
 {%   if network_group.rack_network|default(False) %}
 {%     for az in range(scenario.availability_zones) %}
     - name: {{ network_group.name|upper }}-NET-RACK{{ az + 1 }}
-{{ bm_info.networks[network_group.name|replace('-', '_')|lower]['rack' ~ (az+1)] | to_nice_yaml(indent=2) | indent(6, True) -}}
+{{ bm_info.networks[name_in_networks]['rack' ~ (az+1)] | to_nice_yaml(indent=2) | indent(6, True) -}}
 {{'      network-group: ' ~ network_group.name|upper }}
 
 {%     endfor %}
 {%   else %}
     - name: {{ network_group.name|upper }}-NET
 {%  if bm_info is defined %}
-{{ bm_info.networks[network_group.name|replace('-', '_')|lower] | to_nice_yaml(indent=2) | indent(6, True) }}
+{{ bm_info.networks[name_in_networks] | to_nice_yaml(indent=2) | indent(6, True) }}
 {%-  else -%}
 {%   if network_group['tagged_vlan']|default(True) %}
       vlanid: {{ ns.net_id }}
