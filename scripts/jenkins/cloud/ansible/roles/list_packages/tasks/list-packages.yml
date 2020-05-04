@@ -45,6 +45,10 @@
   loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
   loop_control:
     loop_var: item_virtual_hosts
+  # retry used because of rare zypper lock issue
+  retries: 3
+  delay: 3
+  until: _result_packages_repos_zypper.rc == 0
   register: _result_packages_repos_zypper
 
 - name: Get Disturl and versions from rpm yml output
