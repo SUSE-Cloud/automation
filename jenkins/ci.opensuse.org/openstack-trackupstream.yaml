@@ -107,7 +107,8 @@
             "python-monasca-common",
             "python-monasca-statsd",
             "python-vmware-nsxlib",
-            "python-vmware-nsx"
+            "python-vmware-nsx",
+            "python-networking-cisco"
             ].contains(component) ||
             [ "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Rocky:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
@@ -122,6 +123,7 @@
             [
               "openstack-trove",
               "openstack-horizon-plugin-trove-ui",
+              "python-networking-cisco"
             ].contains(component) ||
             [ "Cloud:OpenStack:Master" ].contains(project) &&
             [
