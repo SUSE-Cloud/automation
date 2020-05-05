@@ -848,7 +848,7 @@ function install_vbmc
     vbmc --version 2> /dev/null && return 0
 
     # some simple checks before we try to add SP4-Cloud9 repo
-    grep -q 12-SP4 /etc/os-release || return 1
+    grep -q 12-SP[45] /etc/os-release || return 1
 
     # virtualbmc package is available in cloud9 repo
     $sudo zypper addrepo --priority 500 --refresh \
