@@ -17,6 +17,8 @@
 
 - import_playbook: setup-ssh-access.yml
 
+- import_playbook: integrated-deployer-tweaks.yml
+
 - name: Bootstrap Cloud Lifecycle Manager
   hosts: "{{ cloud_env }}"
   remote_user: root
