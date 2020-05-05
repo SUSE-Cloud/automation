@@ -248,7 +248,12 @@ pipeline {
           // packages. Can be removed when jenkins feature (JENKINS-48315) is merged.
           env.stage_after_update = "true"
 
-          cloud_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
+          if (update_to_cloudsource == '') {
+            cloud_lib.ansible_playbook('ardana-update')
+          } else {
+            cloud_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
+          }
+
           // list-or-diff-installed-packages does not physical deployments
           if (cloud_type == 'virtual') {
             cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=diff")
