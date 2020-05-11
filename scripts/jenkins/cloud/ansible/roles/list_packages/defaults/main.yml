@@ -20,4 +20,11 @@ state1: "after_deploy"
 state2: "after_update"
 effective_user: "{{ (cloud_product == 'ardana') | ternary('ardana','root') }}"
 local_tmp_dir: "/tmp"
-diff_tmp_dir: "{{ lookup('env', 'WORKSPACE') | ternary (workspace_path, local_tmp_dir) }}" 
+diff_tmp_dir: "{{ lookup('env', 'WORKSPACE') | ternary (workspace_path, local_tmp_dir) }}"
+build_id: "{{ lookup('env', 'BUILD_ID')|default('',true) }}"
+no_diff_old_builds: "{{ lookup('env', 'no_diff_old_builds') | default('false',true) }}"
+last_build_ids: []
+testing: {}
+_old_jobs_values: []
+_tmpRelPathVal: []
+_currentJobFileNames: []
