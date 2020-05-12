@@ -17,3 +17,5 @@
             release: 'Stein'
         - 'openstack-rpm-packaging-sles15-{release}':
             release: 'Train'
+        - 'openstack-rpm-packaging-sles15-{release}':
+            release: 'Ussuri'
