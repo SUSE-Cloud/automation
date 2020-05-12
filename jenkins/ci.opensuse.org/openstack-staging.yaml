@@ -4,9 +4,7 @@
     release:
       - Newton
       - Pike
-      - Queens
       - Rocky
-      - Stein
       - Train
       - Ussuri
       - Master

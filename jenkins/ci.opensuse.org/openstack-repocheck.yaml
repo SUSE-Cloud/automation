@@ -14,16 +14,10 @@
           type: user-defined
           name: project
           values:
-            - Cloud:OpenStack:Newton
-            - Cloud:OpenStack:Newton:Staging
             - Cloud:OpenStack:Pike
             - Cloud:OpenStack:Pike:Staging
-            - Cloud:OpenStack:Queens
-            - Cloud:OpenStack:Queens:Staging
             - Cloud:OpenStack:Rocky
             - Cloud:OpenStack:Rocky:Staging
-            - Cloud:OpenStack:Stein
-            - Cloud:OpenStack:Stein:Staging
             - Cloud:OpenStack:Train
             - Cloud:OpenStack:Train:Staging
             - Cloud:OpenStack:Master
