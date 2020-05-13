@@ -15,9 +15,9 @@
           name: project
           values:
             - Cloud:OpenStack:Pike:Staging
-            - Cloud:OpenStack:Queens:Staging
             - Cloud:OpenStack:Rocky:Staging
-            - Cloud:OpenStack:Stein:Staging
+            - Cloud:OpenStack:Train:Staging
+            - Cloud:OpenStack:Ussuri:Staging
             - Cloud:OpenStack:Master
       - axis:
           type: user-defined
