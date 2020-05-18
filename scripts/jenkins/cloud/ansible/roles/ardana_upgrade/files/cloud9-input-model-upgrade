@@ -1,0 +1,50 @@
+#!/bin/bash
+#
+# (c) Copyright 2019 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+# Runs in the deployer.
+#
+
+set -eux
+set -o pipefail
+
+pushd "${HOME}/openstack/my_cloud/definition"
+
+deprecated_svc_comps=(
+    freezer-agent
+    freezer-api
+    glance-registry
+    heat-api-cloudwatch
+    neutron-lbaasv2-agent
+    nova-console-auth
+)
+
+for dsc in "${deprecated_svc_comps[@]}"
+do
+    found_files=( $(grep -rIl '^[[:space:]]*-[[:space:]]*'"${dsc}"'[[:space:]]*$' . || true) )
+
+    # continue to next iteration if no matching files found
+    (( ${#found_files[@]} > 0 )) || continue
+
+    echo "*** Fixing '${dsc}' references in ${found_files[@]}"
+    sed -i -e 's/\(^[[:space:]]*\)\(-[[:space:]]*'"${dsc}"'[[:space:]]*\)$/\1#\2/' \
+        "${found_files[@]}"
+done
+
+
+git add -A
+git commit --allow-empty -m "Cloud9 Upgrade - apply mandated changes to input model"
+
+# vim:shiftwidth=4:tabstop=4:expandtab

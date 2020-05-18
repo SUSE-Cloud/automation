@@ -29,6 +29,7 @@ screenlog*
 scripts/jenkins/cloud/manual/ansible-venv
 scripts/jenkins/cloud/manual/mitogen
 scripts/jenkins/cloud/ansible/ansible_facts
+scripts/jenkins/cloud/ansible/ardana-bm-info
 scripts/jenkins/cloud/ansible/*-virt-config.yml
 scripts/jenkins/cloud/ansible/input_model
 scripts/jenkins/cloud/ansible/heat-stack-*.yml

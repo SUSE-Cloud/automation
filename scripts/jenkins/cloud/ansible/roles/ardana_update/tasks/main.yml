@@ -16,13 +16,8 @@
 ---
 
 - name: Get list of non-deployer nodes
-  shell: |
-    deployer=`grep -A 1 ARD-SVC--first-member hosts/verb_hosts | tail -1`
-    for line in $(awk '/resources/' RS= hosts/verb_hosts); do
-      if [[ $deployer != *$line* ]]; then
-        echo $line
-      fi
-    done
+  command: |
+    ansible 'resources:!OPS-LM--first-member' --list-hosts
   args:
     chdir: "{{ ardana_scratch_path }}"
   register: ardana_nodes

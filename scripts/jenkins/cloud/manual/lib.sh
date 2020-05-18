@@ -328,9 +328,12 @@ function update_cloud {
 }
 
 function upgrade_cloud {
-    if $(get_from_input deploy_cloud) && $(get_from_input update_after_deploy) && [[ -n $(get_from_input upgrade_cloudsource) ]]; then
+    if $(get_from_input deploy_cloud) && $(get_from_input update_after_deploy) && [[ -n "$(get_from_input upgrade_cloudsource)" ]]; then
         if [ "$(get_cloud_product)" == "crowbar" ]; then
             ansible_playbook crowbar-upgrade.yml
+        else
+            ansible_playbook ardana-disable-repos.yml
+            ansible_playbook ardana-upgrade.yml -e cloudsource="$(get_from_input upgrade_cloudsource)"
         fi
     fi
 }

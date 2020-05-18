@@ -25,7 +25,7 @@
 - name: Run ardana-update-pkgs playbook for deployer
   shell: |
     ansible-playbook ardana-update-pkgs.yml \
-      -l ARD-SVC--first-member -e \
+      -l OPS-LM--first-member -e \
       "zypper_update_method={{ update_method }}
        zypper_update_gpg_checks={{ update_gpg_checks }}
        zypper_update_licenses_agree={{ update_gpg_checks }}

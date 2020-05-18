@@ -262,6 +262,27 @@ pipeline {
       }
     }
 
+    stage('Upgrade cloud') {
+      when {
+        expression { deploy_cloud == 'true' && update_after_deploy == 'true' && upgrade_cloudsource != '' }
+      }
+      steps {
+        script {
+          // This is a mark for fail action 'collect list of installed packages'
+          // to distinguish stages after "Upgrade cloud" and do the diff of installed
+          // packages. Can be removed when jenkins feature (JENKINS-48315) is merged.
+          env.stage_after_update = "true"
+
+          cloud_lib.ansible_playbook('ardana-disable-repos')
+          cloud_lib.ansible_playbook('ardana-upgrade', "-e cloudsource=$upgrade_cloudsource")
+          // list-or-diff-installed-packages does not physical deployments
+          if (cloud_type == 'virtual') {
+            cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=diff")
+          }
+        }
+      }
+    }
+
     stage ('Prepare tests') {
       when {
         expression { tempest_filter_list != '' || qa_test_list != '' || want_caasp == 'true' || want_caaspv4 == 'true' }

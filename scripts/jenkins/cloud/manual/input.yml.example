@@ -66,7 +66,7 @@ update_after_deploy: false
 update_to_cloudsource: ''
 
 # Only valid if update_after_deploy is true. The cloud repository to be used for
-# upgrade (Crowbar only).
+# upgrade.
 # This option takes the same values as cloudsource.
 upgrade_cloudsource: ''
 

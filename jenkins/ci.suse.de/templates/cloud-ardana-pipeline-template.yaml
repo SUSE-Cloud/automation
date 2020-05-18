@@ -103,8 +103,8 @@
           name: update_after_deploy
           default: '{update_after_deploy|false}'
           description: >-
-            Run ardana update after the cloud is deployed. If true the MU's will
-            be applied only after the cloud is deployed.
+            Run ardana update or upgrade after the cloud is deployed. If true the MU's
+            will be applied only after the cloud is deployed.
             If `updates_test_enabled` is true, the test updates will be
             applied post-deployment only if the cloudsource is GM based.
 
@@ -126,6 +126,25 @@
           description: >-
             Only valid if update_after_deploy is true. The cloud repository
             (from provo-clouddata) to be used to update.
+
+      - choice:
+          name: upgrade_cloudsource
+          choices:
+            - '{upgrade_cloudsource|}'
+            - stagingcloud8
+            - develcloud8
+            - GM8
+            - GM8+up
+            - hosdevelcloud8
+            - hosGM8
+            - hosGM8+up
+            - stagingcloud9
+            - develcloud9
+            - GM9
+            - GM9+up
+          description: >-
+            Only valid if update_after_deploy is true. The cloud repository
+            (from provo-clouddata) to be used for upgrade.
 
       - validating-string:
           name: maint_updates
