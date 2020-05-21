@@ -239,7 +239,7 @@ pipeline {
 
     stage('Update cloud') {
       when {
-        expression { deploy_cloud == 'true' && update_after_deploy == 'true' }
+        expression { deploy_cloud == 'true' && update_after_deploy == 'true' && (maint_updates != '' || update_to_cloudsource != '') }
       }
       steps {
         script {
