@@ -20,17 +20,8 @@
   environment:
     ARDANA_INIT_AUTO: 1
 
-- name: Copy up input model upgrade script
-  copy:
-    src: "{{ cloud_release }}-input-model-upgrade"
-    dest: "~/cloud-input-model-upgrade"
-    mode: 0755
-  register: ansible_copy_input_model_upgrade
-
 - name: Run input model upgrade script
-  shell: >-
-    ~/cloud-input-model-upgrade
-  register: ansible_input_model_upgrade
+  script: "{{ role_path }}/files/{{ cloud_release }}-input-model-upgrade"
 
 - name: Run playbooks from "{{ ardana_openstack_path }}"
   command: |
