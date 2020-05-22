@@ -404,6 +404,33 @@
           msg: The entered value failed validation
           description: >-
             A comma separated list of repository urls to be added on the deployer node
+            during the deploy phase.
+
+            NOTE: The packages from those repositories will be available to all cloud nodes
+            through a repository with a higher priority, meaning that those packages will be
+            installed even if there is a newer package available on other repositories
+
+      - validating-string:
+          name: update_extra_repos
+          default: '{update_extra_repos|}'
+          regex: '((http(s)?:\/\/[^ ,]+)(,http(s)?:\/\/[^ ,]+)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of repository urls to be added on the deployer node
+            during the update phase.
+
+            NOTE: The packages from those repositories will be available to all cloud nodes
+            through a repository with a higher priority, meaning that those packages will be
+            installed even if there is a newer package available on other repositories
+
+      - validating-string:
+          name: upgrade_extra_repos
+          default: '{upgrade_extra_repos|}'
+          regex: '((http(s)?:\/\/[^ ,]+)(,http(s)?:\/\/[^ ,]+)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of repository urls to be added on the deployer node
+            during the upgrade phase.
 
             NOTE: The packages from those repositories will be available to all cloud nodes
             through a repository with a higher priority, meaning that those packages will be
@@ -428,7 +455,34 @@
           msg: The entered value failed validation
           description: >-
             A comma separated list of IDs for changes in
-            gerrit.prv.suse.net to test. The patchset may be supplied as part
+            gerrit.prv.suse.net to test during deploy.
+            The patchset may be supplied as part
+            of the change ID in the form:
+
+               <change_number>[/<patchset_number>]
+
+      - validating-string:
+          name: update_gerrit_change_ids
+          default: ''
+          regex: '(([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of IDs for changes in
+            gerrit.prv.suse.net to test during update.
+            The patchset may be supplied as part
+            of the change ID in the form:
+
+               <change_number>[/<patchset_number>]
+
+      - validating-string:
+          name: upgrade_gerrit_change_ids
+          default: ''
+          regex: '(([0-9]+(/[0-9]+)?)(,[0-9]+(/[0-9]+)?)*)*'
+          msg: The entered value failed validation
+          description: >-
+            A comma separated list of IDs for changes in
+            gerrit.prv.suse.net to test during upgrade.
+            The patchset may be supplied as part
             of the change ID in the form:
 
                <change_number>[/<patchset_number>]

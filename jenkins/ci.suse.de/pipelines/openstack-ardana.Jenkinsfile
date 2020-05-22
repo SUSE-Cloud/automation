@@ -141,21 +141,44 @@ pipeline {
 
         stage('Build test packages') {
           when {
-            expression { gerrit_change_ids != '' }
+            expression { gerrit_change_ids != '' || update_gerrit_change_ids != '' || upgrade_gerrit_change_ids != '' }
           }
           steps {
             script {
               def slaveJob = cloud_lib.trigger_build('openstack-ardana-testbuild-gerrit', [
                 string(name: 'gerrit_change_ids', value: "$gerrit_change_ids"),
+                string(name: 'update_gerrit_change_ids', value: "$update_gerrit_change_ids"),
+                string(name: 'upgrade_gerrit_change_ids', value: "$upgrade_gerrit_change_ids"),
                 string(name: 'git_automation_repo', value: "$git_automation_repo"),
                 string(name: 'git_automation_branch', value: "$git_automation_branch"),
                 text(name: 'extra_params', value: extra_params)
               ], false)
-              env.test_repository_url = "http://download.suse.de/ibs/Devel:/Cloud:/Testbuild:/ardana-ci-${slaveJob.getNumber()}/standard"
-              if (extra_repos == '') {
-                env.extra_repos = test_repository_url
-              } else {
-                env.extra_repos = "${test_repository_url},${extra_repos}"
+
+              if (gerrit_change_ids != '') {
+                env.deploy_test_repository_url = "http://download.suse.de/ibs/Devel:/Cloud:/Testbuild:/ardana-ci-${slaveJob.getNumber()}-deploy/standard"
+                if (extra_repos == '') {
+                  env.extra_repos = deploy_test_repository_url
+                } else {
+                  env.extra_repos = "${deploy_test_repository_url},${extra_repos}"
+                }
+              }
+
+              if (update_gerrit_change_ids != '') {
+                env.update_test_repository_url = "http://download.suse.de/ibs/Devel:/Cloud:/Testbuild:/ardana-ci-${slaveJob.getNumber()}-update/standard"
+                if (update_extra_repos == '') {
+                  env.update_extra_repos = update_test_repository_url
+                } else {
+                  env.update_extra_repos = "${update_test_repository_url},${update_extra_repos}"
+                }
+              }
+
+              if (upgrade_gerrit_change_ids != '') {
+                env.upgrade_test_repository_url = "http://download.suse.de/ibs/Devel:/Cloud:/Testbuild:/ardana-ci-${slaveJob.getNumber()}-upgrade/standard"
+                if (upgrade_extra_repos == '') {
+                  env.upgrade_extra_repos = upgrade_test_repository_url
+                } else {
+                  env.upgrade_extra_repos = "${upgrade_test_repository_url},${upgrade_extra_repos}"
+                }
               }
             }
           }
@@ -251,7 +274,7 @@ pipeline {
           if (update_to_cloudsource == '') {
             cloud_lib.ansible_playbook('ardana-update')
           } else {
-            cloud_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource")
+            cloud_lib.ansible_playbook('ardana-update', "-e cloudsource=$update_to_cloudsource -e extra_repos=$update_extra_repos")
           }
 
           // list-or-diff-installed-packages does not physical deployments
@@ -274,7 +297,8 @@ pipeline {
           env.stage_after_update = "true"
 
           cloud_lib.ansible_playbook('ardana-disable-repos')
-          cloud_lib.ansible_playbook('ardana-upgrade', "-e cloudsource=$upgrade_cloudsource")
+          cloud_lib.ansible_playbook('ardana-upgrade', "-e cloudsource=$upgrade_cloudsource -e extra_repos=$upgrade_extra_repos")
+
           // list-or-diff-installed-packages does not physical deployments
           if (cloud_type == 'virtual') {
             cloud_lib.ansible_playbook('list-or-diff-installed-packages', "-e wanted_action=diff")

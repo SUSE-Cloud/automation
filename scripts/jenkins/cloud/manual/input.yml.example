@@ -73,7 +73,8 @@ upgrade_cloudsource: ''
 # List of maintenance update IDs separated by comma (eg. 7396,7487)
 maint_updates: ''
 
-# A comma separated list of repository urls to be added on the deployer/admin node.
+# A comma separated list of repository urls to be added on the deployer/admin node for
+# deploy phase.
 # WARNING: For ARDANA the packages from those repositories will be availabe to all cloud
 # nodes through a repository with a higher priority, meaning that those packages will be
 # installed even if there is a newer package available on other repositories.
@@ -81,10 +82,36 @@ maint_updates: ''
 # nodes it has the default priority.
 extra_repos: ''
 
+# A comma separated list of repository urls to be added on the deployer/admin node for
+# update phase.
+# WARNING: For ARDANA the packages from those repositories will be availabe to all cloud
+# nodes through a repository with a higher priority, meaning that those packages will be
+# installed even if there is a newer package available on other repositories.
+# For CROWBAR the repository has higher priority only on the deployer node, on the other
+# nodes it has the default priority.
+update_extra_repos: ''
+
+# A comma separated list of repository urls to be added on the deployer/admin node for
+# upgrade phase.
+# WARNING: For ARDANA the packages from those repositories will be availabe to all cloud
+# nodes through a repository with a higher priority, meaning that those packages will be
+# installed even if there is a newer package available on other repositories.
+# For CROWBAR the repository has higher priority only on the deployer node, on the other
+# nodes it has the default priority.
+upgrade_extra_repos: ''
+
 #============= Gerrit =============#
-# A comma separated list of IDs for changes in gerrit.prv.suse.net to test.
+# A comma separated list of IDs for changes in gerrit.prv.suse.net to test in deploy stage.
 # The patchset may be supplied as part of the change ID in the form: <change_number>[/<patchset_number>]
 gerrit_change_ids: ''
+
+# A comma separated list of IDs for changes in gerrit.prv.suse.net to test in update stage.
+# The patchset may be supplied as part of the change ID in the form: <change_number>[/<patchset_number>]
+update_gerrit_change_ids: ''
+
+# A comma separated list of IDs for changes in gerrit.prv.suse.net to test in upgrade stage.
+# The patchset may be supplied as part of the change ID in the form: <change_number>[/<patchset_number>]
+upgrade_gerrit_change_ids: ''
 
 # Project in IBS that will act as the parent project for the newly generated test project.
 # E.g. 'home:<username>'
