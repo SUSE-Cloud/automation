@@ -198,3 +198,5 @@ rhel_repo_rpms_list:
   - python-munch
   - libsodium23
   - python-PySocks
+  - python-lxml
+  - python-cssselect
