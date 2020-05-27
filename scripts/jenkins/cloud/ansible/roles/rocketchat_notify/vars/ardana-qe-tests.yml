@@ -15,7 +15,6 @@
 #
 ---
 
-os_health_build_name: "{{ cloud_env }}_qa_{{ test_name }}"
 ardana_qe_test_log_url: "{{ jenkins_build_url }}artifact/.artifacts/{{ test_name }}.log"
 ardana_qe_test_log_url_msg: "[{{ ardana_qe_test_log_url }}]({{ ardana_qe_test_log_url }})"
 
@@ -37,7 +36,7 @@ rc_msg_fields_started:
     value: "{{ hostvars[cloud_env].ansible_host }}"
     short: True
 
-_rc_msg_fields_finished:
+rc_msg_fields_finished:
   - title: Built by
     value: "{{ jenkins_build_url_msg }}"
     short: False
@@ -62,10 +61,3 @@ _rc_msg_fields_finished:
   - title: Skipped
     value: "{{ ardana_qe_test_results.skipped if ardana_qe_test_results is defined else 'Not available' }}"
     short: True
-
-_rc_os_health_msg:
-  - title: OpenStack-Health
-    value: "[{{ os_health_url }}]({{ os_health_url }})"
-    short: False
-
-rc_msg_fields_finished: "{{ _rc_msg_fields_finished + _rc_os_health_msg if subunit is defined and subunit.stat.exists else _rc_msg_fields_finished }}"

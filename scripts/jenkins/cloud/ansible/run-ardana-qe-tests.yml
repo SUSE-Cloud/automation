@@ -58,12 +58,6 @@
               - src: "{{ subunit_xml_results }}"
           when: lookup("env", "WORKSPACE")
 
-        - include_role:
-            name: send_to_os_health
-          when:
-            - subunit is defined
-            - subunit.stat.exists
-
   post_tasks:
     - include_role:
         name: rocketchat_notify

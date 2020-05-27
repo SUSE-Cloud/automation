@@ -15,7 +15,6 @@
 #
 ---
 
-os_health_build_name: "{{ cloud_env }}_tempest_{{ tempest_run_filter }}"
 tempest_log_url: "{{ jenkins_build_url }}artifact/.artifacts/testr_results_region1_{{ tempest_run_filter }}.log"
 tempest_log_url_msg: "[{{ tempest_log_url }}]({{ tempest_log_url }})"
 
@@ -68,9 +67,6 @@ rc_msg_fields_finished_temp:
   - title: Failed
     value: "{{ tempest_test_results.failed if tempest_test_results is defined else 'Not available' }}"
     short: True
-  - title: OpenStack-Health
-    value: "{{ os_health_url_msg }}"
-    short: False
 
 refstack_url_msg: "{{ '[' ~ refstack_out.stdout ~ '](' ~ refstack_out.stdout ~ ')' if refstack_out is defined else 'Not available' }}"
 rc_msg_fields_finished_defcore:
