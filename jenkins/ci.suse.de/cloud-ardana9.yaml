@@ -93,22 +93,6 @@
         - '{ardana_job}'
 
 - project:
-    name: cloud-ardana9-job-std-min-ipv6-x86_64
-    ardana_job: '{name}'
-    cloud_env: cloud-ardana-ci-slot
-    scenario_name: standard
-    clm_model: standalone
-    controllers: '2'
-    computes: '1'
-    ses_enabled: false
-    ses_rgw_enabled: false
-    ipv6: true
-    triggers:
-     - timed: 'H H * * *'
-    jobs:
-        - '{ardana_job}'
-
-- project:
     name: cloud-ardana9-job-std-min-centos-x86_64
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
