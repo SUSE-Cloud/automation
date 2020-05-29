@@ -415,7 +415,7 @@ if [ -n "$FLOATING_IP" ]; then
 
     # scientifically correct amount of sleeping
     sleep 60
-    ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www3.zq1.de/test || exit 3
+    ssh -o "StrictHostKeyChecking no" $ssh_user@$FLOATING_IP curl --silent www.opensuse.org || exit 3
 else
     echo "INSTANCE doesn't seem to be running:"
     openstack stack resource show teststack
