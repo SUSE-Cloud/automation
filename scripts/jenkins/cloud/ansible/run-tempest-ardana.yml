@@ -60,11 +60,6 @@
                 dest: "testr_results_region1_{{ tempest_run_filter }}.log"
           when: lookup("env", "WORKSPACE")
 
-        - include_role:
-            name: send_to_os_health
-          when: "'failed' not in tempest_status"
-
-
   post_tasks:
       - include_role:
           name: rocketchat_notify
