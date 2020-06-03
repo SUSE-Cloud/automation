@@ -1832,7 +1832,7 @@ function onadmin_post_allocate
         done
 
         if [[ $want_sbd = 1 ]] ; then
-            $zypper -p http://download.suse.de/ibs/SUSE:/Factory:/Head/standard/ install python-sh
+            $zypper -p http://download.suse.de/ibs/SUSE:/SLE-12-SP3:/Update:/Products:/Cloud8/standard/ install python-sh
             chmod +x $SCRIPTS_DIR/iscsictl.py
             $SCRIPTS_DIR/iscsictl.py --service target --host $(hostname) --no-key
 
