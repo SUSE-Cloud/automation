@@ -20,13 +20,13 @@
           if [ "{release}" != "Master" ]; then
               lcrelease="${{RELEASE,,}}"
               rm -f ${{lcrelease}}.tar.gz
-              wget -c https://github.com/openstack/rpm-packaging/archive/stable/${{lcrelease}}.tar.gz
+              wget -c https://opendev.org/openstack/rpm-packaging/archive/stable/${{lcrelease}}.tar.gz
               rm -rf rpm-packaging-stable-${{lcrelease}}
               tar xf ${{lcrelease}}.tar.gz
               gitcheckout=rpm-packaging-stable-${{lcrelease}}
           else
               rm -f master.tar.gz
-              wget -c https://github.com/openstack/rpm-packaging/archive/master.tar.gz
+              wget -c https://opendev.org/openstack/rpm-packaging/archive/master.tar.gz
               rm -rf rpm-packaging-master
               tar xf master.tar.gz
               gitcheckout=rpm-packaging-master
