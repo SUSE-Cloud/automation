@@ -1,5 +1,6 @@
 {% if 'monasca-server' in deployment %}
   - barclamp: monasca
+    attributes:
       debug: {{ debug }}
 {%   include 'barclamps/lib/deployment.yml.j2' %}
 {%   if not when_cloud9 %}
