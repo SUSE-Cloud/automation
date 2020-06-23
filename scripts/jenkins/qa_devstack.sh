@@ -103,6 +103,9 @@ function h_setup_devstack {
     if ! getent group nobody >/dev/null; then
         $zypper in 'group(nogroup)'
     fi
+    # pycparser got pulled in via recommends, but devstack later needs to be
+    # able to update it via pip.
+    $zypper -n remove python3-pycparser
 
     if ! modinfo openvswitch >/dev/null; then
         echo "openvswitch kernel module is not available; maybe you are" \
