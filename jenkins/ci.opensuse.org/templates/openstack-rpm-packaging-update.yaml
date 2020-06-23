@@ -21,14 +21,12 @@
               lcrelease="${{RELEASE,,}}"
               rm -f ${{lcrelease}}.tar.gz
               wget -c https://opendev.org/openstack/rpm-packaging/archive/stable/${{lcrelease}}.tar.gz
-              rm -rf rpm-packaging-stable-${{lcrelease}}
+              rm -rf rpm-packaging
               tar xf ${{lcrelease}}.tar.gz
-              gitcheckout=rpm-packaging-stable-${{lcrelease}}
           else
               rm -f master.tar.gz
               wget -c https://opendev.org/openstack/rpm-packaging/archive/master.tar.gz
-              rm -rf rpm-packaging-master
+              rm -rf rpm-packaging
               tar xf master.tar.gz
-              gitcheckout=rpm-packaging-master
           fi
-          /usr/local/bin/createproject.py ${{gitcheckout}} ${{OBS_PROJECT}}
+          /usr/local/bin/createproject.py rpm-packaging ${{OBS_PROJECT}}
