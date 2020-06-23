@@ -277,6 +277,10 @@ def create_project(worktree, project, linkproject):
             print("Adding new pkg %s" % pkgname)
             osc_commit_all(workdir, pkgname)
 
+    if not alive_pkgs:
+        print("Worktree does not contain any packages?")
+        sys.exit(1)
+
     # remove no longer alive pkgs
     for i in existing_pkgs:
         if not linkproject and i not in alive_pkgs:
