@@ -31,6 +31,11 @@
   failed_when: false
   register: test_results
 
+- name: Report '{{ test_name }}' results output if failed
+  debug:
+    var: test_results
+  when: test_results.rc != 0
+
 - name: Process test results from subunit
   set_fact:
     ardana_qe_test_results: "{{ ardana_qe_test_results | default({}) | combine({item.split()[0] | lower: item.split()[-1]}) }}"
@@ -38,3 +43,9 @@
   loop: "{{ test_results.stdout_lines }}"
   loop_control:
     label: "{{ item.split()[0] | lower }}: {{ item.split()[-1] }}"
+
+- name: Process test results from subunit
+  set_fact:
+    ardana_qe_test_results:
+      failed: 9999999
+  when: ardana_qe_test_results is not defined
