@@ -1,6 +1,7 @@
 - project:
     name: cloud-crowbar9-job-x86_64
     crowbar_job: '{name}'
+    disabled: true
     cloudsource: stagingcloud9
     cloud_env: cloud-crowbar-ci-slot
     updates_test_enabled: true
@@ -34,6 +35,7 @@
 
 - project:
     name: cloud-crowbar9-job-ha-x86_64
+    disabled: true
     crowbar_job: '{name}'
     cloudsource: stagingcloud9
     cloud_env: cloud-crowbar-ci-slot
@@ -50,6 +52,7 @@
 
 - project:
     name: cloud-crowbar9-job-upgrade-x86_64
+    disabled: true
     crowbar_job: '{name}'
     cloudsource: stagingcloud8
     upgrade_cloudsource: stagingcloud9
@@ -67,6 +70,7 @@
 
 - project:
     name: cloud-crowbar9-job-image-update
+    disabled: true
     cloud_image_update_job: '{name}'
     os_cloud:
       - engcloud:
