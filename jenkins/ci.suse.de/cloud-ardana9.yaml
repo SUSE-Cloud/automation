@@ -1,6 +1,5 @@
 - project:
     name: cloud-ardana9-job-std-3cp-x86_64
-    disabled: true
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
     scenario_name: standard
@@ -16,7 +15,6 @@
 
 - project:
     name: cloud-ardana9-job-dac-3cp-x86_64
-    disabled: true
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
     scenario_name: standard
@@ -32,7 +30,6 @@
 
 - project:
     name: cloud-ardana9-job-std-min-x86_64
-    disabled: true
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
     scenario_name: standard
@@ -48,7 +45,6 @@
 
 - project:
     name: cloud-ardana9-job-std-min-lmm-x86_64
-    disabled: true
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
     scenario_name: std-lmm
@@ -65,7 +61,6 @@
 
 - project:
     name: cloud-ardana9-job-demo-x86_64
-    disabled: true
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
     scenario_name: standard
@@ -82,7 +77,6 @@
 
 - project:
     name: cloud-ardana9-job-std-split-x86_64
-    disabled: true
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
     scenario_name: std-split
@@ -100,7 +94,6 @@
 
 - project:
     name: cloud-ardana9-job-std-min-centos-x86_64
-    disabled: true
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
     cloudsource: stagingcloud9
@@ -118,7 +111,6 @@
 
 - project:
     name: cloud-ardana9-job-entry-scale-kvm-test-maintenance-updates-x86_64
-    disabled: true
     ardana_job: '{name}'
     disabled: false
     cloud_env: cloud-ardana-ci-slot
@@ -139,7 +131,6 @@
 
 - project:
     name: cloud-ardana9-job-std-min-suse-x86_64
-    disabled: true
     ardana_job: '{name}'
     cloud_env: cloud-ardana-ci-slot
     cloudsource: GM9+up
@@ -157,7 +148,6 @@
 
 - project:
     name: cloud-ardana9-job-image-update
-    disabled: true
     cloud_image_update_job: '{name}'
     os_cloud:
       - engcloud:

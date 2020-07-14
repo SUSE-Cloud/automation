@@ -21,7 +21,6 @@
       - cloud-8-gating-trigger:
           version: '8'
       - cloud-9-gating-trigger:
-          disabled: true
           version: '9'
     jobs:
       - '{cloud_unified_url_trigger_job}'
@@ -36,7 +35,6 @@
       - cloud-8-gating:
           version: '8'
       - cloud-9-gating:
-          disabled: true
           version: '9'
     jobs:
         - '{cloud_gating_job}'
