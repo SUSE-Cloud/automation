@@ -49,7 +49,7 @@ versioned_features:
   ardana-ssh-keyscan:
     enabled: "{{ when_cloud9 }}"
   neutron-ml2-port-security:
-    enabled: "{{ when_cloud9 or when_cloud8}}"
+    enabled: "{{ not when_gm8 and (when_cloud9 or when_cloud8) }}"
   magnum_ssl_enabled:
     enabled: "{{ when_cloud8 or (when_cloud9 and when_staging_or_devel) }}"
 
