@@ -142,7 +142,8 @@
             ].contains(component) ||
             [ "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
-              "openstack-horizon-plugin-heat-ui"
+              "openstack-horizon-plugin-heat-ui",
+              "openstack-neutron" # Temporarily disabled until https://review.opendev.org/#/c/738523/ lands
             ].contains(component) ||
             [ "Cloud:OpenStack:Master", "Cloud:OpenStack:Stein:Staging", "Cloud:OpenStack:Queens:Staging", "Cloud:OpenStack:Pike:Staging" ].contains(project) &&
             [
