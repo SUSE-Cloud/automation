@@ -56,7 +56,7 @@
 
       - string:
           name: server_image
-          default: "cleanvm-jeos-SLE12SP3"
+          default: "cleanvm-jeos-SLE12SP4"
           description: >-
             Image used to boot the SES instance
 
