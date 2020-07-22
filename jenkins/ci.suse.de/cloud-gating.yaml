@@ -19,6 +19,7 @@
       threshold: SUCCESS
     cloud_unified_url_trigger_job:
       - cloud-8-gating-trigger:
+          disabled: true
           version: '8'
       - cloud-9-gating-trigger:
           version: '9'
@@ -33,6 +34,7 @@
       - cloud-7-gating:
           version: '7'
       - cloud-8-gating:
+          disabled: true
           version: '8'
       - cloud-9-gating:
           version: '9'
@@ -54,11 +56,13 @@
     triggers: []
     ardana_job:
       - cloud-ardana8-job-gate-entry-scale-kvm-monasca-x86_64:
+          disabled: true
           cloudsource: stagingcloud8
           update_after_deploy: false
           reboot_after_deploy: true
           tempest_filter_list: "smoke,monasca,ceilometer,freezer"
       - cloud-ardana8-job-gate-entry-scale-kvm-deploy-x86_64:
+          disabled: true
           cloudsource: stagingcloud8
           update_after_deploy: false
           reboot_after_deploy: true
@@ -67,6 +71,7 @@
             keystone,swift,glance,cinder,neutron,nova,barbican,fwaas,vpnaas,\
             designate,heat,manila,magnum,lbaas"
       - cloud-ardana8-job-gate-entry-scale-kvm-update-x86_64:
+          disabled: true
           cloudsource: develcloud8
           update_to_cloudsource: stagingcloud8
           update_after_deploy: true
@@ -120,6 +125,7 @@
             keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
             trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-no-ha-deploy-x86_64:
+          disabled: true
           cloudsource: stagingcloud8
           ses_enabled: true
           update_after_deploy: false
@@ -156,6 +162,7 @@
             keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
             trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-ha-deploy-x86_64:
+          disabled: true
           cloudsource: stagingcloud8
           ses_enabled: true
           update_after_deploy: false
@@ -194,6 +201,7 @@
             keystone,swift,glance,cinder,neutron,nova,ceilometer,fwaas,\
             trove,aodh,heat,magnum,manila,lbaas"
       - cloud-crowbar8-job-gate-linuxbridge-deploy-x86_64:
+          disabled: true
           cloudsource: stagingcloud8
           ses_enabled: true
           update_after_deploy: false
