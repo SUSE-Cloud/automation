@@ -22,13 +22,11 @@
   vars:
     ansible_password: "linux"
     ses_requires_packages:
-      - python-setuptools
       - autoconf
-      - git
+      - git-core
       - gcc
       - iptables
       - make
-      - jq
       - rng-tools
   vars_files:
     - "../../cloud/ansible/group_vars/all/ssh_pub_keys.yml"
@@ -51,14 +49,10 @@
         repo: "{{ item.repo }}"
         runrefresh: yes
       loop:
-        - name: "SLES12-SP3-Pool"
-          repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP3-Pool/"
-        - name: "SLES12-SP3-Updates"
-          repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP3-Updates/"
-        - name: "SUSE-OpenStack-Cloud-8-Pool"
-          repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-Pool/"
-        - name: "SUSE-OpenStack-Cloud-8-Updates"
-          repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SUSE-OpenStack-Cloud-8-Updates/"
+        - name: "SLES12-SP4-Pool"
+          repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP4-Pool/"
+        - name: "SLES12-SP4-Updates"
+          repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP4-Updates/"
       register: _base_repos
       retries: 6
       delay: 5
