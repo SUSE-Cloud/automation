@@ -61,6 +61,7 @@
             - develcloud7
             - GM7
             - GM7+up
+            - stagingcloud8
             - develcloud8
             - GM8
             - GM8+up
@@ -160,6 +161,7 @@
           name: upgrade_cloudsource
           choices:
             - '{upgrade_cloudsource|}'
+            - stagingcloud8
             - develcloud8
             - GM8+up
             - stagingcloud9
