@@ -1,3 +1,13 @@
+
+- project:
+    name: openstack-cleanvm-Newton
+    disabled: false
+    release: Newton
+    image:
+      - SLE_12_SP2
+    jobs:
+      - 'openstack-cleanvm-{release}'
+
 - project:
     name: openstack-cleanvm-Pike
     disabled: false
