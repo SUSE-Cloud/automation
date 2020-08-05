@@ -16,9 +16,6 @@
           values:
             - Cloud:OpenStack:Pike:Staging
             - Cloud:OpenStack:Rocky:Staging
-            - Cloud:OpenStack:Train:Staging
-            - Cloud:OpenStack:Ussuri:Staging
-            - Cloud:OpenStack:Master
       - axis:
           type: user-defined
           name: component
