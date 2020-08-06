@@ -1,0 +1,93 @@
+#
+# (c) Copyright 2020 SUSE LLC
+#
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+#
+---
+
+- set_fact:
+    last_build_ids: "{{ last_build_ids }} + [ {{ build_id|int - item|int }} ]"
+  with_sequence: start=1 end="{{ sequence_end | default(5) }}"
+
+- name: "Ensure {{ diff_tmp_dir }}/rpms/old_jobs dir exists"
+  delegate_to: localhost
+  run_once: yes
+  file:
+    path: "{{ diff_tmp_dir }}/rpms/old_jobs/{{ item }}"
+    state: "directory"
+    mode: "6777"
+  loop: "{{ last_build_ids }}"
+
+- name: Get {{ sequence_end }} previous jobs
+  command: "wget -qO - https://ci.suse.de/job/openstack-{{ cloud_product }}/{{ item }}/api/json?tree=artifacts[relativePath]"
+  loop: "{{ last_build_ids }}"
+  register: _output
+  ignore_errors: yes
+
+- name: Get artifacts from previous jobs
+  set_fact:
+      testing: '{{ testing | combine({item._ansible_item_label: item.stdout}) }}'
+  loop: "{{ _output.results }}"
+  loop_control:
+      label: "{{ item._ansible_item_label }}"
+  ignore_errors: yes
+
+- set_fact:
+    _old_jobs_values: "{{ _old_jobs_values | combine({item.key: item.value|from_yaml}) }}"
+  loop: "{{ testing | dict2items}}"
+  when: item.value is not none
+  ignore_errors: true
+
+- name: Download package lists from old jobs
+  get_url:
+    url: "https://ci.suse.de/job/openstack-{{ cloud_product }}/{{ item.0.key }}/artifact/{{ item.1.relativePath }}"
+    dest: "{{ diff_tmp_dir }}/rpms/old_jobs/{{ item.0.key }}/{{ item.1.relativePath | basename }}"
+  delegate_to: localhost
+  when:
+    - (item.1.relativePath | dirname).endswith('rpms')
+    - (item.1.relativePath | basename).startswith('rpms_')
+  loop: "{{ _old_jobs_values | dict2items | subelements('value.artifacts')}}"
+  loop_control:
+    loop_var: item
+  ignore_errors: true
+  register: _downloaded_files
+
+- set_fact:
+    _tmpRelPathVal: "{{ _tmpRelPathVal + [ item.item.0.key|string + ':' + item.item.1.relativePath|basename ] }}"
+  loop:   "{{ _downloaded_files.results }}"
+  when: item is not skipped
+  loop_control:
+      label: "{{ item.item.1.relativePath }}"
+
+- set_fact:
+    _currentJobFileNames: "{{ _currentJobFileNames + [item] }}"
+  loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
+
+- name:
+  combine_files:
+    filenames1: "{{_tmpRelPathVal }}"
+    filenames2: "{{ _currentJobFileNames }}"
+  register: _all_items
+
+- name: Create a diff of installed packages and save into a file in yaml
+  diff_yaml:
+    file1: "{{ diff_tmp_dir }}/rpms/old_jobs/{{ item_virtual_hosts.jobNumber }}/{{ item_virtual_hosts.currentFilename}}"
+    file2: "{{ diff_tmp_dir }}/rpms/{{ item_virtual_hosts.currentFilename }}"
+    output: "{{ diff_tmp_dir }}/rpms/diffs/{{ item_virtual_hosts.jobNumber }}_{{item_virtual_hosts.currentFilename}}"
+  delegate_to: localhost
+  register: diff_files
+  loop: "{{ _all_items.combine_files }}"
+  loop_control:
+    loop_var: item_virtual_hosts
+  when: _all_items.combine_files is not none
+

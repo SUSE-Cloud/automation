@@ -43,3 +43,12 @@
   run_once: true
   when: wanted_action == 'diff'
 
+# Diffs of package lists from old jobs
+- include_tasks: packages_from_old_jobs.yml
+  delegate_to: "{{ cloud_env }}"
+  run_once: true
+  when: 
+    - build_id != ""
+    - wanted_action == 'diff'
+    - no_diff_old_builds == 'false'
+
