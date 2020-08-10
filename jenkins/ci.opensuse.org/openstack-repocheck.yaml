@@ -48,7 +48,7 @@
          ["Cloud:OpenStack:Pike", "Cloud:OpenStack:Pike:Staging"].contains(project) && ["openSUSE_Leap_15.0", "openSUSE_Leap_15.1", "SLE_12_SP2", "SLE_12_SP4", "SLE_15", "SLE_15_SP1"].contains(repository) ||
          ["Cloud:OpenStack:Queens", "Cloud:OpenStack:Queens:Staging"].contains(project) && ["openSUSE_Leap_15.0", "openSUSE_Leap_15.1", "SLE_12_SP2", "SLE_12_SP4", "SLE_15", "SLE_15_SP1"].contains(repository) ||
          ["Cloud:OpenStack:Rocky", "Cloud:OpenStack:Rocky:Staging"].contains(project) && ["SLE_12_SP2", "SLE_12_SP3", "SLE_15", "SLE_15_SP1"].contains(repository) ||
-         ["Cloud:OpenStack:Stein", "Cloud:OpenStack:Stein:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.1", "SLE_12_SP2", "SLE_12_SP3", "SLE_12_SP4", "SLE_15_SP1"].contains(repository)
+         ["Cloud:OpenStack:Stein", "Cloud:OpenStack:Stein:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.1", "SLE_12_SP2", "SLE_12_SP3", "SLE_12_SP4", "SLE_15_SP1"].contains(repository) ||
          ["Cloud:OpenStack:Train", "Cloud:OpenStack:Train:Staging"].contains(project) && ["openSUSE_Leap_42.3", "openSUSE_Leap_15.0", "SLE_12_SP2", "SLE_12_SP3", "SLE_12_SP4", "SLE_15"].contains(repository)
        )
       sequential: true
