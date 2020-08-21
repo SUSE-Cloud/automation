@@ -1652,19 +1652,19 @@ function expand_steps
                         runcmds="$runcmds setupnodes instnodes setup_aliases proposal"
                     ;;
                     all)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup cct rebootcloud"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar `expand_steps _compute` testsetup rebootcloud"
                     ;;
                     all_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` testsetup cct"
+                        runcmds="$runcmds `expand_steps _new_admin` `expand_steps _compute` testsetup"
                     ;;
                     all_batch)
-                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar setupnodes instnodes setup_aliases batch testsetup cct rebootcloud"
+                        runcmds="$runcmds `expand_steps _new_admin` rebootcrowbar setupnodes instnodes setup_aliases batch testsetup rebootcloud"
                     ;;
                     all_batch_noreboot)
-                        runcmds="$runcmds `expand_steps _new_admin` setupnodes instnodes setup_aliases batch testsetup cct"
+                        runcmds="$runcmds `expand_steps _new_admin` setupnodes instnodes setup_aliases batch testsetup"
                     ;;
                     _testupdate|testupdate)
-                        runcmds="$runcmds addupdaterepo runupdate testsetup cct"
+                        runcmds="$runcmds addupdaterepo runupdate testsetup"
                     ;;
                     _test_setuphost)
                         runcmds="$runcmds cleanup prepare setupadmin onadmin+test_setuphost"
