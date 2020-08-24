@@ -17,7 +17,7 @@
 
 - set_fact:
     last_build_ids: "{{ last_build_ids }} + [ {{ build_id|int - item|int }} ]"
-  with_sequence: start=1 end="{{ sequence_end | default(5) }}"
+  with_sequence: "start=1 end={{ sequence_end | default(5) }}"
 
 - name: "Ensure {{ diff_tmp_dir }}/rpms/old_jobs dir exists"
   delegate_to: localhost
@@ -28,66 +28,89 @@
     mode: "6777"
   loop: "{{ last_build_ids }}"
 
-- name: Get {{ sequence_end }} previous jobs
-  command: "wget -qO - https://ci.suse.de/job/openstack-{{ cloud_product }}/{{ item }}/api/json?tree=artifacts[relativePath]"
+- name: "Get {{ sequence_end }} previous jobs"
+  command: "wget -qO - https://ci.suse.de/job/{{ job_base_name }}/{{ item }}/api/json?tree=artifacts[relativePath]"
   loop: "{{ last_build_ids }}"
   register: _output
   ignore_errors: yes
 
 - name: Get artifacts from previous jobs
+  vars:
+      _update_value: "{{ ((item.stdout | length) < 90) | ternary({},item.stdout)}}"
   set_fact:
-      testing: '{{ testing | combine({item._ansible_item_label: item.stdout}) }}'
+      testing: "{{ testing | combine({item._ansible_item_label: _update_value}) }}"
   loop: "{{ _output.results }}"
   loop_control:
       label: "{{ item._ansible_item_label }}"
+  when: item.stdout | length > 90
   ignore_errors: yes
 
-- set_fact:
-    _old_jobs_values: "{{ _old_jobs_values | combine({item.key: item.value|from_yaml}) }}"
-  loop: "{{ testing | dict2items}}"
-  when: item.value is not none
+- name: Set Facts - _oldjobsvalues
+  set_fact:
+   _oldjobsvalues: "{{ _oldjobsvalues | combine({item.key: item.value|from_yaml}) }}"
+  loop: "{{ testing | dict2items | default('')}}"
   ignore_errors: true
 
-- name: Download package lists from old jobs
-  get_url:
-    url: "https://ci.suse.de/job/openstack-{{ cloud_product }}/{{ item.0.key }}/artifact/{{ item.1.relativePath }}"
-    dest: "{{ diff_tmp_dir }}/rpms/old_jobs/{{ item.0.key }}/{{ item.1.relativePath | basename }}"
-  delegate_to: localhost
-  when:
-    - (item.1.relativePath | dirname).endswith('rpms')
-    - (item.1.relativePath | basename).startswith('rpms_')
-  loop: "{{ _old_jobs_values | dict2items | subelements('value.artifacts')}}"
+- name: Set Facts - old jobs no exists
+  set_fact:
+    _old_jobs_no_exist: false
+  loop: "{{ _output.results }}"
   loop_control:
-    loop_var: item
-  ignore_errors: true
-  register: _downloaded_files
+      label: "{{ item._ansible_item_label }}"
+  when: item.rc == 0
 
-- set_fact:
-    _tmpRelPathVal: "{{ _tmpRelPathVal + [ item.item.0.key|string + ':' + item.item.1.relativePath|basename ] }}"
-  loop:   "{{ _downloaded_files.results }}"
-  when: item is not skipped
-  loop_control:
-      label: "{{ item.item.1.relativePath }}"
 
-- set_fact:
-    _currentJobFileNames: "{{ _currentJobFileNames + [item] }}"
-  loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
+# skip when no old jobs defined or no old jobs found
+- block:
 
-- name:
-  combine_files:
-    filenames1: "{{_tmpRelPathVal }}"
-    filenames2: "{{ _currentJobFileNames }}"
-  register: _all_items
+    - name: Download package lists from old jobs
+      get_url:
+        url: "https://ci.suse.de/job/{{ job_base_name }}/{{ item.0.key }}/artifact/{{ item.1.relativePath }}"
+        dest: "{{ diff_tmp_dir }}/rpms/old_jobs/{{ item.0.key }}/{{ item.1.relativePath | basename }}"
+      delegate_to: localhost
+      when:
+        - (item.1.relativePath | dirname).endswith('rpms')
+        - (item.1.relativePath | basename).startswith('rpms_')
+      loop: "{{ _oldjobsvalues  | dict2items | subelements('value.artifacts')}}"
+      loop_control:
+        loop_var: item
+      ignore_errors: true
+      register: _downloaded_files
 
-- name: Create a diff of installed packages and save into a file in yaml
-  diff_yaml:
-    file1: "{{ diff_tmp_dir }}/rpms/old_jobs/{{ item_virtual_hosts.jobNumber }}/{{ item_virtual_hosts.currentFilename}}"
-    file2: "{{ diff_tmp_dir }}/rpms/{{ item_virtual_hosts.currentFilename }}"
-    output: "{{ diff_tmp_dir }}/rpms/diffs/{{ item_virtual_hosts.jobNumber }}_{{item_virtual_hosts.currentFilename}}"
-  delegate_to: localhost
-  register: diff_files
-  loop: "{{ _all_items.combine_files }}"
-  loop_control:
-    loop_var: item_virtual_hosts
-  when: _all_items.combine_files is not none
+    - name: Set Facts - _temporary Relative Path Value from jobs
+      set_fact:
+        _tmprelpathval: "{{ _tmprelpathval + [ item.item.0.key|string + ':' + item.item.1.relativePath|basename ] }}"
+      loop:   "{{ _downloaded_files.results }}"
+      loop_control:
+          label: "{{ item.item.1.relativePath }}"
+      when:
+        - (item.item.1.relativePath | dirname).endswith('rpms')
+        - (item.item.1.relativePath | basename).startswith('rpms_')
 
+    - name: Set Facts - current job file names
+      set_fact:
+        _currentjobfilenames: "{{ _currentjobfilenames + [item] }}"
+      loop: "{{ [cloud_env]+groups['cloud_virt_hosts']|flatten(levels=1) }}"
+
+    - name: Combine current hosts with hosts from old jobs
+      combine_files:
+        filenames1: "{{_tmprelpathval }}"
+        filenames2: "{{ _currentjobfilenames }}"
+      register: _all_items
+
+    - name: Create a diff of installed packages and save into a file in yaml
+      diff_yaml:
+        file1: "{{ diff_tmp_dir }}/rpms/old_jobs/{{ item_virtual_hosts.jobNumber }}/{{ item_virtual_hosts.currentFilename}}"
+        file2: "{{ diff_tmp_dir }}/rpms/{{ item_virtual_hosts.currentFilename }}"
+        output: "{{ diff_tmp_dir }}/rpms/diffs/{{ item_virtual_hosts.jobNumber }}_{{item_virtual_hosts.currentFilename}}"
+      delegate_to: localhost
+      register: diff_files
+      loop: "{{ _all_items.combine_files }}"
+      loop_control:
+        loop_var: item_virtual_hosts
+      ignore_errors: yes
+      when:
+        - _all_items.combine_files is not none
+        - item_virtual_hosts.currentFilename
+
+  when: ( _old_jobs_no_exist is defined or not _old_jobs_no_exist )
