@@ -20,7 +20,7 @@
 
 - name: Run ardana-upgrade playbook for all nodes
   command: >
-    ansible-playbook ardana-upgrade.yml
+    ansible-playbook ardana-upgrade.yml -e '{{ ardana_extra_vars|to_json }}'
   args:
     chdir: "{{ ardana_scratch_path }}"
 
