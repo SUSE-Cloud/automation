@@ -39,6 +39,9 @@
             ansible_become: yes
             zypper_repo_enabled: no
             zypper_repo_state: absent
+            # update testing adds the update_to_cloudsource as Updates repo
+            # so we need to ensure that we are cleaning it up before upgrade
+            cloud_update_repos_enabled: true
       rescue:
         - include_role:
             name: rocketchat_notify

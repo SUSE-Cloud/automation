@@ -109,8 +109,8 @@ sles_ltss_enabled:
   cloud9: false
 
 cloud_update_repos_enabled: "{{ '+up' in cloudsource }}"
-sles_test_repos_enabled: "{{ updates_test_enabled and ((task == 'deploy' and not (update_after_deploy and 'GM' in cloudsource)) or (task == 'update')) }}"
-cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource and ((task == 'deploy' and not update_after_deploy) or (task == 'update')) }}"
+sles_test_repos_enabled: "{{ updates_test_enabled and ((task == 'deploy' and not (update_after_deploy and 'GM' in cloudsource)) or (task in ['update', 'disable-repos', 'upgrade'])) }}"
+cloud_test_repos_enabled: "{{ updates_test_enabled and 'GM' in cloudsource and ((task == 'deploy' and not update_after_deploy) or (task in ['update', 'disable-repos', 'upgrade'])) }}"
 
 repos_to_mount_regexp: "{{ sles_ltss_enabled[cloud_release] | ternary('.*-Pool$|.*SP\\d-Updates$', '.*-Pool$') }}"
 repos_to_mount: "{{ repos_to_manage | select('search', repos_to_mount_regexp) | list }}"
