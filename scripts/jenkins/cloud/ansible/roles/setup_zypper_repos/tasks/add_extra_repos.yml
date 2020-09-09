@@ -35,9 +35,7 @@
 
 - name: Create extra-repos repository
   command: |
-    createrepo -o {{ local_repos_base_dir }}/extra-repos {{ local_repos_base_dir }}/extra-repos
-  args:
-    creates: "{{ local_repos_base_dir }}/extra-repos/repodata/repomd.xml"
+    createrepo --update -o {{ local_repos_base_dir }}/extra-repos {{ local_repos_base_dir }}/extra-repos
 
 - name: Manage extra-repos repository
   zypper_repository:
