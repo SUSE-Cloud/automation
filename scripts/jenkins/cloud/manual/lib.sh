@@ -64,7 +64,7 @@ function determine_python_bin {
 }
 
 function get_from_input {
-    echo $(grep -v "^#" $ARDANA_INPUT | awk -v var=$1 '$0 ~ var{ print $2 }' | tr -d "'")
+    echo $(grep -v "^#" $ARDANA_INPUT | awk '$0 ~ '"/^${1}:/"' { print $2 }' | tr -d "'")
 }
 
 function is_defined {
@@ -220,28 +220,41 @@ function prepare_infra {
     fi
 }
 
-function build_test_packages {
-    if is_defined gerrit_change_ids; then
-        if ! is_defined homeproject; then
-            echo "ERROR: homeproject must be defined - please check all variables on input.yml"
-            return 1
-        else
-            pushd $AUTOMATION_DIR/scripts/jenkins/cloud/gerrit
-            source $ANSIBLE_VENV/bin/activate
-            gerrit_change_ids=$(get_from_input gerrit_change_ids)
-            GERRIT_VERIFY=0 PYTHONWARNINGS="ignore:Unverified HTTPS request" \
-                run_python_script -u build_test_package.py --buildnumber local \
-                --homeproject $(get_from_input homeproject) -c ${gerrit_change_ids//,/ -c }
-            popd
-        fi
+function build_test_packages_for_stage {
+    local homeproject=${1} stage=${2} change_ids=${3}
+
+    if [ -z "${3}" ]; then
+        return
     fi
+
+    pushd $AUTOMATION_DIR/scripts/jenkins/cloud/gerrit
+    source $ANSIBLE_VENV/bin/activate
+    GERRIT_VERIFY=0 PYTHONWARNINGS="ignore:Unverified HTTPS request" \
+        run_python_script -u build_test_package.py --buildnumber ${2} \
+        --homeproject ${1} -c ${3//,/ -c }
+    popd
+}
+
+function build_test_packages {
+    local homeproject
+
+    if ! is_defined homeproject; then
+        echo "ERROR: homeproject must be defined - please check all variables on input.yml"
+        return 1
+    fi
+
+    homeproject=$(get_from_input homeproject)
+
+    build_test_packages_for_stage ${homeproject} deploy "$(get_from_input gerrit_change_ids)"
+    build_test_packages_for_stage ${homeproject} update "$(get_from_input update_gerrit_change_ids)"
+    build_test_packages_for_stage ${homeproject} upgrade "$(get_from_input upgrade_gerrit_change_ids)"
 }
 
 function bootstrap_clm {
     test_repo_url=""
     if is_defined gerrit_change_ids; then
         homeproject=$(get_from_input homeproject)
-        test_repo_url="http://download.suse.de/ibs/$(sed 's#\b:\b#&/#' <<< $homeproject):/ardana-ci-local/standard"
+        test_repo_url="http://download.suse.de/ibs/$(sed 's#\b:\b#&/#' <<< $homeproject):/ardana-ci-deploy/standard"
     fi
     extra_repos=$(sed -e "s/^,//" -e "s/,$//" <<< "$(get_from_input extra_repos),${test_repo_url}")
     ansible_playbook bootstrap-clm.yml -e extra_repos="${extra_repos}"
@@ -315,13 +328,22 @@ function update_cloud {
         if [ "$(get_cloud_product)" == "crowbar" ]; then
             ansible_playbook crowbar-update.yml
         else
-            local update_to_cloudsource maint_updates
+            local update_to_cloudsource maint_updates test_repo_url homeproject extra_repos
 
             update_to_cloudsource="$(get_from_input update_to_cloudsource)"
             maint_updates="$(get_from_input maint_updates)"
 
+            test_repo_url=""
+            if is_defined update_gerrit_change_ids; then
+                homeproject=$(get_from_input homeproject)
+                test_repo_url="http://download.suse.de/ibs/$(sed 's#\b:\b#&/#' <<< $homeproject):/ardana-ci-update/standard"
+            fi
+            extra_repos=$(sed -e "s/^,//" -e "s/,$//" <<< "$(get_from_input update_extra_repos),${test_repo_url}")
+
             if [[ -n "${update_to_cloudsource}" ]] || [[ -n "${maint_updates}" ]]; then
-                ansible_playbook ardana-update.yml ${update_to_cloudsource:+-e cloudsource="${update_to_cloudsource}"}
+                ansible_playbook ardana-update.yml \
+                    ${update_to_cloudsource:+-e cloudsource="${update_to_cloudsource}"} \
+                    ${extra_repos:+ -e extra_repos="${extra_repos}"}
             fi
         fi
     fi
@@ -332,8 +354,22 @@ function upgrade_cloud {
         if [ "$(get_cloud_product)" == "crowbar" ]; then
             ansible_playbook crowbar-upgrade.yml
         else
+            local test_repo_url homeproject extra_repos
+
+            update_to_cloudsource="$(get_from_input update_to_cloudsource)"
+            maint_updates="$(get_from_input maint_updates)"
+
+            test_repo_url=""
+            if is_defined upgrade_gerrit_change_ids; then
+                homeproject=$(get_from_input homeproject)
+                test_repo_url="http://download.suse.de/ibs/$(sed 's#\b:\b#&/#' <<< $homeproject):/ardana-ci-upgrade/standard"
+            fi
+            extra_repos=$(sed -e "s/^,//" -e "s/,$//" <<< "$(get_from_input upgrade_extra_repos),${test_repo_url}")
+
             ansible_playbook ardana-disable-repos.yml
-            ansible_playbook ardana-upgrade.yml -e cloudsource="$(get_from_input upgrade_cloudsource)"
+            ansible_playbook ardana-upgrade.yml \
+                -e cloudsource="$(get_from_input upgrade_cloudsource)" \
+                ${extra_repos:+ -e extra_repos="${extra_repos}"}
         fi
     fi
 }

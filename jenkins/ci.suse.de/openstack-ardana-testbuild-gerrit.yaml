@@ -29,7 +29,28 @@
           default:
           description: >-
             A comma separated list of IDs for changes in gerrit.prv.suse.net
-            to test. The patchset may be supplied as part of the change ID in the form:
+            to test as part of the deploy. The patchset may be supplied as
+            part of the change ID in the form:
+
+               <change_number>[/<patchset_number>]
+
+      - string:
+          name: update_gerrit_change_ids
+          default:
+          description: >-
+            A comma separated list of IDs for changes in gerrit.prv.suse.net
+            to test as part of the update. The patchset may be supplied as
+            part of the change ID in the form:
+
+               <change_number>[/<patchset_number>]
+
+      - string:
+          name: upgrade_gerrit_change_ids
+          default:
+          description: >-
+            A comma separated list of IDs for changes in gerrit.prv.suse.net
+            to test as part of the upgrade. The patchset may be supplied as
+            part of the change ID in the form:
 
                <change_number>[/<patchset_number>]
 
