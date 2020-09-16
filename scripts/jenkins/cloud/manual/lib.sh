@@ -64,7 +64,7 @@ function determine_python_bin {
 }
 
 function get_from_input {
-    echo $(grep -v "^#" $ARDANA_INPUT | awk '$0 ~ '"/^${1}:/"' { print $2 }' | tr -d "'")
+    echo $(grep -v "^#" $ARDANA_INPUT | grep "^${1}:" | cut -d: -f2- | tr -d "'" | tr -d '"')
 }
 
 function is_defined {
@@ -392,6 +392,12 @@ function run_qa_tests {
     if $(is_defined qa_test_list); then
         qa_test_list=($(echo "$(get_from_input qa_test_list)" | tr ',' '\n'))
         for qa_test in "${qa_test_list[@]}"; do
+            test_args_name="${qa_test^^}_ARGS"
+            test_args=($(echo "$(get_from_input ${test_args_name})"))
+            if [ -z "${!test_args_name}" ] && (( ${#test_args[@]} > 0 ))
+            then
+                export ${test_args_name}="${test_args[*]}"
+            fi
             ansible_playbook run-ardana-qe-tests.yml -e test_name=$qa_test
         done
     fi

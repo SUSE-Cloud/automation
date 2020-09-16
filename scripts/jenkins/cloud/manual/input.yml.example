@@ -264,3 +264,12 @@ rc_notify: false
 # 2.0 value has been proven experimentally to work best with virtual Crowbar
 # deployments.
 sync_mark_timeout_multiplier: 2.0
+
+
+#============= QA Test Args =============#
+# Similarly to using the <AllCaps_QA_Test_Name>_ARGS setting in the Jenkins
+# job extra params settings you can specify those settings here as a input
+# param or by specifying them as environment variables.
+
+# For example to disable the heat and lbaas tests in an inverify run uncomment
+#IVERIFY_ARGS: '-Sheat -Slbaas'

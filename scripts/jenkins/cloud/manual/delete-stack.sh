@@ -22,5 +22,4 @@ validate_input
 setup_ansible_venv
 mitogen_enable
 
-run_tempest
-run_qa_tests
+delete_stack
