@@ -9,7 +9,7 @@
 - job-template:
     name: 'openstack-devstack-{ipversion}'
     id: 'openstack-devstack-{ipversion}'
-    node: cloud-cleanvm
+    node: cloud-cleanvm-new
     description: |
       Job to periodically run devstack against the latest openSUSE release.
       <b>This job is managed by JJB!</b>
@@ -32,7 +32,8 @@
     builders:
       - update-automation
       - shell: |
-          sudo /usr/local/sbin/freshvm cleanvm openSUSE-Leap-15.1
+          ci1_ssh="ssh ci1-opensuse.suse.de"
+          $ci1_ssh sudo /usr/local/sbin/freshvm cleanvm openSUSE-Leap-15.2
           sleep 100
 
           set -u
@@ -42,15 +43,15 @@
           ssh root@cleanvm "bash -x ~/qa_devstack.sh {ipversion}"
           ret=$?
           if [ "$ret" != 0 ] ; then
-              virsh shutdown cleanvm
+              $ci1_ssh virsh shutdown cleanvm
               # wait for clean shutdown
-              n=20 ; while [[ $n > 0 ]] && virsh list |grep cleanvm.*running ; do sleep 2 ; n=$(($n-1)) ; done
-              virsh destroy cleanvm
-              find /mnt/cleanvmbackup -mtime +5 -type f | xargs --no-run-if-empty rm
+              n=20 ; while [[ $n > 0 ]] && $ci1_ssh "virsh list |grep cleanvm.*running" ; do sleep 2 ; n=$(($n-1)) ; done
+              $ci1_ssh virsh destroy cleanvm
+              $ci1_ssh "find /mnt/cleanvmbackup -mtime +5 -type f | xargs --no-run-if-empty rm"
               # backup /dev/vg0/cleanvm disk image
               file=/mnt/cleanvmbackup/$BUILD_NUMBER-devstack.raw.gz
-              time gzip -c1 /dev/vg0/cleanvm > $file
-              du $file
+              $ci1_ssh "time gzip -c1 /dev/vg0/cleanvm > $file"
+              $ci1_ssh du $file
               exit 1
           fi
           scp root@cleanvm:/opt/stack/results.html .
