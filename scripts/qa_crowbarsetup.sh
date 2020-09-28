@@ -5494,6 +5494,8 @@ function oncontroller_setupproduction()
     openstack role add --project stratos --user stratos-ci Member
     openstack user create --project caasp-qa --email pgonin@suse.com caasp-qa
     openstack role add --project caasp-qa --user caasp-qa Member
+    openstack user create --project ecosystem --email framalho@suse.com ecosystem-ci
+    openstack role add --project ecosystem --user ecosystem-ci Member
     openstack user create --project container --email vcuadradojuan@suse.com cap-ci # for https://infra.nue.suse.com/Ticket/Display.html?id=167510
     for prj in container cap-ci cap-qa cap bosh ; do
         openstack role add --project $prj --user cap-ci Member
