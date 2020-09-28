@@ -142,7 +142,7 @@ for version in 9 8 7 6; do
 
         # Cloud8-HOS flavor
         if [ "$version" = "8" -a "$arch" = "x86_64" ]; then
-            rsync_and_unpack_iso ${ibs_source}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel:/Cloud:/$version/images/iso/HPE-HELION-OPENSTACK-$version-$arch-Media1.iso /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-devel
             rsync_with_create ${ibs_source}/SUSE/Products/HPE-Helion-OpenStack/$version/$arch/product/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Pool/
             rsync_with_create ${ibs_source}/SUSE/Updates/HPE-Helion-OpenStack/$version/$arch/update/ /srv/nfs/repos/$arch/HPE-Helion-OpenStack-$version-Updates/
         fi
@@ -155,13 +155,12 @@ for version in 9 8 7 6; do
 
             if [ -z "$sync_from_ibs" ]; then
                 rsync_and_unpack_iso $install_source/SLE-12-SP$servicepack-Cloud$version-GM/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-GM-DVD1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-official
-                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
-                rsync_and_unpack_iso ${ibs_source}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
             else
                 rsync_and_unpack_iso ${ibs_source_nue}/SUSE\:/SLE-12-SP$servicepack\:/Update\:/Products\:/Cloud$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-official
-                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
-                rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
             fi
+
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel
+            rsync_and_unpack_iso ${ibs_source_nue}/Devel\:/Cloud\:/$version\:/Staging/images/iso/SUSE-OPENSTACK-CLOUD-CROWBAR-$version-$arch-Media1.iso /srv/nfs/repos/$arch/SUSE-OpenStack-Cloud-Crowbar-$version-devel-staging
         fi
     done
 done
