@@ -68,10 +68,10 @@ def main():
             keyObj = splitItem[0]
 
             for item2 in filenames2:
-                if search(item2, valueObj):
+                if (search(item2, valueObj)
+                        or search(r'slot*\d{1,3}', valueObj)):
                     addToDict(dictOldJobs, valueObj,
                               keyObj)
-
     except Exception as err:
         module.fail_json(msg="combine_files.py: %s" % err)
 

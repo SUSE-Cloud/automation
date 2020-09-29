@@ -22,11 +22,10 @@ effective_user: "{{ (cloud_product == 'ardana') | ternary('ardana','root') }}"
 local_tmp_dir: "/tmp"
 diff_tmp_dir: "{{ lookup('env', 'WORKSPACE') | ternary (workspace_path, local_tmp_dir) }}"
 build_id: "{{ lookup('env', 'BUILD_ID')|default('',true) }}"
-# temporary set to true till issue with empty previous jobs will be fixed
-#no_diff_old_builds: "{{ lookup('env', 'no_diff_old_builds') | default('false',true) }}"
-no_diff_old_builds: "{{ lookup('env', 'no_diff_old_builds') | default('true',true) }}"                                                                                                                                           
+job_base_name: "{{ lookup('env', 'JOB_BASE_NAME') }}"
+no_diff_old_builds: "{{ lookup('env', 'no_diff_old_builds') | default('false',true) }}"
 last_build_ids: []
 testing: {}
-_old_jobs_values: []
-_tmpRelPathVal: []
-_currentJobFileNames: []
+_oldjobsvalues: {}
+_tmprelpathval: []
+_currentjobfilenames: []
