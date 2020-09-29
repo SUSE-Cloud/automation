@@ -17,4 +17,4 @@
 
 ardana_scratch_path: "~/scratch/ansible/next/ardana/ansible"
 
-octavia_amphora_image_rpm: "find /srv/www/*/x86_64/repos/*OpenStack*/ -name '*octavia-amphora-image*' | tail -n1"
+octavia_amphora_image_rpm: "find /srv/www/*/x86_64/repos/*OpenStack*/ -name '*octavia-amphora-image*' | sort --version-sort | tail -n1"
