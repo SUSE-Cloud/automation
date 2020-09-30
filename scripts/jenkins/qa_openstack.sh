@@ -73,10 +73,13 @@ function addslesrepos {
         $zypper ar --refresh "http://ci1-opensuse.suse.de/repos/x86_64/SLES$REPOVER-Updates" SLES$VERSION-Updates
         ;;
     *)
-        for prod in SLE-Product-SLES SLE-Module-Basesystem SLE-Module-Legacy SLE-Module-Development-Tools SLE-Module-Server-Applications; do
-            $zypper ar "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Products/$prod/$REPOVER/x86_64/product/" $prod-$VERSION-Pool
-            $zypper ar --refresh "http://smt-internal.opensuse.org/repo/\$RCE/SUSE/Updates/$prod/$REPOVER/x86_64/update/" $prod-$VERSION-Updates
-        done
+	# smt-internal is gone. use SUSEConnect now if a file containing the registration key is available
+	if [ -f "/tmp/suseconnect" ]; then
+	    echo "Using SUSEConnect now..."
+	    cat /tmp/suseconnect | SUSEConnect -r `xargs`
+	else
+	    echo "Skipping SUSEConnect . File with registration code not available"
+	fi
         ;;
     esac
 

@@ -14,6 +14,10 @@ oshead=1
 set -u
 set +e
 scp ${automationrepo}/scripts/jenkins/qa_openstack.sh root@cleanvm:
+# copy a file containing a SUSEConnect registration key to the node so we can use SUSEConnect
+if [ -f "~/.suseconnect" ]; then
+    scp ~/.suseconnect root@cleanvm:/tmp/suseconnect
+fi
 ssh root@cleanvm "export cloudsource=$cloudsource; export OSHEAD=$oshead; export NONINTERACTIVE=1; bash -x ~/qa_openstack.sh"
 ret=$?
 echo "Exit code of cleanvm run: $ret"
