@@ -55,6 +55,6 @@
       - timed: 'H 4 * * *'
 
     image:
-      - openSUSE-Leap-15.1
+      - openSUSE-Leap-15.2
     jobs:
       - 'openstack-cleanvm-{release}'
