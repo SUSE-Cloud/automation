@@ -28,7 +28,7 @@
 
 - name: Download RHEL ceph client requires
   get_url:
-    url: "{{ ardana_centos_pkg_repo }}/{{ item }}"
+    url: "{{ ardana_centos_pkg_repo }}/Packages/{{ item[0] }}/{{ item }}"
     dest: "{{ ardana_ceph_third_party_dir }}"
   loop: "{{ ardana_rhel_ceph_client_pkg_requires }}"
 
