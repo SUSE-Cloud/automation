@@ -62,7 +62,7 @@ function h_setup_base_repos {
         # Python 2.7 is scheduled for end-of-life in 2020
         # Openstack goal is to have python3 supported on the end of the T cycle
         # https://governance.openstack.org/tc/resolutions/20180529-python2-deprecation-timeline.html
-        if [[ $DIST_VERSION == "15.0" ]]; then
+        if [[ "${DIST_VERSION%%.*}" == "15" ]]; then
             USE_PYTHON3=True
             PYTHON3_VERSION=3.6
         fi
@@ -78,6 +78,14 @@ function h_setup_base_repos {
             $zypper ar -f http://download.opensuse.org/update/${DIST_VERSION}/${DIST_NAME}:${DIST_VERSION}:Update.repo || true
         fi
     fi
+
+    # ensure PYTHON env var specifies correct python command
+    if [[ "${USE_PYTHON3:-False}" == "True" ]]; then
+        PYTHON=python3
+    else
+        PYTHON=python
+    fi
+    export PYTHON
 }
 
 
@@ -135,6 +143,12 @@ function h_setup_devstack {
         popd
     fi
 
+    if [ "$DEVSTACK_BRANCH" = "master" ]; then
+        MEMORY_TRACKER=memory_tracker
+    else
+        MEMORY_TRACKER=peakmem_tracker
+    fi
+
     # setup non-root user (username is "stack")
     (cd $DEVSTACK_DIR && ./tools/create-stack-user.sh)
 
@@ -164,7 +178,7 @@ enable_service tempest
 enable_service q-l3
 enable_service c-sch
 enable_service n-novnc
-enable_service peakmem_tracker
+enable_service $MEMORY_TRACKER
 enable_service n-cauth
 enable_service q-metering
 enable_service rabbit
