@@ -19,3 +19,5 @@
             release: 'Train'
         - 'openstack-rpm-packaging-sles15-{release}':
             release: 'Ussuri'
+        - 'openstack-rpm-packaging-sles15-{release}':
+            release: 'Victoria'
