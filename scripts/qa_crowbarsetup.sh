@@ -5611,10 +5611,10 @@ function onneutron_wait_for_neutron
     wait_for 200 3 " ! ssh $NEUTRON_SERVER '. .openrc && neutron agent-list -f csv --quote none'|tail -n+2 | grep -q -v ':-)'" "neutron agents up"
 
     ssh $NEUTRON_SERVER '. .openrc && neutron agent-list'
-    ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null
-    if [ "x$?" != "x0" ]; then
-        complain 14 "ping to 8.8.8.8 from $NEUTRON_SERVER failed."
-    fi
+
+    wait_for 5 2 "ssh $NEUTRON_SERVER 'ping -c1 -w1 8.8.8.8' > /dev/null" \
+        "external network to be reachable" \
+        "complain 14 'ping to 8.8.8.8 from $NEUTRON_SERVER failed.'"
 }
 
 function power_cycle_and_wait
