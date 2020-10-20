@@ -1,0 +1,33 @@
+- project:
+    name: cloud-check-obs
+    version:
+      - 9
+      - 8
+      - 7
+    jobs:
+        - 'cloud-check-obs-{version}'
+
+- builder:
+    name: builder-cloud-check-obs
+    builders:
+      - shell: !include-raw: cloud-check-obs.py
+
+- job-template:
+    name: 'cloud-check-obs-{version}'
+    node: cloud-trackupstream
+
+    parameters:
+      - string:
+          name: VERSION
+          default: 9
+          description: version of SUSE OpenStack Cloud whose IBS and OBS projects should be checked for inconsistent packages and changes
+
+    builders:
+      - builder-cloud-check-obs
+
+    wrappers:
+      - timestamps
+      - timeout:
+          fail: true
+          write-description: "ERROR: this should not time out."
+          timeout: 180
