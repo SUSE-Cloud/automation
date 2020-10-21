@@ -47,6 +47,15 @@
       - 'openstack-cleanvm-{release}'
 
 - project:
+    name: openstack-cleanvm-Victoria
+    disabled: false
+    release: Victoria
+    image:
+      - openSUSE-Leap-15.2
+    jobs:
+      - 'openstack-cleanvm-{release}'
+
+- project:
     name: openstack-cleanvm-Master
     disabled: false
     release: Master
