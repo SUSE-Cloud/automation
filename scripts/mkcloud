@@ -236,7 +236,7 @@ function onhost_supportconfig
             (
                 echo "Collecting supportconfig from $node"
                 timeout 1200 ssh $node supportconfig | wc
-                timeout 300 scp $node:/var/log/\*tbz /var/log/
+                timeout 300 scp $node:/var/log/\*txz /var/log/
             )&
             done
             timeout 600 supportconfig | wc &
