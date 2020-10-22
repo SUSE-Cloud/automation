@@ -161,7 +161,7 @@ def _unpack_supportconfigs(cwd):
     sucessful = True
     with changedir(cwd):
         for (dirpath, dirnames, filenames) in os.walk('.'):
-            for f in itertools.ifilter(lambda x: x.endswith('tbz'), filenames):
+            for f in itertools.ifilter(lambda x: re.search('.t(bz|xz)$', x), filenames):
                 with open('/dev/null', 'w') as devnull:
                     try:
                         subprocess.check_call(
