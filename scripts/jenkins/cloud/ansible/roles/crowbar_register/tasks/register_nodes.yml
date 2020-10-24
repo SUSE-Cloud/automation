@@ -8,11 +8,11 @@
     dest: "/etc/hosts"
     line: "{{ hostvars['localhost'].admin_conf_ip }}    crowbar.{{ cloud_fqdn }}"
 
-- name: Remove existing repositories
+- name: Remove existing repositories (except Maint. Updates)
   shell: |
     set -e
-    while [ "`zypper lr | grep ^1`" != '' ]; do
-      zypper rr 1
+    for repo in $(zypper lr | grep -v "Maint-Update-" | awk '/Yes/ { print $3 }'); do
+      zypper rr $repo
     done
 
 - name: Run crowbar_register
