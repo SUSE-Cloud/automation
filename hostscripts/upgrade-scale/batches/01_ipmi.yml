@@ -1,0 +1,9 @@
+---
+proposals:
+- barclamp: ipmi
+  attributes:
+    bmc_enable: true
+    use_dhcp: true
+    debug: true
+    bmc_user: %IPMIUSER%
+    bmc_password: %IPMIPASS%

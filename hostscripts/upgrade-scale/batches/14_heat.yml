@@ -1,0 +1,16 @@
+---
+proposals:
+- barclamp: heat
+  attributes:
+    rabbitmq_instance: default
+    database_instance: default
+    keystone_instance: default
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services

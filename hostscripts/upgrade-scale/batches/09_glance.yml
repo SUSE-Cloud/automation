@@ -1,0 +1,20 @@
+---
+proposals:
+- barclamp: glance
+  attributes:
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+    default_store: rbd
+    rbd:
+      store_user: %CEPH_GLANCE_USER%
+      store_pool: %CEPH_GLANCE_POOL%
+    keystone_instance: default
+    database_instance: default
+    rabbitmq_instance: default
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services

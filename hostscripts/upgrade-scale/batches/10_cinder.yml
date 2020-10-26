@@ -1,0 +1,34 @@
+---
+# TODO:
+proposals:
+- barclamp: cinder
+  attributes:
+    rabbitmq_instance: default
+    keystone_instance: default
+    glance_instance: default
+    database_instance: default
+    volumes:
+    - backend_driver: rbd
+      backend_name: default
+      raw:
+        volume_name: cinder-volumes
+        cinder_raw_method: first
+      rbd:
+        use_crowbar: false
+        config_file: "/etc/ceph/ceph.conf"
+        admin_keyring: "/etc/ceph/ceph.client.admin.keyring"
+        pool: %CEPH_CINDER_POOL%
+        user: %CEPH_CINDER_USER%
+        flatten_volume_from_snapshot: false
+        secret_uuid: 3b099cbc-e161-45ad-84f7-542aabffe84f
+    api:
+      protocol: https
+    ssl:
+      generate_certs: true
+      insecure: true
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - cluster:services

@@ -1,0 +1,53 @@
+---
+proposals:
+- barclamp: pacemaker
+  name: data
+  attributes:
+    corosync:
+      rings:
+      - network: admin
+        mcast_addr: 239.255.0.1
+        mcast_port: 5405
+    stonith:
+      mode: ipmi_barclamp
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller0@@"
+      - "@@controller1@@"
+      - "@@controller2@@"
+      hawk-server:
+      - "@@controller0@@"
+      - "@@controller1@@"
+      - "@@controller2@@"
+- barclamp: pacemaker
+  name: network
+  attributes:
+    stonith:
+      mode: ipmi_barclamp
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller3@@"
+      - "@@controller4@@"
+      hawk-server:
+      - "@@controller3@@"
+      - "@@controller4@@"
+- barclamp: pacemaker
+  name: services
+  attributes:
+    corosync:
+      rings:
+      - network: admin
+        mcast_addr: 239.255.0.2
+        mcast_port: 5405
+    stonith:
+      mode: ipmi_barclamp
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - "@@controller5@@"
+      - "@@controller6@@"
+      hawk-server:
+      - "@@controller5@@"
+      - "@@controller6@@"
