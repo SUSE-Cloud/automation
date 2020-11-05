@@ -5,6 +5,7 @@ use Time::HiRes qw(sleep);
 use Fcntl qw(:DEFAULT :flock);
 
 my $pooldir="$ENV{HOME}/pool";
+my $allocationsfile="$ENV{HOME}/allocations";
 my $allocname="tmpqueuesched.pid";
 # Take the oldest directory
 my @dirs= sort { (stat("$a/$allocname"))[9] <=>
@@ -19,6 +20,19 @@ sleep(rand(2)); # reduce chance of collisions with make -j
 # lock+select testdir
 my $found=0;
 foreach my $d (@dirs) {
+        # check that allocations isn't out of sync with pool
+        open my $fha, $allocationsfile or die "Error: cant read $allocationsfile";
+        my $allocationfound=0;
+        my $n=$d;
+        $n=~ s/$pooldir\///;
+        while(my $line=<$fha>) {
+                if($line =~ /^[a-z]*$n jenkins$/) {
+                        $allocationfound=1;
+                        last;
+                }
+        }
+        if(!$allocationfound) {die "Error: cant find in $allocationsfile: $n jenkins"}
+        close($fha);
         # use own allocation lock protocol
         my $a="$d/$allocname";
         sysopen my $fh, $a, O_RDWR|O_CREAT or die "cant create $a";
