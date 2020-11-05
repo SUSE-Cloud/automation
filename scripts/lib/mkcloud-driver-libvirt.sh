@@ -399,7 +399,7 @@ function libvirt_do_onhost_deploy_image()
     if [[ ! $want_cached_images = 1 ]] ; then
         [ -n $rsyncserver_fqdn ] || complain 95 "Missing RSYNC Server FQDN!"
 
-        safely rsync --compress --progress --inplace --archive --verbose \
+        safely rsync --progress --archive --verbose \
             rsync://$rsyncserver_fqdn/$rsyncserver_images_dir/$image $cache_dir/
     else
         # In this case the image has to be supplied by other means than
