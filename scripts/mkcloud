@@ -1239,6 +1239,8 @@ Steps:
     addupdaterepo:  addupdate repos defined in UPDATEREPOS= (URLs separated by '+')
     runupdate:      run zypper up on the crowbar node
                     (compute nodes are automatically updated via chef run)
+    cloudupgrade:   upgrade the cloud to the version specified
+                    by the upgrade_cloudsource parameter
     rebootcrowbar:  reboot the crowbar instance and wait for it being up
     rebootcloud:    reboot the cloud nodes and wait for them being up
     restartcloud:   start a pre-existing cloud again after host reboot
