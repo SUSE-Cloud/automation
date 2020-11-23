@@ -5437,6 +5437,8 @@ function oncontroller_setupproduction()
     nova flavor-create --ephemeral 80 d4.xlarge  40 16384 40 4
     nova flavor-create --ephemeral 20 m8.xlarge  41 32768 20 8
     nova flavor-create                m2.xlarge  42 24576 160 4
+    nova flavor-create --ephemeral 20 m8.xxlarge 43 65536 20 16
+    nova flavor-create --ephemeral 80 d8.xxlarge 44 65536 20 12
 
     # for aduffek/bosh/cloudfoundry
     nova flavor-create --ephemeral 10 cf-minimal  160 3840 3 1
