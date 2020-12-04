@@ -230,10 +230,10 @@ USE_PYTHON3=$USE_PYTHON3
 PYTHON3_VERSION=$PYTHON3_VERSION
 $DEVSTACK_EXTRA_CONFIG
 
-[[test-config|$$TEMPEST_CONFIG]]
+[[test-config|\$TEMPEST_CONFIG]]
 [compute]
 min_compute_nodes = 1
-[[post-config|$$NEUTRON_CONF]]
+[[post-config|\$NEUTRON_CONF]]
 [DEFAULT]
 global_physnet_mtu = 1450
 EOF
