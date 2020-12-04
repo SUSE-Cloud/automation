@@ -222,14 +222,14 @@
               (
               echo "Collecting supportconfig from $node"
               timeout 400 ssh $node supportconfig | wc
-              timeout 300 scp $node:/var/log/\*tbz /var/log/
+              timeout 300 scp $node:/var/log/\*txz /var/log/
               )&
             done
             timeout 500 supportconfig | wc &
             wait
             '
 
-            scp root@$admin:/var/log/*tbz $artifacts_dir/
+            scp root@$admin:/var/log/*txz $artifacts_dir/
           fi >&2
 
           exit $ret
