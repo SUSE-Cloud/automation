@@ -247,7 +247,7 @@ done
 
 
 # LTSS enablement
-for servicepack in 3 2 1; do
+for servicepack in 4 3 2 1; do
 
     version="12-SP$servicepack-LTSS"
     repo_version="$version"
