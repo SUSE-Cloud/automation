@@ -106,7 +106,7 @@ sles_ltss_test_repos:
 sles_ltss_enabled:
   cloud7: true
   cloud8: true
-  cloud9: false
+  cloud9: true
 
 cloud_update_repos_enabled: "{{ '+up' in cloudsource }}"
 sles_test_repos_enabled: "{{ updates_test_enabled and ((task == 'deploy' and not (update_after_deploy and 'GM' in cloudsource)) or (task in ['update', 'disable-repos', 'upgrade'])) }}"
