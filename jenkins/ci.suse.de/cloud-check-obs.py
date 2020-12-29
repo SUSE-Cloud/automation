@@ -1,4 +1,4 @@
-#!/bin/python3
+#!/usr/bin/python3
 """
 Checks the packages in SOC projects for consistency (see
 ObsStatusCloud.diff_projects() for details) and diffs the packages as they pass
