@@ -19,54 +19,54 @@ osc="osc -A https://api.suse.de"
 PATH=$PATH:$(readlink -e $(dirname $0))
 
 usage() {
-  echo "usage: $0 <cloud release> <work dir>"
-  echo ""
-  echo "  cloud_release:: 7 | 8 | 9"
-  }
+    echo "usage: $0 <cloud release> <work dir>"
+    echo ""
+    echo "  cloud_release:: 7 | 8 | 9"
+    }
 
 if [ -z $cloud_release ]; then
-  usage
-  exit 1
+    usage
+    exit 1
 fi
 
 case $cloud_release in
-  "7")
-    ;;
-  "8")
-    ;;
-  "9")
-    ;;
-  *)
-    usage
-    exit 1
+    "7")
+        ;;
+    "8")
+        ;;
+    "9")
+        ;;
+    *)
+        usage
+        exit 1
 esac
 
 if [ -z "$work_dir" ]; then
-  usage
-  exit 1
+    usage
+    exit 1
 fi
 
 mkdir -p $work_dir || exit 1
 pushd $work_dir || exit 1
 
 if [ ! -d "SUSE:Channels" ]; then
-  $osc co SUSE:Channels || exit 1
-  grep -w binary $(find SUSE:Channels -name _channel) > binaries
+    $osc co SUSE:Channels || exit 1
+    grep -w binary $(find SUSE:Channels -name _channel) > binaries
 fi
 
 if [ ! -d Devel:Cloud:${cloud_release} ]; then
-  $osc co Devel:Cloud:${cloud_release} _product || exit 1
+    $osc co Devel:Cloud:${cloud_release} _product || exit 1
 fi
 
 (cloudpackages.py Devel:Cloud:${cloud_release}/_product/*.product
 cloudpackages.py -u Devel:Cloud:${cloud_release} patterns-{cloud-admin,cloud-compute,cloud-controller,cloud-network}) \
-  | sort | uniq > packages-Devel:Cloud:${cloud_release}
+    | sort | uniq > packages-Devel:Cloud:${cloud_release}
 
 canonicalpac.pl binaries packages-Devel:Cloud:${cloud_release} \
-  | awk '{ print $1 " " $4 }' | sort | uniq > packages-canonical-Devel:Cloud:${cloud_release}
+    | awk '{ print $1 " " $4 }' | sort | uniq > packages-canonical-Devel:Cloud:${cloud_release}
 
 awk '{print "osc -A https://api.suse.de maintainer " $2 " " $1 "| sed \"s# :#/" $1 "#\""}' \
-     packages-canonical-Devel:Cloud:${cloud_release} | sh 2>&1 | tee maintainers_raw-Devel:Cloud:${cloud_release}
+    packages-canonical-Devel:Cloud:${cloud_release} | sh 2>&1 | tee maintainers_raw-Devel:Cloud:${cloud_release}
 
 parse_maintainers.pl maintainers_raw-Devel:Cloud:${cloud_release} > maintainers-Devel:Cloud:${cloud_release}
 
