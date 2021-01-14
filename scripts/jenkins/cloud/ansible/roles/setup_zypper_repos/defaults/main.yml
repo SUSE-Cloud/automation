@@ -105,7 +105,7 @@ sles_ltss_test_repos:
 
 sles_ltss_enabled:
   cloud7: true
-  cloud8: true
+  cloud8: false
   cloud9: true
 
 cloud_update_repos_enabled: "{{ '+up' in cloudsource }}"
