@@ -45,6 +45,7 @@ cloud_git_branch:
 
 clouddata_server: "provo-clouddata.cloud.suse.de"
 sles_media_server: "ibs-mirror.prv.suse.net"
+sles_alt_media_server: "ardana.ci.prv.suse.net"
 
 rhel_enabled: "{{ rhel_computes is defined and rhel_computes | int > 0 }}"
 ses_enabled: False
