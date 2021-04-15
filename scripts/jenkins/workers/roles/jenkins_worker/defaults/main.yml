@@ -68,10 +68,13 @@ jenkins_worker_swarm_config:
     regexp: '^LABELS='
   - line: 'PARAMS="-username {{ _swarm_username }} -password {{ _swarm_password }} -master {{ jenkins_worker_master }} -mode exclusive -executors {{ jenkins_workers_executors }} -name {{ ansible_hostname }} -description {{ os_cloud }}/{{ os_project_name }} -disableSslVerification -disableClientsUniqueId -fsroot /home/jenkins/workspace"'
     regexp: '^PARAMS='
-  - line: 'JENKINS_USER="jenkins"'
-    regexp: '^JENKINS_USER='
-  - line: 'JENKINS_HOME="/home/jenkins"'
-    regexp: '^JENKINS_HOME='
+
+jenkins_worker_swarm_systemd_file: "/usr/lib/systemd/system/jenkins-swarm-client.service"
+jenkins_worker_swarm_systemd:
+  - line: 'User=jenkins'
+    regexp: '^User='
+  - line: 'WorkingDirectory=/home/jenkins'
+    regexp: '^WorkingDirectory='
 
 jenkins_worker_copy_files:
   - path: "/home/jenkins/.ssh/id_rsa"
@@ -100,5 +103,6 @@ jenkins_worker_authorized_users:
   - esampson
   - framalho
   - fmccarthy
-  - rsalevsky
+  - gosipyan
+  - jzerebecki
   - snica

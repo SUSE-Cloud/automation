@@ -44,7 +44,17 @@
     path: "{{ jenkins_worker_swarm_conf_file }}"
     regexp: "{{ item.regexp }}"
     line: "{{ item.line }}"
+    create: yes
   no_log: True
   loop: "{{ jenkins_worker_swarm_config }}"
+  notify:
+    - Restart jenkins swarm client
+
+- name: Configure jenkins swarm client systemd
+  lineinfile:
+    path: "{{ jenkins_worker_swarm_systemd_file }}"
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  loop: "{{ jenkins_worker_swarm_systemd }}"
   notify:
     - Restart jenkins swarm client
