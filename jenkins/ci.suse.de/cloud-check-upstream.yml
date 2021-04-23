@@ -1,0 +1,28 @@
+- project:
+    name: cloud-check-upstream
+    jobs:
+        - 'cloud-check-upstream'
+
+- builder:
+    name: builder-cloud-check-upstream
+    builders:
+      - shell: !include-raw: cloud-check-upstream.py
+
+- job:
+    name: 'cloud-check-upstream'
+    node: cloud-trackupstream
+    description: |
+      Job to check if OpenSUSE failed in the OpenStack upstream CI.
+
+    triggers:
+      - timed: '4 4 * * 1'
+
+    builders:
+      - builder-cloud-check-upstream
+
+    wrappers:
+      - timestamps
+      - timeout:
+          fail: true
+          write-description: "ERROR: this should not time out."
+          timeout: 180
