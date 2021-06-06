@@ -103,6 +103,7 @@
             "openstack-trove",
             "python-monasca-common",
             "python-monasca-statsd",
+            "python-networking-cisco",
             "python-vmware-nsxlib",
             "python-vmware-nsx"
             ].contains(component) ||
@@ -112,6 +113,7 @@
               "openstack-rally",
               "openstack-tempest",
               "python-monasca-statsd",
+              "python-networking-cisco",
               "python-vmware-nsxlib",
               "python-vmware-nsx",
             ].contains(component) ||
