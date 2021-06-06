@@ -119,5 +119,19 @@
           fetch_primary_xml $slashed_project $repository
 
           test -e ~/repo || { echo "~/repo needs to have a copy of pre-generated .solv files from internal media" ; exit 55; }
-          installcheck $ARCH --withobsoletes --exclude "-kmp-" tmp/repo/primary.xml.gz  --nocheck $EXTRA_NOCHECK ~/repo/${repository}-${ARCH}.solv
+          EXCLUDE=""
+          # TODO why exclude this?, this was here without comment
+          EXCLUDE+=" -kmp-"
+          if [[ "$project == Cloud:OpenStack:Rocky" ]]; then
+            # part of openstack-heat-agents, don't want to disable these binary packages
+            # Requires puppet , don't want to copy it into Rocky
+            EXCLUDE+=" python-heat-agent-puppet"
+            # Requires python-paunch , not packaged yet
+            EXCLUDE+=" python-heat-agent-docker-cmd"
+            # we don't need this binary package, but needed one built from the same source to build some python3 package, Requires texlive stuff
+            EXCLUDE+=" python-matplotlib-latex python3-matplotlib-latex"
+            # needed to build some python3 package, Requires this-is-only-for-build-envs
+            EXCLUDE+=" python-requests-test python3-requests-test"
+          fi
+          installcheck $ARCH --withobsoletes --exclude "${EXCLUDE}" tmp/repo/primary.xml.gz  --nocheck $EXTRA_NOCHECK ~/repo/${repository}-${ARCH}.solv
           exit $?
