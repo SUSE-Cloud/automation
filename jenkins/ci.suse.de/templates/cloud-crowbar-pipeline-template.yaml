@@ -318,7 +318,7 @@
           regex: '((http(s)?:\/\/[^ ,]+)(\,http(s)?:\/\/[^ ,]+)*)*'
           msg: The entered value failed validation
           description: >-
-            A comma separated list of repository urls to be configured on the admin node
+            A comma separated list of repository urls to be downloaded to the admin node and then used from other nodes
 
       - bool:
           name: rc_notify
