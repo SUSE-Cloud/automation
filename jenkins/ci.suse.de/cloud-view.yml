@@ -1,0 +1,282 @@
+- view:
+    name: Cloud/1) Cloud Gating/Gating Overview
+    view-type: list
+    jobNames:
+      - cloud-8-gating
+      - cloud-9-gating
+      - cloud-mkcloud7-gating
+      - cloud-mkcloud8-gating
+      - cloud-mkcloud9-gating
+    columns: &default_columns
+      - StatusColumn
+      - WeatherColumn
+      - JobColumn
+      - LastSuccessColumn
+      - LastFailureColumn
+      - LastDurationColumn
+      - BuildButtonColumn
+- view:
+    name: Cloud 9 Gating Tests
+    view-type: list
+    regex: (cloud-(ardana|crowbar)9-job-gate-.*|cloud-mkcloud9-job-(ha|2nodes|4nodes-linuxbridge))-x86_64$
+    columns: *default_columns
+- view:
+    name: Cloud 8 Gating Tests
+    view-type: list
+    regex: cloud-(ardana|crowbar)8-job-gate-.*|cloud-mkcloud8-job-(ha|2nodes|4nodes-linuxbridge)-x86_64
+    columns: *default_columns
+- view:
+    name: Cloud 7 Gating Tests
+    view-type: list
+    regex: cloud-crowbar7-job-gate-.*|cloud-mkcloud7-job-(ha|2nodes|4nodes-linuxbridge)-x86_64
+    columns: *default_columns
+- view:
+    name: Cloud/2) Maintenance/Maintenance Update Gating Job
+    view-type: list
+    text: "Cloud Maintenance Update jobs"
+    regex: cloud-maintenance-gating
+    columns: *default_columns
+- view:
+    name: Cloud 9 Maintenance Update Tests
+    view-type: list
+    regex: cloud-(crowbar|ardana)9-job-mu.*
+    columns: *default_columns
+- view:
+    name: Cloud 8 Maintenance Update Tests
+    view-type: list
+    regex: cloud-(crowbar|ardana)8-job-mu.*
+    columns: *default_columns
+- view:
+    name: Cloud 7 Maintenance Update Tests
+    view-type: list
+    regex: cloud-(crowbar|ardana)7-job-mu.*
+    columns: *default_columns
+- view:
+    name: Cloud/3) Released/Released Gating Jobs
+    view_type: list
+    jobNames:
+     - cloud-ardana8-job-std-min-suse-x86_64
+     - cloud-ardana9-job-std-min-suse-x86_64
+     - cloud-mkcloud8-suse-x86_64
+     - cloud-mkcloud9-suse-x86_64
+    columns: *default_columns
+- view:
+    name: Cloud/Builds
+    view_type: list
+    regex: (openstack|crowbar|cloud)-.*(?&lt;!-trigger)
+    jobNames:
+      - cloud-mkcloud6-ssl-trigger
+      - cloud-mkcloud6-tempestfull-trigger
+      - cloud-mkphyscloud-defcore
+      - cloud-mkphyscloud-qa3-ha
+    columns: *default_columns
+- view:
+    name: Cloud/Cloud 6 Crowbar
+    view_type: list
+    regex: cloud-mkcloud(6|GM6)-(suse-.*|(cd-)?gating|job-.*(?!trigger.*))
+    columns: *default_columns
+- view:
+    name: Cloud/Cloud 7 Crowbar
+    view_type: list
+    regex: cloud-(mkcloud|crowbar)(7|GM7)-(suse-.*|gating|job-.*(?&lt;!-(s390x|aarch64)))
+    columns: *default_columns
+- view:
+    name: Cloud/Cloud 8 Ardana
+    view_type: list
+- view:
+    name: Gating Jobs
+    view-type: list
+    regex: (cloud-8-gating.*|cloud-ardana8-job-gate-entry-scale-kvm-(deploy|update)?-x86_64)
+    columns: *default_columns
+- view:
+    name: Gerrit Jobs
+    view-type: list
+    regex: (cloud-ardana8-job.*gerrit.*|openstack-ardana-testbuild-gerrit|openstack-ardana-gerrit-events|.*gerrit-cloud8)|openstack-ses
+    columns: *default_columns
+- view:
+    name: Staging Jobs
+    view-type: list
+    regex: cloud-ardana8-job-(demo|dac-3cp|std-3cp|std-min|std-split|std-min-lmm|std-min-centos)-x86_64
+    columns: *default_columns
+- view:
+    name: Released Jobs
+    view-type: list
+    regex: cloud-ardana8-job-std-min-suse-x86_64
+    columns: *default_columns
+- view:
+    name: Maintenance Updates Jobs
+    view-type: list
+    regex: ^cloud-ardana8-.*maintenance-update.*|cloud-maintenance-gating
+    columns: *default_columns
+- view:
+    name: Development Jobs
+    view-type: list
+    regex: openstack-ardana($|-tests|-update|-update-and-test)
+    columns: *default_columns
+
+- view:
+    name: Cloud/ Cloud 8 Crowbar
+    view_type: list
+    regex: cloud-(mkcloud|crowbar)(8|GM8)-(suse-.*|gating|job-.*(?&lt;!-(s390x|aarch64)))
+    columns: *default_columns
+- view:
+    name: Cloud/ Cloud 9 Ardana
+    view_type: list
+    regex: (cloud-9-gating.*|cloud-ardana9-job-gate-entry-scale-kvm-(deploy|update)?-x86_64)
+    columns: *default_columns
+- view:
+    name: Gating Jobs
+    view_type: list
+    regex: (cloud-9-gating.*|cloud-ardana9-job-gate-entry-scale-kvm-(deploy|update)?-x86_64)
+    columns: *default_columns
+- view:
+    name: Gerrit Jobs
+    view_type: list
+    regex: (cloud-ardana9-job.*gerrit.*|openstack-ardana-testbuild-gerrit|openstack-ardana-gerrit-events|.*gerrit-cloud9)|openstack-ses
+    columns: *default_columns
+- view:
+    name: Staging Jobs
+    view_type: list
+    regex: cloud-ardana9-job-(demo|dac-3cp|std-3cp|std-min|std-split|std-min-lmm|std-min-centos|std-min-ipv6)-x86_64
+    columns: *default_columns
+- view:
+    name: Released Jobs
+    view_type: list
+    regex: cloud-ardana9-job-std-min-suse-x86_64
+    columns: *default_columns
+- view:
+    name: Maintenance Updates Jobs
+    view_type: list
+    regex: ^cloud-ardana9-.*maintenance-update.*|cloud-maintenance-gating
+    columns: *default_columns
+- view:
+    name: Development Jobs
+    view_type: list
+    regex: openstack-ardana($|-tests|-update|-update-and-test)
+    columns: *default_columns
+- view:
+    name: Cloud/Cloud 9 Crowbar
+    view_type: list
+    jobNames:
+      - cloud-mkcloud9-job-2nodes-x86_64
+      - cloud-mkcloud9-job-4nodes-linuxbridge-x86_64<
+      - loud-mkcloud9-job-ha-x86_64
+    columns: *default_columns
+- view:
+    name: Gating Jobs
+    view_type: list
+    jobNames:
+      - cloud-mkcloud9-job-upgrade-disruptive-x86_64
+      - cloud-mkcloud9-job-upgrade-nondisruptive-ha-mariadb-x86_64
+      - cloud-mkcloud9-job-upgrade-nondisruptive-ha-without-nodes-upgrade-x86_64
+    columns: *default_columns
+- view:
+    name: Upgrade Jobs
+    view_type: list
+    jobNames:
+      - cloud-mkcloud9-suse-x86_64
+    columns: *default_columns
+- view:
+    name: Important Jobs
+    view_type: list
+    columns: *default_columns
+- view:
+    name: Extra Jobs
+    view_type: list
+    columns: *default_columns
+- view:
+    name: All Crowbar Jobs
+    view_type: list
+    regex: cloud-(mkcloud|crowbar)(9|GM9)-(suse-.*|gating|job-.*(?&lt;!-(s390x|aarch64)))
+    columns: *default_columns
+- view:
+    name: Cloud/Cloud9
+    view_type: list
+    regex: cloud-(mkcloud|crowbar)(9|GM9)-(suse-.*|gating|job-.*(?&lt;!-(s390x|aarch64)))
+    columns: *default_columns
+- view:
+    name: Cloud/ECN
+    view_type: list
+    text: "Cloud Jenkins jobs that directly interact with or support the ECN (the engineering cloud in Nuremberg - https://cloud.suse.de)"
+    jobNames:
+       - openstack-cloud-heat-susecloud
+- view:
+    name: Heat Stack Management (i.e. ECN health)
+    view-type: list
+    columns: *default_columns
+- view:
+    name: Periodic Cloud ECN Image Updates
+    view-type: list
+    regex: .*-job-image-update-susecloud.*
+    columns: *default_columns
+- view:
+    name: Cloud/ECP
+    view_type: list
+    text: "Cloud Jenkins jobs that directly interact with or support the ECP (the engineering cloud in Provo - https://engcloud.prv.suse.net)"
+    jobNames:
+       - openstack-cloud-heat-engcloud
+- view:
+    name: Heat Stack Management (i.e. ECP health)
+    view-type: list
+    columns: *default_columns
+- view:
+    name: Periodic Cloud ECP Image Updates
+    view-type: list
+    regex: .*-job-image-update-engcloud
+    columns: *default_columns
+- view:
+    name: Provisioning for ECP Cloud Jenkins Agents
+    view-type: list
+    columns: *default_columns
+- view:
+    name: Cloud/HA
+    view_type: list
+    regex: cloud.*-ha.*
+    columns: *default_columns
+- view:
+    name: Cloud/Meta
+    view_type: list
+    regex: (ardana|cloud|openstack)-(trackupstream|mediacheck|submit-project)
+    columns: *default_columns
+- view:
+    name: Cloud/QA
+    view_type: list
+    regex: cloud-.*(-qa-.*|qa.?-trigger)
+    jobNames:
+      - cloud-backup-qa-rally-ansible
+      - cloud-mkphyscloud-qa-defcore-job
+      - cloud-mkphyscloud-qa-scenario-0a
+      - cloud-mkphyscloud-qa-scenario-1a-mariadb
+      - cloud-mkphyscloud-qa-scenario-1a-provo
+      - cloud-mkphyscloud-qa-scenario-2a-modified
+      - cloud-mkphyscloud-qa-scenario-2c-modified
+      - cloud-mkphyscloud-qa-scenario-test-multi
+      - cloud-mkphyscloud-qa-tempest-full-job
+      - cloud-mkphyscloud-qa-tempest-smoke-job
+      - cloud-mkphyscloud-qa-test-tempest-job
+      - cloud-mkphyscloud-qa-vmoravec-1
+      - cloud-mkphyscloud-qa-vmoravec-test-1
+      - cloud-mkphyscloud-qa-vmoravec-test-multi-config
+      - cloud-qa-test
+      - this-is-a-test
+    columns: *default_columns
+- view:
+    name: Cloud/Trigger
+    view_type: list
+    regex: ^(cloud|openstack|crowbar)-.*trigger.*
+    jobNames:
+      - cloud-mkcloud4-crowbar_register-trigger
+      - cloud-mkcloud5-cinder-netapp-trigger
+      - cloud-mkcloud5-crowbar_register-trigger
+      - cloud-mkcloud5-ovsvxlan-trigger
+      - cloud-mkcloud6-batch-trigger
+      - cloud-mkcloud6-docker-trigger
+      - cloud-mkcloud6-dvr-trigger
+      - cloud-mkcloud6-raid-trigger
+      - cloud-mkcloud6-raid-trigger-jdsntest
+    columns: *default_columns
+- view:
+    name: Cloud/Worker
+    view_type: list
+    regex: (openstack|crowbar|cloud)-.*(?&lt;!-trigger)
+    columns: *default_columns
