@@ -1,0 +1,28 @@
+- job-template:
+    name: 'cloud-mkcloud{version}-job-pcipassthru-{arch}'
+    node: cloud-trigger
+    disabled: '{obj:disabled}'
+
+    triggers:
+      - timed: 'H 20 * * *'
+
+    logrotate:
+      numToKeep: -1
+      daysToKeep: 7
+
+    builders:
+      - trigger-builds:
+        - project: openstack-mkcloud
+          condition: SUCCESS
+          block: true
+          current-parameters: true
+          predefined-parameters: |
+            TESTHEAD=1
+            cloudsource=develcloud{version}
+            libvirt_type=kvm
+            nodenumber=2
+            mkcloudtarget=plain rebootcloud testpcipassthru
+            label={label}
+            custom_settings='export want_pci_passthrough=1'
+            job_name=cloud-mkcloud{version}-job-pcipassthru-{arch}
+
