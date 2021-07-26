@@ -6,6 +6,7 @@
         block: false
     cloud_url_trigger_job:
       - cloud-7-gating-trigger:
+          disabled: true
           version: '7'
     jobs:
       - '{cloud_url_trigger_job}'
@@ -31,6 +32,7 @@
     cloud_env: 'cloud-gate{version}-slot'
     cloud_gating_job:
       - cloud-7-gating:
+          disabled: true
           version: '7'
       - cloud-8-gating:
           version: '8'
@@ -113,6 +115,7 @@
     triggers: []
     crowbar_job:
       - cloud-crowbar7-job-gate-no-ha-deploy-x86_64:
+          disabled: true
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
@@ -149,6 +152,7 @@
     triggers: []
     crowbar_job:
       - cloud-crowbar7-job-gate-ha-deploy-x86_64:
+          disabled: true
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
@@ -187,6 +191,7 @@
     triggers: []
     crowbar_job:
       - cloud-crowbar7-job-gate-linuxbridge-deploy-x86_64:
+          disabled: true
           cloudsource: stagingcloud7
           ses_enabled: false
           update_after_deploy: false
