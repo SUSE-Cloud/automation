@@ -80,9 +80,7 @@ shellcheck:
 	shellcheck `grep -Erl '^#! ?/bin/b?a?sh'`
 
 install:
-	sudo zypper install perl-JSON-XS perl-libxml-perl perl-libwww-perl python-pip python3-pip libvirt-python python3-libvirt-python
-	sudo pip2 install -U bashate flake8 flake8-import-order jenkins-job-builder
-	sudo pip3 install -U bashate flake8 flake8-import-order jenkins-job-builder
+	sudo zypper install perl-JSON perl-JSON-XS perl-libxml-perl perl-libwww-perl python-pip python3-pip libvirt-python python3-libvirt-python python2-flake8-import-order python3-bashate python3-jenkins-job-builder
 	git clone https://github.com/SUSE-Cloud/roundup && \
 	cd roundup && \
 	./configure && \
