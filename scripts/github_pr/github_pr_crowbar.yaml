@@ -47,6 +47,20 @@ template:
               job_cmd: "../jenkins/jenkins-job-trigger"
               job_parameters:
                 standard: {}
+          - type: JenkinsJobTriggerCrowbarTestbuild
+            parameters:
+              detail_logging: true
+              job_name: cloud-crowbar-check-pr
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                standard: {}
+          - type: JenkinsJobTriggerCrowbarTestbuild
+            parameters:
+              detail_logging: true
+              job_name: cloud-crowbar-gitlint-pr
+              job_cmd: "../jenkins/jenkins-job-trigger"
+              job_parameters:
+                standard: {}
     sap-oc_crowbar: &sap-oc_crowbar
       - type: MergeBranch
         config:

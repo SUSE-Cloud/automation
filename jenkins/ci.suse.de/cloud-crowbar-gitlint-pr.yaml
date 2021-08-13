@@ -1,0 +1,114 @@
+- job:
+    name: cloud-crowbar-gitlint-pr
+    node: cloud-trigger
+    concurrent: true
+    description: |
+      <!-- Managed by Jenkins Job Builder -->
+
+    logrotate:
+        numToKeep:  300
+        daysToKeep: 300
+
+    properties:
+      - authorization:
+          cloud:
+               - job-build
+               - job-cancel
+               - job-configure
+               - job-delete
+               - job-discover
+               - job-read
+               - job-workspace
+               - run-delete
+               - run-update
+               - scm-tag
+          anonymous:
+               - job-read
+
+    parameters:
+     - string:
+        name: crowbar_repo
+        default:
+        description: The repo to build the rpm from
+
+     - string:
+        name: crowbar_org
+        default: crowbar
+        description: The github organization to use
+
+     - string:
+        name: crowbar_github_pr
+        default:
+        description: The pull request to integrate into the package
+
+     - string:
+        name: job_name
+        default: "-no-name-"
+        description: This name will become the build name of the job. It will appear in the list of builds (webUI, RSS feed).
+
+    wrappers:
+    - timestamps:
+    - build-name:
+         name: '#${BUILD_NUMBER}: ${ENV,var="job_name"}'
+    - timeout:
+        timeout: 60
+        type: no-activity
+        abort: true
+        write-description: "Job aborted due to 60 minutes of inactivity."
+
+    builders:
+    - shell: |
+        #####
+        # Triggered by job cloud-crowbar-testbuild-pr-trigger
+        # The corresponding trigger job will (by default) only trigger builds for "unseen" PRs
+        #  (unseen PR = no status reported from github_pr on last commit of this PR)
+        set -x
+
+        export automationrepo=~/github.com/SUSE-Cloud/automation
+        # automation bootstrapping
+        if ! [ -e ${automationrepo}/scripts/jenkins/update_automation ] ; then
+          rm -rf ${automationrepo}
+          curl https://raw.githubusercontent.com/SUSE-Cloud/automation/master/scripts/jenkins/update_automation | bash
+        fi
+        # fetch the latest automation updates
+        ${automationrepo}/scripts/jenkins/update_automation
+        export ghprrepo=~/github.com/openSUSE/github-pr
+        export ghpr=${ghprrepo}/github_pr.rb
+
+        github_opts=(${crowbar_github_pr//:/ })
+        github_pr_id=${github_opts[0]}
+        github_pr_sha=${github_opts[1]}
+        github_pr_branch=${github_opts[2]}
+        ghpr_paras="--org ${crowbar_org} --repo ${crowbar_repo} --sha ${github_pr_sha}"
+
+        function crowbargating_trap()
+        {
+            $ghpr --action set-status $ghpr_paras --status "failure" --targeturl ${BUILD_URL} --context "suse/mkcloud/gitlint" --message "gitlint job failed" --debugratelimit
+        }
+
+        # using a trap to catch all errors of the following commands
+        trap "crowbargating_trap" ERR
+
+        # report that the job has started (status "pending")
+        $ghpr --action set-status $ghpr_paras --status "pending" --targeturl ${BUILD_URL} --context "suse/mkcloud/gitlint" --message "Started gitlint job"
+
+        cd $WORKSPACE
+        repo_url="https://github.com/${crowbar_org}/${crowbar_repo}.git"
+        remote=$(test -d .git && git remote get-url origin || true)
+        if test "$remote" != "${repo_url}"; then
+          rm -rf .git
+          git clone ${repo_url} .
+        else
+          git fetch
+        fi
+
+        git fetch origin pull/$github_pr_id/head
+        git reset --hard FETCH_HEAD
+        git clean -fdx
+
+        gitlint --commits `git rev-parse --abbrev-ref HEAD`..HEAD -C ${automationrepo}/scripts/jenkins/gitlint.ini
+
+        # update the status
+        $ghpr --action set-status $ghpr_paras --status "success" --targeturl ${BUILD_URL} --context "suse/mkcloud/gitlint" --message "gitlint job succeeded" --debugratelimit
+
+        trap "-" ERR
