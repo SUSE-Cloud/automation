@@ -1,6 +1,6 @@
 - project:
     name: cloud-mkcloud7-x86_64
-    disabled: false
+    disabled: true
     version: 7
     previous_version: 6
     arch: x86_64
@@ -23,7 +23,7 @@
         - 'cloud-mkcloud{version}-job-xen-{arch}'
 - project:
     name: cloud-mkcloud7-ha-x86_64
-    disabled: false
+    disabled: true
     version: 7
     previous_version: 6
     arch: x86_64
@@ -45,7 +45,7 @@
         - 'cloud-mkcloud{version}-job-ha-vproduction-{arch}'
 - project:
     name: cloud-mkcloud7-tempestfull-x86_64
-    disabled: false
+    disabled: true
     version: 7
     previous_version: 6
     arch: x86_64
@@ -56,7 +56,7 @@
          - 'cloud-mkcloud{version}-job-4nodes-linuxbridge-tempestfull-{arch}'
 - project:
     name: cloud-mkcloud7-sles12sp2-x86_64
-    disabled: false
+    disabled: true
     version: 7
     arch: x86_64
     label: openstack-mkcloud-SLE12-x86_64
