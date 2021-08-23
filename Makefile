@@ -3,6 +3,7 @@ test: filecheck bashate perlcheck rubycheck pythoncheck rounduptest flake8 pytho
 
 clean:
 	rm -f scripts/jenkins/jenkins-job-triggerc scripts/lib/libvirt/{net-configc,vm-startc,compute-configc,net-startc,admin-configc,cleanupc}
+	rm -rf __jjb_cache
 	find -name \*.pyc -print0 | xargs -0 rm -f
 
 filecheck:
@@ -67,8 +68,9 @@ gerrit-project-regexp:
 	scripts/jenkins/cloud/gerrit/project-map2project-regexp.py stable/pike > jenkins/ci.suse.de/gerrit-project-regexp-cloud8.txt
 
 jjb_test: gerrit-project-regexp
-	jenkins-jobs --ignore-cache test jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud* openstack* > /dev/null
-	jenkins-jobs --ignore-cache test jenkins/ci.opensuse.org:jenkins/ci.opensuse.org/templates/ cloud* openstack* > /dev/null
+	# use a cache that is not shared between CI jobs so multiple jobs can run in parallel without tripping on each others cache lock files
+	XDG_CACHE_HOME=__jjb_cache jenkins-jobs --ignore-cache test jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud* openstack* > /dev/null
+	XDG_CACHE_HOME=__jjb_cache jenkins-jobs --ignore-cache test jenkins/ci.opensuse.org:jenkins/ci.opensuse.org/templates/ cloud* openstack* > /dev/null
 
 cisd_deploy: gerrit-project-regexp
 	jenkins-jobs --conf /etc/jenkins_jobs/jenkins_jobs-cisd.ini update jenkins/ci.suse.de:jenkins/ci.suse.de/templates/ cloud\* openstack\* ardana\*
