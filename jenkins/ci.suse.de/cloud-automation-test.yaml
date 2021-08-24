@@ -1,0 +1,24 @@
+- job:
+    name: 'cloud-automation-test'
+    project-type: multibranch
+    node: cloud-trigger
+
+    scm:
+      - github:
+          repo: automation
+          repo-owner: SUSE-Cloud
+          credentials-id: c2350527-476a-45df-b406-84f028614682
+          branch-discovery: no-pr
+          discover-pr-origin: merge-current
+          discover-pr-forks-strategy: merge-current
+          discover-pr-forks-trust: permission
+    periodic-folder-trigger: 5m
+    days-to-keep: 14
+    script-path: Jenkinsfile
+
+    wrappers:
+      - timeout:
+          fail: true
+          timeout: 120
+      - timestamps
+
