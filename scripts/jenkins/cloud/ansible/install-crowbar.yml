@@ -34,6 +34,7 @@
           loop_control:
             loop_var: command
 
+        # TODO replace the below with environment var crowbar_sync_mark_timeout_multiplier to qa_crowbarsetup above
         - name: Check if sync mark timeout_multiplier feature is present
           command: "knife data bag show crowbar-config -F json"
           register: _crowbar_config_json
