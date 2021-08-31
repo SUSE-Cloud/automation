@@ -9,7 +9,7 @@ cloud_fqdn: "{{ cloud_env }}.prv.suse.net"
 
 mkcloud_config_file: "{{ workspace_path }}/mkcloud.config"
 crowbar_batch_file: "{{ workspace_path }}/scenario.yml"
-sync_mark_timeout_multiplier: "1.0"
+sync_mark_timeout_multiplier: "2.0"
 
 ssl_enabled: true
 

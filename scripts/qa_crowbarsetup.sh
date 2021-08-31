@@ -44,6 +44,7 @@ fi
 : ${want_horizon_integration_test:=''}
 : ${want_batch_dir:="${SCRIPTS_DIR}/scenarios"}
 : ${upgrade_test_stack_count:=1}
+: ${crowbar_sync_mark_timeout_multiplier:="2.0"}
 if iscloudver 8plus; then
     : ${want_cinder_rbd_flatten_snaps:=1}
     : ${want_clustered_rabbitmq:=1}
@@ -1575,6 +1576,13 @@ EOF
 
     if ! validate_data_bags; then
         complain 68 "Validation error in default data bags. Aborting."
+    fi
+
+    if test "$crowbar_sync_mark_timeout_multiplier" != "1.0" && knife data bag show crowbar-config -F json 2>/dev/null | grep -q sync_mark; then
+        knifebagfile=$(mktemp --tmpdir tmp-knife-sync-mark.XXXXXXXXXX.json)
+        knife data bag show crowbar-config sync_mark -F json | sed -e "s/\"timeout_multiplier\": [0-9.]+$/\"timeout_multiplier\": $crowbar_sync_mark_timeout_multiplier/g" > $knifebagfile
+        knife data bag from file crowbar-config $knifebagfile
+        rm $knifebagfile
     fi
 }
 
