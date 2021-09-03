@@ -12,6 +12,10 @@ pipeline {
     ansiColor('xterm')
   }
 
+  environment {
+    PATH = "/home/jenkins/bin:${env.PATH}"
+  }
+
   stages {
     stage('Output environment') {
       steps {
@@ -56,7 +60,7 @@ pipeline {
         }
         stage('make rounduptest') {
           steps {
-            sh 'echo TODO package roundup to run make rounduptest'
+            sh 'make rounduptest'
           }
         }
         stage('make perlcheck') {
