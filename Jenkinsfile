@@ -55,7 +55,7 @@ pipeline {
         }
         stage('make bashate') {
           steps {
-            sh 'echo TODO install python3-bashate to run make bashate'
+            sh 'make bashate'
           }
         }
         stage('make rounduptest') {
