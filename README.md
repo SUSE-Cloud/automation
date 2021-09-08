@@ -36,7 +36,7 @@ unless stated otherwise. See [the LICENSE file](LICENSE) for details.
 # Contributing
 
 This project uses pull requests to process contributions and
-[travis-ci](http://travis-ci.org/) to test that your changes are OK to be
+some continous integration jobs to test that your changes are OK to be
 merged.
 
 It's recommended to read
