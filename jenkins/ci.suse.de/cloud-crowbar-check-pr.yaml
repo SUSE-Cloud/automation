@@ -92,7 +92,8 @@
         # report that the job has started (status "pending")
         $ghpr --action set-status $ghpr_paras --status "pending" --targeturl ${BUILD_URL} --context "suse/mkcloud/check" --message "Started check job"
 
-        cd $WORKSPACE
+        mkdir -p $WORKSPACE/${crowbar_repo}
+        cd $WORKSPACE/${crowbar_repo}
         repo_url="https://github.com/${crowbar_org}/${crowbar_repo}.git"
         remote=$(test -d .git && git remote get-url origin || true)
         if test "$remote" != "${repo_url}"; then
