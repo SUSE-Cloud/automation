@@ -232,8 +232,8 @@ function _lvcreate()
 
     # first: create on the PV device (spread IO)
     # fallback: create in VG (if PVs with different size exist)
-    $sudo lvcreate -n $lv_name -L ${lv_size}G $lv_vg $lv_pv || \
-        safely $sudo lvcreate -n $lv_name -L ${lv_size}G $lv_vg
+    $sudo lvcreate --yes -W y -n $lv_name -L ${lv_size}G $lv_vg $lv_pv || \
+        safely $sudo lvcreate --yes -W y -n $lv_name -L ${lv_size}G $lv_vg
 }
 
 function wipe_volume
