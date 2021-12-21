@@ -54,7 +54,7 @@ def merge_input_model(data, input_model):
 def load_input_model_file(file_name, input_model):
     if file_name.endswith('.yml') or file_name.endswith('.yaml'):
         with open(file_name, 'r') as data_file:
-            data = yaml.load(data_file.read())
+            data = yaml.safe_load(data_file.read())
             merge_input_model(
                 data,
                 input_model)
