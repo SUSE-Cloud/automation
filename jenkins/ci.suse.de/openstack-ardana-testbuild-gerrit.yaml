@@ -88,10 +88,12 @@
     pipeline-scm:
       scm:
         - git:
-            url: ${git_automation_repo}
+            url: https://github.com/SUSE-Cloud/automation.git
+            #bug in lightweight-checkout ${git_automation_repo}
             branches:
-              - ${git_automation_branch}
+              - master
+                #${git_automation_branch}
             browser: auto
             wipe-workspace: false
       script-path: jenkins/ci.suse.de/pipelines/${JOB_NAME}.Jenkinsfile
-      lightweight-checkout: false
+      lightweight-checkout: true
