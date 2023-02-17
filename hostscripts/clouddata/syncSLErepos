@@ -108,7 +108,7 @@ rsync_and_unpack_iso()
 # Cloud
 ##############
 
-for version in 9 8 7 6; do
+for version in 9 8; do
     # fetch latest code from version in development (not just latest beta)
     sync_from_ibs=
     [ "$version" == "10" ] && sync_from_ibs=1
@@ -171,7 +171,7 @@ rsync_with_create ${ibs_source_nue}/Devel:/Cloud:/8:/HOS5Migration/SLE_12_SP3/ /
 # SLE 12
 ##############
 
-for servicepack in 4 3 2 1; do
+for servicepack in 4 3; do
     # fetch latest code from service pack in development (not just latest beta)
     sync_from_ibs=
     [ $servicepack -eq 5 ] && sync_from_ibs=1
@@ -247,7 +247,7 @@ done
 
 
 # LTSS enablement
-for servicepack in 4 3 2 1; do
+for servicepack in 4 3; do
 
     version="12-SP$servicepack-LTSS"
     repo_version="$version"
@@ -269,7 +269,7 @@ done
 # Storage
 ##############
 
-for version in 6 5 4 2.1; do
+for version in 6 5 4; do
 
     for arch in $archs; do
         [ "$arch" != x86_64 -a $version = 2.1 ] && continue
