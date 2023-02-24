@@ -53,6 +53,8 @@
           repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP4-Pool/"
         - name: "SLES12-SP4-Updates"
           repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP4-Updates/"
+        - name: "SLES12-SP4-LTSS-Updates"
+          repo: "http://provo-clouddata.cloud.suse.de/repos/x86_64/SLES12-SP4-LTSS-Updates/"
       register: _base_repos
       retries: 6
       delay: 5
