@@ -1,0 +1,46 @@
+#!/usr/bin/perl -w
+# Copyright 2013 by Bernhard M. Wiedemann
+# License: GNU GPLv2
+
+use strict;
+use File::Temp "tempfile";
+
+my $updir=shift||"/srv/nfs/repos/SLES11-SP3-Updates";
+$updir=~s{/$}{};
+my $destdir=shift||"$updir-mini";
+my $fh = File::Temp->new(TEMPLATE => "miniuprepoXXXXX");
+my $tmpfilename = $fh->filename;
+
+sub addexclude($)
+{
+    print $fh "$_[0]\n";
+}
+
+sub findexcludes($)
+{   my $dir = shift;
+    return unless -d $dir;
+    open(my $pipe, "ls --sort=t $dir|");
+    my %seen;
+    while(<$pipe>) {
+        chomp;
+        my $rpm=$_;
+        if(/\.(delta|src|nosrc)\.rpm$/) {
+            addexclude($rpm);
+            next;
+        }
+        # strip version+revision+arch+extension
+        s/-[^-]+-[^-]+\.\w+\.rpm$//;
+        # all but the first(newest) should be excluded
+        if($seen{$_}++) {
+            addexclude($rpm);
+        }
+    }
+}
+
+foreach my $rpmdir (<$updir/rpm/*>) {
+    findexcludes($rpmdir);
+}
+close $fh;
+system(qw"rsync -av --delete-after --link-dest", $updir, "--exclude-from", $tmpfilename, "$updir/", $destdir);
+
+unlink $tmpfilename;
