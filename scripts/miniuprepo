@@ -8,7 +8,7 @@ use File::Temp "tempfile";
 my $updir=shift||"/srv/nfs/repos/SLES11-SP3-Updates";
 $updir=~s{/$}{};
 my $destdir=shift||"$updir-mini";
-my $fh = File::Temp->new(TEMPLATE => "miniuprepoXXXXX");
+my $fh = File::Temp->new(TEMPLATE => "/tmp/miniuprepoXXXXX");
 my $tmpfilename = $fh->filename;
 
 sub addexclude($)
@@ -24,7 +24,7 @@ sub findexcludes($)
     while(<$pipe>) {
         chomp;
         my $rpm=$_;
-        if(/\.(delta|src|nosrc)\.rpm$/ || /\.drpm$/) {
+        if(/\.(delta|nosrc)\.rpm$/ || /\.drpm$/) {
             addexclude($rpm);
             next;
         }
@@ -36,12 +36,14 @@ sub findexcludes($)
         }
     }
 }
+foreach my $e (qw(s390x ppc64le nosrc i586 aarch64_ilp32 aarch64)) {
+    addexclude($e)
+}
 
-foreach my $rpmdir (<$updir/rpm/*>,<$updir/{x86_64,noarch}>) {
+foreach my $rpmdir (<$updir/rpm/*>,<$updir/{x86_64,noarch,src}>) {
     findexcludes($rpmdir);
 }
 close $fh;
-system("rm -rf $destdir/{rpm/,}noarch/ $destdir/{rpm/,}x86_64/"); # cleanup old package
-system(qw"rsync -av --delete-after --link-dest", $updir, "--exclude-from", $tmpfilename, "$updir/", $destdir);
+system(qw"rsync -av --delete-excluded --delete-delay --link-dest", $updir, "--exclude-from", $tmpfilename, "$updir/", $destdir);
 
 unlink $tmpfilename;
