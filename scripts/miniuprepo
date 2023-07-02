@@ -24,7 +24,7 @@ sub findexcludes($)
     while(<$pipe>) {
         chomp;
         my $rpm=$_;
-        if(/\.(delta|src|nosrc)\.rpm$/) {
+        if(/\.(delta|src|nosrc)\.rpm$/ || /\.drpm$/) {
             addexclude($rpm);
             next;
         }
@@ -37,10 +37,11 @@ sub findexcludes($)
     }
 }
 
-foreach my $rpmdir (<$updir/rpm/*>) {
+foreach my $rpmdir (<$updir/rpm/*>,<$updir/{x86_64,noarch}>) {
     findexcludes($rpmdir);
 }
 close $fh;
+system("rm -rf $destdir/{rpm/,}noarch/ $destdir/{rpm/,}x86_64/"); # cleanup old package
 system(qw"rsync -av --delete-after --link-dest", $updir, "--exclude-from", $tmpfilename, "$updir/", $destdir);
 
 unlink $tmpfilename;
