@@ -11,6 +11,12 @@
       - ci2:
           jenkins_worker_labels: 'cloud-ci-worker cloud-ci'
           jenkins_workers_executors: '50'
+      - ci3:
+          jenkins_worker_labels: 'cloud-ci-worker cloud-ci'
+          jenkins_workers_executors: '50'
+      - ci4:
+          jenkins_worker_labels: 'cloud-ci-worker cloud-ci'
+          jenkins_workers_executors: '50'
     jobs:
         - 'cloud-jenkins-worker-{worker_ids}'
 
