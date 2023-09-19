@@ -22,7 +22,6 @@ from __future__ import print_function
 import argparse
 import glob
 import os
-import platform
 import shutil
 import sys
 import tempfile
@@ -38,7 +37,7 @@ def pymodule2pkg(spectemplate):
     specname = os.path.splitext(spectemplate)[0]
     modulename = os.path.splitext(os.path.basename(specname))[0]
     pkgname = pymod2pkg.module2package(
-        modulename, platform.linux_distribution()[0] or 'suse')
+        modulename, 'suse')
     if modulename == 'openstack-macros':
         pkgname = modulename
 
@@ -54,7 +53,7 @@ def get_osc_user():
 def upload_meta(project, build_repository, linkproject):
     projectlink = ''
     if linkproject:
-        projectlink = '<link project="%s"/>\n' % linkproject
+        projectlink = f'<link project="{linkproject}"/>\n'
 
     description = ''
     if linkproject:
@@ -95,7 +94,7 @@ Project used: %(ZUUL_PROJECT)s
         # https://github.com/openSUSE/open-build-service/issues/7126
         for success_counter in range(2):
             # work around build service bug that triggers a database deadlock
-            for fail_counter in range(1, 5):
+            for _ in range(1, 5):
                 try:
                     sh.osc('api', '-T', meta.name,
                            '/source/%s/_meta' % project)
@@ -146,7 +145,7 @@ def create_new_build_project(workdir, project, linkproject):
         os.chdir(olddir)
 
 
-def generate_pkgspec(pkgoutdir, spectemplate, pkgname):
+def generate_pkgspec(project, pkgoutdir, spectemplate, pkgname):
 
     obsservicedir = '/usr/lib/obs/service/'
     outdir = ('--outdir', pkgoutdir)
@@ -155,9 +154,10 @@ def generate_pkgspec(pkgoutdir, spectemplate, pkgname):
     try:
         os.chdir(pkgoutdir)
         renderspec = Command(os.path.join(obsservicedir, 'renderspec'))
-
+        spec_style = "suse"
         renderspec(
             '--input-template', os.path.join(olddir, spectemplate),
+            '--spec-style', spec_style,
             '--output-name', pkgname + '.spec', *outdir)
 
         format_spec_file = Command(
@@ -192,11 +192,15 @@ def spec_is_modified(pkgoutdir, project, pkgname):
         cleanup = True
         sh.osc('api', '/source/%s/%s/%s.spec' % (
             project, pkgname, pkgname), _out=cached_spec)
-    r = sh.cmp(
-        '-s', os.path.join(pkgoutdir, specname), cached_spec, _ok_code=[0, 1])
-    if cleanup:
-        os.remove(cached_spec)
-    return r.exit_code == 1
+    try:
+        sh.cmp(
+            '-s', os.path.join(pkgoutdir, specname), cached_spec)
+    except sh.ErrorReturnCode_1:
+        return True
+    finally:
+        if cleanup:
+            os.remove(cached_spec)
+    return False
 
 
 def osc_detachbranch(workdir, project, pkgname):
@@ -264,6 +268,7 @@ def create_project(worktree, project, linkproject):
         osc_mkpac(workdir, pkgname)
         copy_extra_sources(os.path.dirname(spectemplate), pkgoutdir)
         generate_pkgspec(
+            project,
             pkgoutdir,
             spectemplate, pkgname)
 
@@ -271,10 +276,10 @@ def create_project(worktree, project, linkproject):
             if spec_is_modified(pkgoutdir, project, pkgname):
                 osc_detachbranch(workdir, project, pkgname)
 
-                print("Committing update to %s" % pkgname)
+                print(f"Committing update to {pkgname}")
                 osc_commit_all(workdir, pkgname)
         else:
-            print("Adding new pkg %s" % pkgname)
+            print(f"Adding new pkg {pkgname}")
             osc_commit_all(workdir, pkgname)
 
     if not alive_pkgs:
