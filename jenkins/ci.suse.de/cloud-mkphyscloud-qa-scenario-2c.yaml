@@ -87,6 +87,14 @@
           description: Mandatory, version of the cloud to be installed as integer
 
       - string:
+          name: scenario_dir
+          default: ""
+          description: |
+            Custom scenario directory to look for scenario file in. If
+            unspecified this will be determined automatically based on cloud
+            version and SSL settings.
+
+      - string:
           name: scenario_file
           default: qa-scenario-2c.yaml
           description: Scenario YAML file name
@@ -192,8 +200,16 @@
           # copy scripts/ dir onto the admin node in /root/scripts
           scp -r ~/github.com/$repo_owner/automation/scripts mkcloud.config root@$admin:
 
+          # Use custom scenario dir if specified, otherwise default to the one
+          # based on $cloud_version and $ssl_type.
+
+          if [ -z "$scenario_dir" ]; then
+            scenario_dir=scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file
+          fi
+
           # copy scenario file onto the admin node in /root/scenario.yml
-          scp ~/github.com/$repo_owner/automation/scripts/scenarios/cloud$cloud_version/qa/$ssl_type/$scenario_file \
+
+          scp ~/github.com/$repo_owner/automation/${scenario_dir}/${scenario_file} \
               root@$admin:scenario.yml
 
           ret=0

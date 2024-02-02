@@ -1,0 +1,169 @@
+---
+# 2c - 7 nodes: HA x 3 SBD, KVM x 3, SES x 1
+proposals:
+- barclamp: pacemaker
+  name: services
+  attributes:
+    stonith:
+      mode: sbd
+      sbd:
+        nodes:
+          @@controller1@@:
+            devices:
+            - "@@sbd_device_services@@"
+          @@controller2@@:
+            devices:
+            - "@@sbd_device_services@@"
+          @@controller3@@:
+            devices:
+            - "@@sbd_device_services@@"
+      per_node:
+        nodes:
+          @@controller1@@:
+            params: ''
+          @@controller2@@:
+            params: ''
+          @@controller3@@:
+            params: ''
+  deployment:
+    elements:
+      pacemaker-cluster-member:
+      - @@controller1@@
+      - @@controller2@@
+      - @@controller3@@
+      hawk-server:
+      - @@controller1@@
+      - @@controller2@@
+      - @@controller3@@
+
+- barclamp: database
+  deployment:
+    elements:
+      database-server:
+      - cluster:services
+
+- barclamp: rabbitmq
+  attributes:
+    client:
+      enable_notifications: true
+  deployment:
+    elements:
+      rabbitmq-server:
+      - cluster:services
+
+- barclamp: keystone
+  attributes:
+  deployment:
+    elements:
+      keystone-server:
+      - cluster:services
+
+- barclamp: glance
+  attributes:
+    default_store: rbd
+  deployment:
+    elements:
+      glance-server:
+      - cluster:services
+
+- barclamp: cinder
+  attributes:
+    volumes:
+    - backend_driver: rbd
+      backend_name: rbd
+      rbd:
+        use_crowbar: false
+        config_file: "/etc/ceph/ceph.conf"
+        admin_keyring: "/etc/ceph/ceph.client.admin.keyring"
+        pool: volumes
+        user: cinder
+        secret_uuid: ''
+        flatten_volume_from_snapshot: false
+  deployment:
+    elements:
+      cinder-controller:
+      - cluster:services
+      cinder-volume:
+      - cluster:services
+
+- barclamp: neutron
+  attributes:
+    ml2_mechanism_drivers:
+    - ##networkingplugin##
+    ml2_type_drivers:
+    - ##networkingmode##
+    ml2_type_drivers_default_provider_network: ##networkingmode##
+    ml2_type_drivers_default_tenant_network: ##networkingmode##
+    num_vlans: 99
+  deployment:
+    elements:
+      neutron-server:
+      - cluster:services
+      neutron-network:
+      - cluster:services
+
+- barclamp: nova
+  attributes:
+    itxt_instance: ''
+    use_migration: true
+    vnc_keymap: de
+    kvm:
+      ksm_enabled: true
+    metadata:
+      vendordata:
+        json: '{"custom-key": "custom-value"}'
+  deployment:
+    elements:
+      ec2-api:
+      - cluster:services
+      nova-controller:
+      - cluster:services
+      nova-compute-hyperv: []
+      nova-compute-kvm:
+      - @@compute1@@
+      - @@compute2@@
+      - @@compute3@@
+      nova-compute-qemu: []
+      nova-compute-xen: []
+
+- barclamp: horizon
+  deployment:
+    elements:
+      horizon-server:
+      - cluster:services
+
+- barclamp: heat
+  deployment:
+    elements:
+      heat-server:
+      - cluster:services
+
+- barclamp: manila
+  attributes:
+    default_share_type: ceph
+    shares:
+    - backend_driver: cephfs
+      backend_name: cephfs-backend
+      cephfs:
+        use_crowbar: false
+        cephfs_conf_path: "/etc/ceph/ceph.conf"
+        cephfs_auth_id: manila
+        cephfs_cluster_name: ceph
+  deployment:
+    elements:
+      manila-server:
+      - cluster:services
+      manila-share:
+      - cluster:services
+
+- barclamp: tempest
+  attributes:
+    manila:
+      run_snapshot_tests: false
+      enable_protocols: cephfs
+      enable_ip_rules_for_protocols: ""
+      enable_cert_rules_for_protocols: ""
+  deployment:
+    elements:
+      tempest:
+      - @@controller1@@
