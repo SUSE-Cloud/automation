@@ -33,6 +33,6 @@ lvm_resize_tools:
 vm_fdisk_start_field: 2
 
 # the size (in GB) to which the LVM root partition is resized
-# this needs to be less than 95% of the total available size, otherwise
+# this needs to be less than 65% of the total available size, otherwise
 # the Ardana osconfig play will fail
 min_deployer_root_part_size: 58
