@@ -1,6 +1,17 @@
 ---
 # 1a - 7 nodes: HA (IPMI 1 x 3), KVM x 1, Swift
 proposals:
+- barclamp: dns
+  attributes:
+    enable_designate: true
+  deployment:
+    elements:
+      dns-server:
+      - "@@crowbar@@"
+      - "@@controller1@@"
+      - "@@controller2@@"
+      - "@@controller3@@"
+      dns-client:
 - barclamp: pacemaker
   name: services
   attributes:
@@ -87,7 +98,14 @@ proposals:
     elements:
       glance-server:
       - cluster:services
-
+- barclamp: designate
+  attributes:
+  deployment:
+    elements:
+      designate-server:
+      - cluster:services
+      designate-worker:
+      - cluster:services
 - barclamp: cinder
   attributes:
     volumes:
